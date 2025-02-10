@@ -1,20 +1,26 @@
-import {createSlice} from '@reduxjs/toolkit';
+import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 
-const counterSlice = createSlice({
-  name: 'counter',
-  initialState: {value: 0},
+interface AuthState {
+  phoneNumber: string;
+}
+
+const initialState: AuthState = {
+  phoneNumber: '',
+};
+
+const authSlice = createSlice({
+  name: 'auth',
+  initialState,
   reducers: {
-    increment: state => {
-      state.value += 1;
-    },
-    decrement: state => {
-      state.value -= 1;
-    },
-    incrementByAmount: (state, action) => {
-      state.value += action.payload;
+    setPhoneNumber: (state, action: PayloadAction<string>) => {
+      state.phoneNumber = action.payload;
     },
   },
 });
 
-export const {increment, decrement, incrementByAmount} = counterSlice.actions;
-export default counterSlice.reducer;
+// Selector to get phoneNumber from the auth slice
+export const selectPhoneNumber = (state: {auth: AuthState}) =>
+  state.auth.phoneNumber;
+
+export const {setPhoneNumber} = authSlice.actions;
+export default authSlice.reducer;

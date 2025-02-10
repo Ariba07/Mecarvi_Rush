@@ -42,7 +42,9 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
         placeholderTextColor={'#999'}
         keyboardType={placeholder === 'Phone Number' ? 'numeric' : 'default'}
       />
-      {placeholder === 'Password' && (
+      {(placeholder === 'Password' ||
+        placeholder === 'Confirm Password' ||
+        placeholder === 'New Password') && (
         <TouchableOpacity onPress={togglePasswordVisibility}>
           <Icon
             name={isPasswordVisible ? 'eye' : 'eye-off'} // Change icon based on visibility
@@ -66,7 +68,7 @@ const styles = StyleSheet.create({
     borderColor: Platform.OS === 'ios' ? '#A9A9A9' : '#777', // Different border color for iOS & Android
     borderRadius: wp(2), // Responsive border radius
     paddingVertical: Platform.OS === 'ios' ? hp(1.5) : hp(0.5), // Responsive padding
-    paddingHorizontal: wp(4),
+    paddingHorizontal: wp(2),
     width: wp(80), // Responsive width
     alignSelf: 'center',
     backgroundColor: '#fff',

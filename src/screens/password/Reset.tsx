@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -16,21 +16,14 @@ import CustomTextInput from '../../components/common/textInput/CustomTextInput';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
-import {useDispatch} from 'react-redux';
-import {setPhoneNumber} from '../../slice/Slice';
 
-const Forget = () => {
+const Reset = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  const dispatch = useDispatch();
-
-  const [phoneNumber, setPhone] = useState('');
-
   const handleLogin = () => {
-    dispatch(setPhoneNumber(phoneNumber)); // Store in Redux
-    console.log('Phone Number:', phoneNumber);
-    navigation.navigate('Verify');
+    console.log('Login button pressed');
+    navigation.navigate('Login');
   };
 
   return (
@@ -45,18 +38,19 @@ const Forget = () => {
       </View>
       <View style={styles.container}>
         {/* Form Section */}
-        <Text style={styles.title}>Forget Password</Text>
+        <Text style={styles.title}>Reset Password</Text>
         <View>
-          <Text style={styles.label}>Phone Number</Text>
+          <Text style={styles.label}>New Password</Text>
+          <CustomTextInput placeholder="New Password" secureTextEntry={true} />
+          <Text style={styles.label}>Confirm Password</Text>
           <CustomTextInput
-            placeholder="Phone Number"
-            value={phoneNumber}
-            onChangeText={setPhone}
+            placeholder="Confirm Password"
+            secureTextEntry={true}
           />
         </View>
 
         {/* Login Button */}
-        <CustomButton title="Send Code" onPress={handleLogin} />
+        <CustomButton title="Reset Password" onPress={handleLogin} />
       </View>
     </ImageBackground>
   );
@@ -65,14 +59,12 @@ const Forget = () => {
 const styles = StyleSheet.create({
   background: {
     flex: 1,
-    width: '100%',
-    height: '100%',
+    resizeMode: 'cover',
   },
   container: {
     flex: 1,
-    paddingHorizontal: wp(5), // Responsive padding
-    marginTop: Platform.OS === 'ios' ? hp(-10) : hp(-15),
     justifyContent: 'center',
+    paddingHorizontal: wp(5), // Responsive padding
   },
   logoView: {
     position: 'absolute',
@@ -146,4 +138,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Forget;
+export default Reset;

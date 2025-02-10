@@ -4,4 +4,6 @@ export type RootStackParamList = {
   OnBoard: undefined;
   Login: undefined;
   Forget: undefined;
+  Reset: undefined;
+  Verify: undefined;
 };
