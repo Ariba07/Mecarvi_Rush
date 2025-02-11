@@ -6,4 +6,9 @@ export type RootStackParamList = {
   Forget: undefined;
   Reset: undefined;
   Verify: undefined;
+  Options: undefined;
+  Register: undefined;
+  Upload: undefined;
+  Photo: undefined;
+  Card: undefined;
 };

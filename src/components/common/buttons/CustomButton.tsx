@@ -27,15 +27,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: hp(2),
     width: wp(80), // iOS button is slightly narrower
-    height: Platform.OS === 'ios' ? hp(4.5) : hp(5.5), // iOS button is slightly taller
+    height: Platform.OS === 'ios' ? hp(4.5) : hp(5.7), // iOS button is slightly taller
     alignSelf: 'center',
   },
   text: {
     color: '#fff',
     fontSize: Platform.OS === 'ios' ? wp(4.7) : wp(4.5), // Slightly larger text for iOS
     fontWeight: 'bold',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
+    letterSpacing: 0.5,
   },
 });
 

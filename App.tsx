@@ -11,6 +11,9 @@ import Reset from './src/screens/password/Reset';
 import {Provider} from 'react-redux';
 import store from './Store';
 import Verify from './src/screens/verification/Verify';
+import Options from './src/screens/registerOption/Options';
+import Register from './src/screens/register/Register';
+import Upload, {Card, Photo} from './src/screens/upload/Upload';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -36,6 +39,11 @@ const App = () => {
           <Stack.Screen name="Forget" component={Forget} />
           <Stack.Screen name="Verify" component={Verify} />
           <Stack.Screen name="Reset" component={Reset} />
+          <Stack.Screen name="Options" component={Options} />
+          <Stack.Screen name="Register" component={Register} />
+          <Stack.Screen name="Upload" component={Upload} />
+          <Stack.Screen name="Card" component={Card} />
+          <Stack.Screen name="Photo" component={Photo} />
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>

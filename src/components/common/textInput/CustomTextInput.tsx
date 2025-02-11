@@ -37,7 +37,7 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
         style={styles.input}
         placeholder={placeholder}
         secureTextEntry={!isPasswordVisible} // Toggle secureTextEntry based on state
-        value={value}
+        value={value ? value.charAt(0).toLowerCase() + value.slice(1) : ''}
         onChangeText={onChangeText}
         placeholderTextColor={'#999'}
         keyboardType={placeholder === 'Phone Number' ? 'numeric' : 'default'}
@@ -60,14 +60,14 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginVertical: hp(1), // Responsive margin
+    marginVertical: hp(0.5), // Responsive margin
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: Platform.OS === 'ios' ? '#A9A9A9' : '#777', // Different border color for iOS & Android
     borderRadius: wp(2), // Responsive border radius
-    paddingVertical: Platform.OS === 'ios' ? hp(1.5) : hp(0.5), // Responsive padding
+    paddingVertical: Platform.OS === 'ios' ? hp(1.5) : hp(0.2), // Responsive padding
     paddingHorizontal: wp(2),
     width: wp(80), // Responsive width
     alignSelf: 'center',
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1, // Take available space
-    fontSize: wp(4), // Responsive font size
+    fontSize: wp(3.5), // Responsive font size
     color: '#000',
   },
 });
