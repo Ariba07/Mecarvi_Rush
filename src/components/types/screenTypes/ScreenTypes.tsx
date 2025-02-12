@@ -11,4 +11,5 @@ export type RootStackParamList = {
   Upload: undefined;
   Photo: undefined;
   Card: undefined;
+  Dashboard: undefined;
 };

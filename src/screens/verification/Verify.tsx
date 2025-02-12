@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
   Dimensions,
   TouchableWithoutFeedback,
   Keyboard,
+  BackHandler,
 } from 'react-native';
 import {
   widthPercentageToDP as wp,
@@ -21,7 +22,7 @@ import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
 import {useSelector} from 'react-redux';
-import {selectPhoneNumber} from '../../slice/Slice';
+import {selectAuthState} from '../../slice/Slice';
 
 const {width, height} = Dimensions.get('window'); // Get screen dimensions
 
@@ -30,11 +31,34 @@ const Verify = () => {
   const inputs = useRef<Array<TextInput | null>>([]); // Refs for each input field
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const number = useSelector(selectPhoneNumber);
+  const number = useSelector(
+    (state: {auth: {phoneNumber: string}}) => state.auth.phoneNumber,
+  );
+  const data = useSelector(selectAuthState);
+
+  useEffect(() => {
+    console.log(data);
+  }, [data]);
+
+  useEffect(() => {
+    const backAction = () => {
+      navigation.navigate('Login'); // Navigate to Login screen
+      return true; // Prevent default behavior (exiting the app)
+    };
+
+    // Add event listener
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction,
+    );
+
+    // Cleanup function
+    return () => backHandler.remove();
+  }, [navigation]);
 
   const handleLogin = () => {
     console.log('Login button pressed');
-    navigation.navigate('Reset');
+    navigation.navigate('Login');
   };
 
   const handleInputChange = (value: string, index: number) => {

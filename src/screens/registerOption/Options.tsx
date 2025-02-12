@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-inline-styles */
 import React, {useState} from 'react';
 import {
   View,
@@ -37,79 +38,81 @@ const Options = () => {
   };
 
   return (
-    <ImageBackground
-      source={require('../../assets/images/BG.png')}
-      style={styles.background}>
-      {/* Logo */}
-      <View style={styles.logoView}>
-        <Image
-          source={require('../../assets/images/headerLogo.png')}
-          style={styles.logo}
-        />
-      </View>
-
-      {/* Options Section - 2x2 Grid */}
-      <View style={styles.container}>
-        <View style={styles.grid}>
-          <TouchableOpacity
-            style={[
-              styles.optionBox,
-              selected === 'customer' && styles.selectedBox,
-            ]}
-            onPress={() => handleSelect('customer')}>
-            <Image
-              source={require('../../assets/images/customer.png')}
-              style={styles.icon}
-            />
-            <Text
-              style={[
-                styles.optionText,
-                selected === 'customer' && styles.selectedText,
-              ]}>
-              Continue as customer
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.optionBox,
-              selected === 'business' && styles.selectedBox,
-            ]}
-            onPress={() => handleSelect('business')}>
-            <Image
-              source={require('../../assets/images/business.png')}
-              style={styles.icon}
-            />
-            <Text
-              style={[
-                styles.optionText,
-                selected === 'business' && styles.selectedText,
-              ]}>
-              Register as business
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.optionBox,
-              selected === 'service' && styles.selectedBox,
-            ]}
-            onPress={() => handleSelect('service')}>
-            <Image
-              source={require('../../assets/images/service.png')}
-              style={styles.icon}
-            />
-            <Text
-              style={[
-                styles.optionText,
-                selected === 'service' && styles.selectedText,
-              ]}>
-              Register as Service Provider
-            </Text>
-          </TouchableOpacity>
+    <View style={{flex: 1, backgroundColor: '#ffffff'}}>
+      <ImageBackground
+        source={require('../../assets/images/BG.png')}
+        style={styles.background}>
+        {/* Logo */}
+        <View style={styles.logoView}>
+          <Image
+            source={require('../../assets/images/headerLogo.png')}
+            style={styles.logo}
+          />
         </View>
-      </View>
-    </ImageBackground>
+
+        {/* Options Section - 2x2 Grid */}
+        <View style={styles.container}>
+          <View style={styles.grid}>
+            <TouchableOpacity
+              style={[
+                styles.optionBox,
+                selected === 'customer' && styles.selectedBox,
+              ]}
+              onPress={() => handleSelect('customer')}>
+              <Image
+                source={require('../../assets/images/customer.png')}
+                style={styles.icon}
+              />
+              <Text
+                style={[
+                  styles.optionText,
+                  selected === 'customer' && styles.selectedText,
+                ]}>
+                Continue as customer
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.optionBox,
+                selected === 'business' && styles.selectedBox,
+              ]}
+              onPress={() => handleSelect('business')}>
+              <Image
+                source={require('../../assets/images/business.png')}
+                style={styles.icon}
+              />
+              <Text
+                style={[
+                  styles.optionText,
+                  selected === 'business' && styles.selectedText,
+                ]}>
+                Register as business
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.optionBox,
+                selected === 'service' && styles.selectedBox,
+              ]}
+              onPress={() => handleSelect('service')}>
+              <Image
+                source={require('../../assets/images/service.png')}
+                style={styles.icon}
+              />
+              <Text
+                style={[
+                  styles.optionText,
+                  selected === 'service' && styles.selectedText,
+                ]}>
+                Register as Service Provider
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ImageBackground>
+    </View>
   );
 };
 

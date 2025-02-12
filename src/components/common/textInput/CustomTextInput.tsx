@@ -37,7 +37,12 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
         style={styles.input}
         placeholder={placeholder}
         secureTextEntry={!isPasswordVisible} // Toggle secureTextEntry based on state
-        value={value ? value.charAt(0).toLowerCase() + value.slice(1) : ''}
+        value={
+          placeholder === 'Email'
+            ? (value ?? '').charAt(0).toLowerCase() + (value ?? '').slice(1) ||
+              ''
+            : value
+        }
         onChangeText={onChangeText}
         placeholderTextColor={'#999'}
         keyboardType={placeholder === 'Phone Number' ? 'numeric' : 'default'}

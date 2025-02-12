@@ -14,6 +14,7 @@ import Verify from './src/screens/verification/Verify';
 import Options from './src/screens/registerOption/Options';
 import Register from './src/screens/register/Register';
 import Upload, {Card, Photo} from './src/screens/upload/Upload';
+import Dashboard from './src/screens/dashboard/Dashboard';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -44,6 +45,7 @@ const App = () => {
           <Stack.Screen name="Upload" component={Upload} />
           <Stack.Screen name="Card" component={Card} />
           <Stack.Screen name="Photo" component={Photo} />
+          <Stack.Screen name="Dashboard" component={Dashboard} />
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>

@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,10 @@ import {
   Dimensions,
   TouchableWithoutFeedback,
   Keyboard,
+  TouchableOpacity,
+  PermissionsAndroid,
 } from 'react-native';
+import {PERMISSIONS, request, RESULTS} from 'react-native-permissions';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -19,8 +22,12 @@ import CustomButton from '../../components/common/buttons/CustomButton';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
+import {launchCamera, CameraOptions} from 'react-native-image-picker';
+import {useDispatch} from 'react-redux';
+import {AuthState, updateField} from '../../slice/Slice';
+import ImageResizer from 'react-native-image-resizer';
 
-const {width, height} = Dimensions.get('window'); // Get screen dimensions
+const {width, height} = Dimensions.get('window');
 
 interface VerifyScreenProps {
   title: string;
@@ -37,9 +44,113 @@ const VerifyScreen: React.FC<VerifyScreenProps> = ({
 }) => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const dispatch = useDispatch();
+  const [imageUri, setImageUri] = useState<string | null>(null);
+
+  const requestCameraPermission = async () => {
+    if (Platform.OS === 'ios') {
+      const result = await request(PERMISSIONS.IOS.CAMERA);
+      return result === RESULTS.GRANTED;
+    }
+    return true;
+  };
+
+  const openCamera = async () => {
+    if (Platform.OS === 'android') {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.CAMERA,
+      );
+      if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+        console.log('Camera permission denied');
+        return;
+      }
+    }
+
+    const hasPermission = await requestCameraPermission();
+    if (!hasPermission) {
+      console.log('Camera permission denied');
+      return;
+    }
+
+    const options: CameraOptions = {
+      mediaType: 'photo',
+      cameraType: 'back',
+      saveToPhotos: false,
+      quality: 1.0, // Maximum quality before compression
+      maxWidth: 4000,
+      maxHeight: 3000,
+    };
+
+    launchCamera(options, async response => {
+      if (response.didCancel) {
+        console.log('User cancelled camera');
+      } else if (response.errorMessage) {
+        console.log('Camera error: ', response.errorMessage);
+      } else if (response.assets && response.assets.length > 0) {
+        const image = response.assets[0];
+
+        if (image.uri && image.fileSize) {
+          let fileSizeKB = image.fileSize / 1024;
+          let fileSizeMB = fileSizeKB / 1024;
+          console.log(`Original Size: ${fileSizeMB.toFixed(2)} MB`);
+
+          // Increase threshold to 1MB (1024 KB)
+          if (fileSizeKB > 1024) {
+            try {
+              const compressedImage = await ImageResizer.createResizedImage(
+                image.uri,
+                image.width ? image.width / 2 : 2000,
+                image.height ? image.height / 2 : 1500,
+                'WEBP',
+                95, // Quality reduction
+                0,
+                undefined,
+                false,
+              );
+
+              console.log('Compressed Image URI:', compressedImage.uri);
+              console.log(
+                'Compressed File Size:',
+                compressedImage.size / 1024,
+                'KB',
+              );
+
+              setImageUri(compressedImage.uri);
+            } catch (error) {
+              console.log('Image compression error:', error);
+            }
+          } else {
+            console.log('Image is already within the 1MB limit.');
+            setImageUri(image.uri);
+          }
+        } else {
+          console.log('File size unknown');
+        }
+      }
+    });
+  };
 
   const handleNext = () => {
-    navigation.navigate(nextScreen);
+    if (imageUri) {
+      let fieldName: keyof AuthState | null = null;
+
+      if (label === 'CNIC Front Picture') {
+        fieldName = 'cnic';
+      } else if (label === 'Credit Card Picture') {
+        fieldName = 'card';
+      } else if (label === 'Live Photo') {
+        fieldName = 'photo';
+      }
+
+      if (fieldName) {
+        dispatch(updateField({field: fieldName, value: imageUri}));
+      }
+    }
+    if (label === 'Live Photo') {
+      navigation.replace(nextScreen);
+    } else {
+      navigation.navigate(nextScreen);
+    }
   };
 
   return (
@@ -58,9 +169,18 @@ const VerifyScreen: React.FC<VerifyScreenProps> = ({
             <Text style={styles.title}>{title}</Text>
             <View>
               <Text style={styles.label}>{label}</Text>
-              <View style={styles.box}>
-                <Image style={styles.icon} source={imageSource} />
-              </View>
+              <TouchableOpacity onPress={openCamera}>
+                <View style={styles.box}>
+                  {imageUri ? (
+                    <Image
+                      source={{uri: imageUri}}
+                      style={styles.imagePreview}
+                    />
+                  ) : (
+                    <Image style={styles.icon} source={imageSource} />
+                  )}
+                </View>
+              </TouchableOpacity>
             </View>
             <CustomButton
               title={label === 'Live Photo' ? 'Register' : 'Next'}
@@ -83,7 +203,6 @@ const Upload = () => (
   />
 );
 
-// Exporting screens from the same file
 export const Card = () => (
   <VerifyScreen
     title="Verify identity"
@@ -151,6 +270,12 @@ const styles = StyleSheet.create({
     height: wp(12),
     resizeMode: 'contain',
     marginBottom: hp(1),
+  },
+  imagePreview: {
+    width: '100%',
+    height: hp(20),
+    borderRadius: 10,
+    resizeMode: 'cover',
   },
 });
 

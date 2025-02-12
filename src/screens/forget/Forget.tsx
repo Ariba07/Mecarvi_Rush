@@ -20,6 +20,7 @@ import CustomTextInput from '../../components/common/textInput/CustomTextInput';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
+import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 
 const {width, height} = Dimensions.get('window'); // Get screen dimensions
 
@@ -29,8 +30,16 @@ const Forget = () => {
 
   const [email, setEmail] = useState('');
 
-  const handleLogin = () => {
-    navigation.navigate('Reset');
+  const handleLogin = async () => {
+    try {
+      await apiHelper({
+        method: 'POST',
+        endpoint: 'authentication/forgot-password/',
+        data: {email: email},
+      });
+
+      navigation.replace('Login');
+    } catch (error) {}
   };
 
   return (

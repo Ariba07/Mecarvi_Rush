@@ -1,17 +1,23 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 
-interface AuthState {
+export interface AuthState {
   fullName: string;
   email: string;
   phoneNumber: string;
   password: string;
+  cnic: string | null;
+  photo: string | null;
+  card: string | null;
 }
 
-const initialState: AuthState = {
+export const initialState: AuthState = {
   fullName: '',
   email: '',
   phoneNumber: '',
   password: '',
+  cnic: null,
+  photo: null,
+  card: null,
 };
 
 const authSlice = createSlice({

@@ -24,6 +24,7 @@ import {Icon} from 'react-native-elements';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
+import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 
 const {width, height} = Dimensions.get('window'); // Get screen dimensions
 
@@ -38,12 +39,16 @@ const Login = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  const handleLogin = (values: {email: string; password: string}) => {
-    console.log('Login with:', values);
-  };
+  const handleLogin = async (values: {email: string; password: string}) => {
+    try {
+      await apiHelper({
+        method: 'POST',
+        endpoint: 'authentication/login/',
+        data: values,
+      });
 
-  const toggleCheckbox = () => {
-    setIsChecked(!isChecked);
+      navigation.replace('Dashboard');
+    } catch (error) {}
   };
 
   return (
@@ -61,17 +66,15 @@ const Login = () => {
           <View style={styles.container}>
             <Text style={styles.title}>Login</Text>
 
-            {/* Formik for Form Handling */}
             <Formik
               initialValues={{email: '', password: ''}}
               validationSchema={loginValidationSchema}
               onSubmit={handleLogin}>
               {({handleChange, handleSubmit, values, errors, touched}) => (
                 <View>
-                  {/* Email Field */}
                   <Text style={styles.label}>Email</Text>
                   <CustomTextInput
-                    placeholder="email" // Ensures lowercase first letter
+                    placeholder="email"
                     value={values.email}
                     onChangeText={handleChange('email')}
                   />
@@ -79,7 +82,6 @@ const Login = () => {
                     <Text style={styles.errorText}>{errors.email}</Text>
                   )}
 
-                  {/* Password Field */}
                   <Text style={styles.label}>Password</Text>
                   <CustomTextInput
                     placeholder="Password"
@@ -91,11 +93,10 @@ const Login = () => {
                     <Text style={styles.errorText}>{errors.password}</Text>
                   )}
 
-                  {/* Remember Me and Forgot Password */}
                   <View style={styles.options}>
                     <TouchableOpacity
                       style={styles.checkboxContainer}
-                      onPress={toggleCheckbox}>
+                      onPress={() => setIsChecked(!isChecked)}>
                       <View
                         style={[
                           styles.checkbox,
@@ -106,7 +107,6 @@ const Login = () => {
                           size={Platform.OS === 'ios' ? wp(4) : wp(3)}
                           color={'#ffffff'}
                           type="ionicon"
-                          style={{alignItems: 'center'}}
                         />
                       </View>
                       <Text style={styles.rememberText}>Remember me</Text>
@@ -117,13 +117,11 @@ const Login = () => {
                     </TouchableOpacity>
                   </View>
 
-                  {/* Login Button */}
                   <CustomButton title="Login" onPress={handleSubmit} />
                 </View>
               )}
             </Formik>
 
-            {/* Footer Section */}
             <View style={styles.footer}>
               <Text style={styles.footerText}>Don't have an account?</Text>
               <TouchableOpacity onPress={() => navigation.navigate('Options')}>
