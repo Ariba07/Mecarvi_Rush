@@ -15,6 +15,10 @@ import Options from './src/screens/registerOption/Options';
 import Register from './src/screens/register/Register';
 import Upload, {Card, Photo} from './src/screens/upload/Upload';
 import Dashboard from './src/screens/dashboard/Dashboard';
+import ServiceProviderRegister from './src/screens/register/ServiceProviderRegister';
+import ServiceProviderRegister3 from './src/screens/register/ServiceProviderRegister3';
+import ServiceProviderRegister2 from './src/screens/register/ServiceProviderRegister2';
+import ServiceProviderRegister1 from './src/screens/register/ServiceProviderRegister1';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -46,6 +50,22 @@ const App = () => {
           <Stack.Screen name="Card" component={Card} />
           <Stack.Screen name="Photo" component={Photo} />
           <Stack.Screen name="Dashboard" component={Dashboard} />
+          <Stack.Screen
+            name="ServiceProviderRegister"
+            component={ServiceProviderRegister}
+          />
+          <Stack.Screen
+            name="ServiceProviderRegister1"
+            component={ServiceProviderRegister1}
+          />
+          <Stack.Screen
+            name="ServiceProviderRegister2"
+            component={ServiceProviderRegister2}
+          />
+          <Stack.Screen
+            name="ServiceProviderRegister3"
+            component={ServiceProviderRegister3}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>

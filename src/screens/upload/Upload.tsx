@@ -23,8 +23,13 @@ import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
 import {launchCamera, CameraOptions} from 'react-native-image-picker';
-import {useDispatch} from 'react-redux';
-import {AuthState, updateField} from '../../slice/Slice';
+import {useDispatch, useSelector} from 'react-redux';
+import {
+  AuthState,
+  selectOption,
+  updateBusinessField,
+  updateCustomerField,
+} from '../../slice/Slice';
 import ImageResizer from 'react-native-image-resizer';
 
 const {width, height} = Dimensions.get('window');
@@ -46,6 +51,7 @@ const VerifyScreen: React.FC<VerifyScreenProps> = ({
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const dispatch = useDispatch();
   const [imageUri, setImageUri] = useState<string | null>(null);
+  const role = useSelector(selectOption);
 
   const requestCameraPermission = async () => {
     if (Platform.OS === 'ios') {
@@ -143,7 +149,11 @@ const VerifyScreen: React.FC<VerifyScreenProps> = ({
       }
 
       if (fieldName) {
-        dispatch(updateField({field: fieldName, value: imageUri}));
+        if (role === 'customer') {
+          dispatch(updateCustomerField({field: fieldName, value: imageUri}));
+        } else if (role === 'service') {
+          dispatch(updateBusinessField({field: fieldName, value: imageUri}));
+        }
       }
     }
     if (label === 'Live Photo') {

@@ -12,4 +12,8 @@ export type RootStackParamList = {
   Photo: undefined;
   Card: undefined;
   Dashboard: undefined;
+  ServiceProviderRegister: undefined;
+  ServiceProviderRegister1: undefined;
+  ServiceProviderRegister2: undefined;
+  ServiceProviderRegister3: undefined;
 };

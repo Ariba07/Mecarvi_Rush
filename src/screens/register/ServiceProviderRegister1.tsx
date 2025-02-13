@@ -22,34 +22,45 @@ import CustomTextInput from '../../components/common/textInput/CustomTextInput';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
-import {useDispatch} from 'react-redux';
 import {Formik} from 'formik';
 import {registerValidationSchema} from '../../components/helperUtils/validations/validationSchema';
-import {updateCustomerField} from '../../slice/Slice';
+import {updateBusinessField} from '../../slice/Slice';
+import {useDispatch} from 'react-redux';
 
-const {width, height} = Dimensions.get('window'); // Get screen dimensions
+const {width, height} = Dimensions.get('window');
 
-const Register = () => {
-  const dispatch = useDispatch();
+const ServiceProviderRegister1 = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  const handleNext = (values: {
-    name: string;
-    email: string;
-    phoneNumber: string;
-    password: string;
-  }) => {
-    // Dispatch each field to Redux store
-    dispatch(updateCustomerField({field: 'fullName', value: values.name}));
-    dispatch(updateCustomerField({field: 'email', value: values.email}));
-    dispatch(
-      updateCustomerField({field: 'phoneNumber', value: values.phoneNumber}),
-    );
-    dispatch(updateCustomerField({field: 'password', value: values.password}));
+  const dispatch = useDispatch();
 
-    // Navigate to the next screen
-    navigation.navigate('Upload');
+  const handleNext = (values: any) => {
+    // Dispatch all business-related fields
+    dispatch(
+      updateBusinessField({field: 'ownerName', value: values.ownerName}),
+    );
+    dispatch(
+      updateBusinessField({
+        field: 'ownerPhoneNumber',
+        value: values.ownerPhoneNumber,
+      }),
+    );
+    dispatch(
+      updateBusinessField({
+        field: 'ownerEmail',
+        value: values.ownerEmail,
+      }),
+    );
+    dispatch(updateBusinessField({field: 'linkedIn', value: values.linkedIn}));
+    dispatch(
+      updateBusinessField({
+        field: 'password',
+        value: values.password,
+      }),
+    );
+
+    navigation.navigate('ServiceProviderRegister2');
   };
 
   return (
@@ -69,6 +80,9 @@ const Register = () => {
             </View>
 
             <Text style={styles.title}>Registration</Text>
+            <Text style={styles.subTitle}>
+              Owner/Primary Contact Information
+            </Text>
 
             <View style={{height: hp(65), marginTop: hp(2)}}>
               <ScrollView
@@ -77,9 +91,10 @@ const Register = () => {
                 showsVerticalScrollIndicator={false}>
                 <Formik
                   initialValues={{
-                    name: '',
-                    email: '',
-                    phoneNumber: '',
+                    ownerName: '',
+                    ownerPhoneNumber: '',
+                    ownerEmail: '',
+                    linkedIn: '',
                     password: '',
                     confirmPassword: '',
                   }}
@@ -87,42 +102,58 @@ const Register = () => {
                   onSubmit={handleNext}>
                   {({handleChange, handleSubmit, values, errors, touched}) => (
                     <>
-                      <Text style={styles.label}>Full Name</Text>
+                      <Text style={styles.label}>Owner Name</Text>
                       <CustomTextInput
-                        placeholder="Full Name"
-                        value={values.name}
+                        placeholder="Company Name"
+                        value={values.ownerName}
                         onChangeText={text =>
-                          handleChange('name')(text as string)
+                          handleChange('ownerName')(text as string)
                         }
                       />
-                      {touched.name && errors.name && (
-                        <Text style={styles.errorText}>{errors.name}</Text>
+                      {touched.ownerName && errors.ownerName && (
+                        <Text style={styles.errorText}>{errors.ownerName}</Text>
                       )}
 
-                      <Text style={styles.label}>Email</Text>
+                      <Text style={styles.label}>Owner's Email</Text>
                       <CustomTextInput
-                        placeholder="Email"
-                        value={values.email}
+                        placeholder="Company Email"
+                        value={values.ownerEmail}
                         onChangeText={text =>
-                          handleChange('email')(text as string)
+                          handleChange('ownerEmail')(text as string)
                         }
                       />
-                      {touched.email && errors.email && (
-                        <Text style={styles.errorText}>{errors.email}</Text>
-                      )}
-
-                      <Text style={styles.label}>Phone Number</Text>
-                      <CustomTextInput
-                        placeholder="Phone Number"
-                        value={values.phoneNumber}
-                        onChangeText={text =>
-                          handleChange('phoneNumber')(text as string)
-                        }
-                      />
-                      {touched.phoneNumber && errors.phoneNumber && (
+                      {touched.ownerEmail && errors.ownerEmail && (
                         <Text style={styles.errorText}>
-                          {errors.phoneNumber}
+                          {errors.ownerEmail}
                         </Text>
+                      )}
+
+                      <Text style={styles.label}>Owner's Phone Number</Text>
+                      <CustomTextInput
+                        placeholder="Company Phone Number"
+                        value={values.ownerPhoneNumber}
+                        onChangeText={text =>
+                          handleChange('ownerPhoneNumber')(text as string)
+                        }
+                      />
+                      {touched.ownerPhoneNumber && errors.ownerPhoneNumber && (
+                        <Text style={styles.errorText}>
+                          {errors.ownerPhoneNumber}
+                        </Text>
+                      )}
+
+                      <Text style={styles.label}>
+                        Owner's LinkedIn Profile (Optional)
+                      </Text>
+                      <CustomTextInput
+                        placeholder="URL"
+                        value={values.linkedIn}
+                        onChangeText={text =>
+                          handleChange('linkedIn')(text as string)
+                        }
+                      />
+                      {touched.linkedIn && errors.linkedIn && (
+                        <Text style={styles.errorText}>{errors.linkedIn}</Text>
                       )}
 
                       <Text style={styles.label}>Password</Text>
@@ -153,7 +184,6 @@ const Register = () => {
                         </Text>
                       )}
 
-                      {/* Register Button */}
                       <CustomButton title="Next" onPress={handleSubmit} />
                     </>
                   )}
@@ -197,6 +227,13 @@ const styles = StyleSheet.create({
     color: '#ff00a7',
     alignSelf: 'center',
   },
+  subTitle: {
+    fontSize: wp(4),
+    fontWeight: 'bold',
+    color: '#333333',
+    alignSelf: 'center',
+    marginTop: hp(2.5),
+  },
   label: {
     fontSize: wp(3.5),
     color: '#333',
@@ -212,4 +249,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Register;
+export default ServiceProviderRegister1;

@@ -22,7 +22,7 @@ import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
 import {useSelector} from 'react-redux';
-import {selectAuthState} from '../../slice/Slice';
+import {selectBusinessAuthState} from '../../slice/Slice';
 
 const {width, height} = Dimensions.get('window'); // Get screen dimensions
 
@@ -34,7 +34,7 @@ const Verify = () => {
   const number = useSelector(
     (state: {auth: {phoneNumber: string}}) => state.auth.phoneNumber,
   );
-  const data = useSelector(selectAuthState);
+  const data = useSelector(selectBusinessAuthState);
 
   useEffect(() => {
     console.log(data);

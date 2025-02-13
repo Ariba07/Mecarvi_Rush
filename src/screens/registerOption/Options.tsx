@@ -17,11 +17,14 @@ import {
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
+import {useDispatch} from 'react-redux';
+import {setOption} from '../../slice/Slice';
 const {width, height} = Dimensions.get('window'); // Get screen dimensions
 
 const Options = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const dispatch = useDispatch();
 
   const [selected, setSelected] = useState<string | null>(null);
 
@@ -34,6 +37,11 @@ const Options = () => {
 
     if (option === 'customer') {
       navigation.navigate('Register'); // Change 'Register' to the actual screen name
+      dispatch(setOption(option));
+    }
+    if (option === 'service') {
+      dispatch(setOption(option));
+      navigation.navigate('ServiceProviderRegister'); // Change 'Register' to the actual screen name
     }
   };
 
