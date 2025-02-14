@@ -40,7 +40,6 @@ const ServiceProviderRegister3 = () => {
 
   const handleNext = (values: any) => {
     // Dispatch all business-related fields
-    dispatch(updateBusinessField({field: 'name', value: values.name}));
     dispatch(
       updateBusinessField({
         field: 'facebookLink',

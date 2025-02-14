@@ -24,7 +24,6 @@ import {Icon} from 'react-native-elements';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
-import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 
 const {width, height} = Dimensions.get('window'); // Get screen dimensions
 
@@ -39,16 +38,20 @@ const Login = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  const handleLogin = async (values: {email: string; password: string}) => {
-    try {
-      await apiHelper({
-        method: 'POST',
-        endpoint: 'authentication/login/',
-        data: values,
-      });
+  // const handleLogin = async (values: {email: string; password: string}) => {
+  //   try {
+  //     await apiHelper({
+  //       method: 'POST',
+  //       endpoint: 'authentication/login/',
+  //       data: values,
+  //     });
 
-      navigation.replace('Dashboard');
-    } catch (error) {}
+  //     navigation.replace('Subscription');
+  //   } catch (error) {}
+  // };
+
+  const handleLogin = () => {
+    navigation.replace('Subscription');
   };
 
   return (
@@ -76,7 +79,7 @@ const Login = () => {
                   <CustomTextInput
                     placeholder="email"
                     value={values.email}
-                    onChangeText={handleChange('email')}
+                    onChangeText={text => handleChange('email')(text as string)}
                   />
                   {touched.email && errors.email && (
                     <Text style={styles.errorText}>{errors.email}</Text>
@@ -87,7 +90,9 @@ const Login = () => {
                     placeholder="Password"
                     secureTextEntry={true}
                     value={values.password}
-                    onChangeText={handleChange('password')}
+                    onChangeText={text =>
+                      handleChange('password')(text as string)
+                    }
                   />
                   {touched.password && errors.password && (
                     <Text style={styles.errorText}>{errors.password}</Text>

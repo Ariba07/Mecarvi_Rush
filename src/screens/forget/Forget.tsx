@@ -62,7 +62,7 @@ const Forget = () => {
               <CustomTextInput
                 placeholder="Email"
                 value={email}
-                onChangeText={setEmail}
+                onChangeText={text => setEmail(text as string)}
               />
             </View>
 
