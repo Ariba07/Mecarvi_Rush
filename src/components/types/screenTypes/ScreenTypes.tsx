@@ -17,4 +17,8 @@ export type RootStackParamList = {
   ServiceProviderRegister2: undefined;
   ServiceProviderRegister3: undefined;
   Subscription: undefined;
+  Orders: undefined;
+  Chats: undefined;
+  Settings: undefined;
+  BottomTabs: undefined;
 };
