@@ -50,7 +50,7 @@ const Subscription = () => {
         <View style={{flexGrow: 1}}>
           <Header
             title="Subscription"
-            onBackPress={() => navigation.navigate('BottomTabs')}
+            onBackPress={() => navigation.navigate('Drawer')}
           />
           <View>
             <Text style={styles.heading}>Choose Your Plan</Text>

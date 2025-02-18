@@ -1,12 +1,359 @@
-import {Text, SafeAreaView} from 'react-native';
-import React from 'react';
+/* eslint-disable react-native/no-inline-styles */
+import React, {useState} from 'react';
+import {
+  View,
+  Text,
+  SafeAreaView,
+  TouchableOpacity,
+  FlatList,
+  ScrollView,
+  Image,
+  StyleSheet,
+  Platform,
+} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
+import {DrawerNavigationProp} from '@react-navigation/drawer';
+import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from 'react-native-responsive-screen';
+import Icon from 'react-native-vector-icons/Ionicons';
+import ProductCard from '../../components/common/productCard/ProductCard';
+import SideMenu from '../../assets/images/SideMenu.svg';
 
-const Dashboard = () => {
+const banners = [
+  {id: '1', image: require('../../assets/images/Banner.png')},
+  {id: '2', image: require('../../assets/images/Banner.png')},
+  {id: '3', image: require('../../assets/images/Banner.png')},
+];
+
+const services = [
+  {
+    id: '1',
+    name: 'Printing',
+    image: require('../../assets/images/printing.png'),
+  },
+  {
+    id: '2',
+    name: 'Embroidery',
+    image: require('../../assets/images/embroidary.png'),
+  },
+  {id: '3', name: 'Signage', image: require('../../assets/images/signage.png')},
+];
+
+const recommended = [
+  {
+    id: '1',
+    name: 'Aluminium Sign',
+    price: '$220',
+    image: require('../../assets/images/s1.png'),
+  },
+  {
+    id: '2',
+    name: 'SideWalk Sign Board',
+    price: '$220',
+    image: require('../../assets/images/s1.png'),
+  },
+  {
+    id: '3',
+    name: 'SideWalk Sign Board',
+    price: '$220',
+    image: require('../../assets/images/s1.png'),
+  },
+  {
+    id: '4',
+    name: 'SideWalk Sign Board',
+    price: '$220',
+    image: require('../../assets/images/s1.png'),
+  },
+];
+
+const Dashboard: React.FC = () => {
+  const navigation = useNavigation<DrawerNavigationProp<RootStackParamList>>();
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [selectedTab, setSelectedTab] = useState<'prints' | 'rentals'>(
+    'prints',
+  ); // Track selected tab
+
+  const renderBanner = ({item}: any) => (
+    <Image source={item.image} style={styles.banner} resizeMode="cover" />
+  );
+
   return (
-    <SafeAreaView>
-      <Text>Dashboard</Text>
+    <SafeAreaView style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.openDrawer()}>
+          <SideMenu />
+        </TouchableOpacity>
+
+        {/* Tab container to hold the "Prints" and "Rentals" tabs */}
+        <View style={styles.tabsContainer}>
+          <TouchableOpacity
+            onPress={() => setSelectedTab('prints')}
+            style={[
+              styles.tab,
+              selectedTab === 'prints' && styles.selectedTabStyle,
+            ]}>
+            <Text
+              style={[
+                styles.title,
+                selectedTab === 'prints' && styles.selectedTabText,
+              ]}>
+              Prints
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => setSelectedTab('rentals')}
+            style={[
+              styles.tab,
+              selectedTab === 'rentals' && styles.selectedTabStyle,
+            ]}>
+            <Text
+              style={[
+                styles.title,
+                selectedTab === 'rentals' && styles.selectedTabText,
+              ]}>
+              Rentals
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {selectedTab === 'prints' ? (
+        <ScrollView
+          style={{marginBottom: Platform.OS === 'ios' ? wp(15) : wp(20)}}
+          showsVerticalScrollIndicator={false}>
+          {/** Filter Section */}
+          <View style={styles.filterContainer}>
+            <View style={styles.locationContainer}>
+              <View style={styles.location}>
+                <View style={styles.locationRow}>
+                  <Icon name="location" size={20} color={'#FF00A7'} />
+                  <Text>New York,USA</Text>
+                  <Icon name="chevron-down" size={15} color={'#5c5c5c'} />
+                </View>
+              </View>
+            </View>
+            <View style={styles.iconContainer}>
+              <View style={styles.iconBox}>
+                <Icon name="search-outline" size={20} color={'#333333'} />
+              </View>
+              <View style={styles.iconBox}>
+                <Icon
+                  name="notifications-outline"
+                  size={20}
+                  color={'#333333'}
+                />
+              </View>
+            </View>
+          </View>
+
+          {/** Banner Section */}
+          <FlatList
+            data={banners}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            keyExtractor={item => item.id}
+            renderItem={renderBanner}
+            onScroll={event => {
+              const index = Math.round(
+                event.nativeEvent.contentOffset.x / wp('100%'),
+              );
+              setActiveIndex(index);
+            }}
+            scrollEventThrottle={16}
+          />
+          <View style={styles.dotContainer}>
+            {banners.map((_, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.dot,
+                  {
+                    backgroundColor:
+                      index === activeIndex ? '#FF00A7' : '#cccccc',
+                  },
+                ]}
+              />
+            ))}
+          </View>
+          {/* Services Section */}
+          <View style={styles.section}>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}>
+              <Text style={styles.sectionTitle}>Services</Text>
+              <TouchableOpacity>
+                <Text
+                  style={{textDecorationLine: 'underline', color: '#FF00A7'}}>
+                  See All
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={services}
+              horizontal
+              keyExtractor={item => item.id}
+              renderItem={({item}) => (
+                <View style={styles.serviceCard}>
+                  <Image
+                    source={item.image}
+                    style={styles.serviceImage}
+                    resizeMode="contain"
+                  />
+                  <Text style={styles.serviceName}>{item.name}</Text>
+                </View>
+              )}
+              showsHorizontalScrollIndicator={false}
+            />
+          </View>
+          {/* Recommended Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Recommended</Text>
+            {recommended.map(item => (
+              <ProductCard
+                key={item.id}
+                name={item.name}
+                price={item.price}
+                image={item.image}
+              />
+            ))}
+          </View>
+        </ScrollView>
+      ) : (
+        <View style={styles.availContainer}>
+          <Text style={styles.availTxt}>Available Soon</Text>
+        </View>
+      )}
     </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {flex: 1},
+  title: {fontSize: wp('5%'), fontWeight: 'bold'},
+  banner: {
+    width: wp('100%'),
+    height: hp('20%'),
+    borderRadius: 10,
+  },
+  dotContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginVertical: Platform.OS === 'android' ? hp(1) : undefined,
+  },
+  dot: {
+    width: wp('2%'),
+    height: wp('2%'),
+    borderRadius: wp('1%'),
+    marginHorizontal: wp('1%'),
+  },
+  section: {marginHorizontal: wp('4%'), marginVertical: hp('1S%')},
+  sectionTitle: {
+    fontSize: wp('5%'),
+    fontWeight: 'bold',
+    marginBottom: hp('1%'),
+  },
+  serviceCard: {
+    alignItems: 'center',
+    marginRight: wp('8.5%'),
+    backgroundColor: 'white',
+    borderRadius: wp('3%'),
+    width: wp('25%'), // Set a fixed width for the service card
+    height: wp('25%'), // Set a fixed height for the service card
+    justifyContent: 'center',
+  },
+  serviceImage: {
+    width: wp('10%'),
+    height: wp('15%'), // Ensure image fits within the service card
+    borderRadius: wp('2%'),
+  },
+  serviceName: {
+    marginTop: hp('1%'),
+    fontSize: wp('3.5%'),
+    fontWeight: 'bold',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: Platform.OS === 'ios' ? hp(0.5) : hp(5), // More height for iOS (status bar)
+    width: '100%',
+    paddingBottom: Platform.OS === 'ios' ? undefined : hp(2),
+    paddingHorizontal: hp(2.5),
+  },
+  tabsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    alignItems: 'center',
+    flex: 1, // To ensure tabs are aligned properly
+  },
+  tab: {
+    paddingHorizontal: wp('5%'),
+    paddingVertical: hp('1%'),
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  selectedTabStyle: {
+    borderBottomColor: '#03A7A7',
+    borderBottomWidth: 2,
+  },
+  selectedTabText: {
+    color: '#03A7A7', // Color for the selected tab
+  },
+  availTxt: {
+    color: '#03A7A7',
+    fontWeight: 'bold',
+    fontSize: wp(12), // Adjust font size as per screen size
+    textAlign: 'center', // Ensures text is centered within the container
+  },
+  availContainer: {
+    alignItems: 'center', // Centers horizontally
+    justifyContent: 'center', // Centers vertically
+    flex: 1,
+  },
+  filterContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginHorizontal: wp('4%'),
+    marginBottom: Platform.OS === 'ios' ? wp(2) : wp(3),
+    marginTop: Platform.OS === 'ios' ? wp(2) : undefined,
+  },
+  locationContainer: {
+    backgroundColor: '#ffffff',
+    width: wp(40),
+    paddingVertical: hp(1),
+    borderRadius: 8,
+  },
+  location: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginHorizontal: wp(2),
+  },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  iconContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconBox: {
+    backgroundColor: '#ffffff',
+    padding: wp(2),
+    borderRadius: 8,
+    marginRight: wp(2),
+  },
+});
 
 export default Dashboard;

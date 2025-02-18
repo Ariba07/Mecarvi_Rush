@@ -21,4 +21,6 @@ export type RootStackParamList = {
   Chats: undefined;
   Settings: undefined;
   BottomTabs: undefined;
+  Drawer: undefined;
+  SideMenu: undefined;
 };

@@ -19,7 +19,7 @@ import ServiceProviderRegister3 from './src/screens/register/ServiceProviderRegi
 import ServiceProviderRegister2 from './src/screens/register/ServiceProviderRegister2';
 import ServiceProviderRegister1 from './src/screens/register/ServiceProviderRegister1';
 import Subscription from './src/screens/subscription/Subscription';
-import BottomTabs from './src/components/navigators/bottomTabs/BottomTabs';
+import DrawerNavigator from './src/components/navigators/drawer/Drawer';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -50,7 +50,7 @@ const App = () => {
           <Stack.Screen name="Upload" component={Upload} />
           <Stack.Screen name="Card" component={Card} />
           <Stack.Screen name="Photo" component={Photo} />
-          <Stack.Screen name="BottomTabs" component={BottomTabs} />
+          <Stack.Screen name="Drawer" component={DrawerNavigator} />
           <Stack.Screen name="Subscription" component={Subscription} />
           <Stack.Screen
             name="ServiceProviderRegister"
