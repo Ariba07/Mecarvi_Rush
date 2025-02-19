@@ -23,4 +23,6 @@ export type RootStackParamList = {
   BottomTabs: undefined;
   Drawer: undefined;
   SideMenu: undefined;
+  Notification: undefined;
+  Service: undefined;
 };

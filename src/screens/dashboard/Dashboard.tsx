@@ -21,6 +21,7 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import ProductCard from '../../components/common/productCard/ProductCard';
 import SideMenu from '../../assets/images/SideMenu.svg';
+import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 
 const banners = [
   {id: '1', image: require('../../assets/images/Banner.png')},
@@ -71,6 +72,8 @@ const recommended = [
 
 const Dashboard: React.FC = () => {
   const navigation = useNavigation<DrawerNavigationProp<RootStackParamList>>();
+  const move = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
   const [activeIndex, setActiveIndex] = useState(0);
   const [selectedTab, setSelectedTab] = useState<'prints' | 'rentals'>(
     'prints',
@@ -141,13 +144,17 @@ const Dashboard: React.FC = () => {
               <View style={styles.iconBox}>
                 <Icon name="search-outline" size={20} color={'#333333'} />
               </View>
-              <View style={styles.iconBox}>
+              <TouchableOpacity
+                style={styles.iconBox}
+                onPress={() => {
+                  move.navigate('Notification');
+                }}>
                 <Icon
                   name="notifications-outline"
                   size={20}
                   color={'#333333'}
                 />
-              </View>
+              </TouchableOpacity>
             </View>
           </View>
 
@@ -190,7 +197,7 @@ const Dashboard: React.FC = () => {
                 justifyContent: 'space-between',
               }}>
               <Text style={styles.sectionTitle}>Services</Text>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => move.navigate('Service')}>
                 <Text
                   style={{textDecorationLine: 'underline', color: '#FF00A7'}}>
                   See All
