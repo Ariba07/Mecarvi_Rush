@@ -5,6 +5,7 @@ import {
   SafeAreaView,
   StyleSheet,
   Image,
+  Platform,
 } from 'react-native';
 import React from 'react';
 import Header from '../../components/common/header/Header';
@@ -21,28 +22,28 @@ const notifications = [
     id: '1',
     title: 'Successfully Ordered. You will receive...',
     date: 'Yesterday at 10:00 AM',
-    icon: require('../../assets/icons/success.png'), // Replace with correct icon path
+    icon: require('../../assets/images/success.png'),
     bgColor: '#2ECC71',
   },
   {
     id: '2',
     title: 'Sale! Enjoy up to 70% off at New Year...',
     date: '12 March 2024 at 10:00 AM',
-    icon: require('../../assets/icons/discount.png'),
+    icon: require('../../assets/images/success.png'),
     bgColor: '#3498DB',
   },
   {
     id: '3',
     title: 'Order is on the way.',
     date: '01 January 2025 at 10:00 AM',
-    icon: require('../../assets/icons/delivery.png'),
+    icon: require('../../assets/images/success.png'),
     bgColor: '#F39C12',
   },
   {
     id: '4',
     title: 'Grab now New Year 2025 discount ...',
     date: '12 March 2024 at 10:00 AM',
-    icon: require('../../assets/icons/discount.png'),
+    icon: require('../../assets/images/success.png'),
     bgColor: '#3498DB',
   },
 ];
@@ -52,36 +53,48 @@ const Notification: React.FC = () => {
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Header title="Notification" onBackPress={() => navigation.goBack()} />
-      <FlatList
-        data={notifications}
-        keyExtractor={item => item.id}
-        renderItem={({item}) => (
-          <View style={styles.notificationCard}>
-            <View
-              style={[styles.iconContainer, {backgroundColor: item.bgColor}]}>
-              <Image source={item.icon} style={styles.icon} />
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <Header title="Notification" onBackPress={() => navigation.goBack()} />
+        <FlatList
+          data={notifications}
+          keyExtractor={item => item.id}
+          renderItem={({item}) => (
+            <View style={styles.notificationCard}>
+              <View
+                style={[styles.iconContainer, {backgroundColor: item.bgColor}]}>
+                <Image source={item.icon} style={styles.icon} />
+              </View>
+              <View style={styles.textContainer}>
+                <Text style={styles.title} numberOfLines={1}>
+                  {item.title}
+                </Text>
+                <Text style={styles.date}>{item.date}</Text>
+              </View>
             </View>
-            <View style={styles.textContainer}>
-              <Text style={styles.title} numberOfLines={1}>
-                {item.title}
-              </Text>
-              <Text style={styles.date}>{item.date}</Text>
-            </View>
-          </View>
-        )}
-        showsVerticalScrollIndicator={false}
-      />
+          )}
+          showsVerticalScrollIndicator={false}
+        />
+      </View>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#F5F7FA',
+  },
   container: {
     flex: 1,
-    paddingHorizontal: wp(5),
-    backgroundColor: '#F5F5F5',
+    paddingHorizontal: Platform.select({
+      ios: wp(6), // Slightly more padding on iOS
+      android: wp(5),
+    }),
+    paddingBottom: Platform.select({
+      ios: hp(4),
+      android: hp(8),
+    }),
   },
   notificationCard: {
     flexDirection: 'row',
@@ -90,10 +103,6 @@ const styles = StyleSheet.create({
     padding: wp(4),
     marginBottom: hp(1.5),
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 3,
   },
   iconContainer: {
     width: wp(10),

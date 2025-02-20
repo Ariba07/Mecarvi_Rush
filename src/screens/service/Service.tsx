@@ -6,6 +6,7 @@ import {
   SafeAreaView,
   StyleSheet,
   TouchableOpacity,
+  View,
 } from 'react-native';
 import React from 'react';
 import {useNavigation} from '@react-navigation/native';
@@ -40,35 +41,45 @@ const Service: React.FC = () => {
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Header title="Services" onBackPress={() => navigation.goBack()} />
-      <FlatList
-        data={services}
-        numColumns={3} // Ensures each row contains 3 items
-        keyExtractor={item => item.id}
-        renderItem={({item}) => (
-          <TouchableOpacity style={styles.serviceCard}>
-            <Image
-              source={item.image}
-              style={styles.serviceImage}
-              resizeMode="contain"
-            />
-            <Text style={styles.serviceName}>{item.name}</Text>
-          </TouchableOpacity>
-        )}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.listContainer}
-      />
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <Header title="Services" onBackPress={() => navigation.goBack()} />
+        <FlatList
+          data={services}
+          numColumns={3} // Ensures each row contains 3 items
+          keyExtractor={item => item.id}
+          renderItem={({item}) => (
+            <TouchableOpacity style={styles.serviceCard}>
+              <Image
+                source={item.image}
+                style={styles.serviceImage}
+                resizeMode="contain"
+              />
+              <Text style={styles.serviceName}>{item.name}</Text>
+            </TouchableOpacity>
+          )}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.listContainer}
+        />
+      </View>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#F5F7FA',
+  },
   container: {
     flex: 1,
     paddingHorizontal: Platform.select({
-      ios: wp(6),
+      ios: wp(6), // Slightly more padding on iOS
       android: wp(5),
+    }),
+    paddingBottom: Platform.select({
+      ios: hp(4),
+      android: hp(8),
     }),
   },
   listContainer: {

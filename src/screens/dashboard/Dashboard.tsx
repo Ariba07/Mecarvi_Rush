@@ -141,9 +141,11 @@ const Dashboard: React.FC = () => {
               </View>
             </View>
             <View style={styles.iconContainer}>
-              <View style={styles.iconBox}>
+              <TouchableOpacity
+                style={styles.iconBox}
+                onPress={() => move.navigate('Search')}>
                 <Icon name="search-outline" size={20} color={'#333333'} />
-              </View>
+              </TouchableOpacity>
               <TouchableOpacity
                 style={styles.iconBox}
                 onPress={() => {

@@ -22,6 +22,8 @@ import Subscription from './src/screens/subscription/Subscription';
 import DrawerNavigator from './src/components/navigators/drawer/Drawer';
 import Notification from './src/screens/notification/Notification';
 import Service from './src/screens/service/Service';
+import Search from './src/screens/search/Search';
+import Product from './src/screens/products/Products';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -72,6 +74,8 @@ const App = () => {
           />
           <Stack.Screen name="Notification" component={Notification} />
           <Stack.Screen name="Service" component={Service} />
+          <Stack.Screen name="Search" component={Search} />
+          <Stack.Screen name="Products" component={Product} />
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>

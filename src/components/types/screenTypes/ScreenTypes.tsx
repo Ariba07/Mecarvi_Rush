@@ -25,4 +25,6 @@ export type RootStackParamList = {
   SideMenu: undefined;
   Notification: undefined;
   Service: undefined;
+  Search: undefined;
+  Products: undefined;
 };
