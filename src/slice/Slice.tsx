@@ -1,14 +1,23 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 
+export interface ImageData {
+  uri: string;
+  type: string;
+  name: string;
+  fileSize?: number;
+  width?: number;
+  height?: number;
+}
+
 export interface AuthState {
   // Customer Fields
   fullName?: string;
   email: string;
   phoneNumber: string;
   password: string;
-  cnic: string | null;
-  photo: string | null;
-  card: string | null;
+  cnic: ImageData | null;
+  photo: ImageData | null;
+  card: ImageData | null;
 
   // Business Fields
   name?: string;
@@ -44,9 +53,9 @@ export const initialState: AuthState = {
   email: '',
   phoneNumber: '',
   password: '',
-  cnic: '',
-  photo: '',
-  card: '',
+  cnic: null,
+  photo: null,
+  card: null,
   option: '',
 };
 
@@ -59,15 +68,9 @@ const authSlice = createSlice({
       action: PayloadAction<{field: K; value: AuthState[K]}>,
     ) => {
       if (
-        [
-          'fullName',
-          'email',
-          'phoneNumber',
-          'password',
-          'cnic',
-          'photo',
-          'card',
-        ].includes(action.payload.field)
+        ['fullName', 'email', 'phoneNumber', 'password'].includes(
+          action.payload.field,
+        )
       ) {
         state[action.payload.field] = action.payload.value;
       }
@@ -102,15 +105,22 @@ const authSlice = createSlice({
           'businessProof',
           'documentVerification',
           'onboardingAvailability',
-          'cnic',
-          'photo',
-          'card',
           'password',
         ].includes(action.payload.field)
       ) {
         state[action.payload.field] = action.payload.value;
       }
     },
+    updateCnic: (state, action: PayloadAction<ImageData | null>) => {
+      state.cnic = action.payload;
+    },
+    updatePhoto: (state, action: PayloadAction<ImageData | null>) => {
+      state.photo = action.payload;
+    },
+    updateCard: (state, action: PayloadAction<ImageData | null>) => {
+      state.card = action.payload;
+    },
+
     setOption: (state, action: PayloadAction<string>) => {
       state.option = action.payload;
     },
@@ -122,9 +132,6 @@ export const selectCustomerAuthState = (state: {auth: AuthState}) => ({
   email: state.auth.email,
   phoneNumber: state.auth.phoneNumber,
   password: state.auth.password,
-  cnic: state.auth.cnic,
-  photo: state.auth.photo,
-  card: state.auth.card,
 });
 
 export const selectBusinessAuthState = (state: {auth: AuthState}) => ({
@@ -153,12 +160,20 @@ export const selectBusinessAuthState = (state: {auth: AuthState}) => ({
   documentVerification: state.auth.documentVerification,
   onboardingAvailability: state.auth.onboardingAvailability,
   password: state.auth.password,
-  cnic: state.auth.cnic,
-  photo: state.auth.photo,
-  card: state.auth.card,
 });
+
+export const selectCnicImage = (state: {auth: AuthState}) => state.auth.cnic;
+export const selectPhotoImage = (state: {auth: AuthState}) => state.auth.photo;
+export const selectCardImage = (state: {auth: AuthState}) => state.auth.card;
+
 export const selectOption = (state: {auth: AuthState}) => state.auth.option;
 
-export const {updateCustomerField, updateBusinessField, setOption} =
-  authSlice.actions;
+export const {
+  updateCustomerField,
+  updateBusinessField,
+  setOption,
+  updateCard,
+  updateCnic,
+  updatePhoto,
+} = authSlice.actions;
 export default authSlice.reducer;

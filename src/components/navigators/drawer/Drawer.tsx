@@ -14,12 +14,12 @@ const DrawerNavigator = () => {
       screenOptions={{
         headerShown: false,
         drawerStyle: {
-          width: '65%',
+          width: '70%',
           borderRadius: 0,
         },
         swipeEnabled: false,
         drawerType: 'front',
-        overlayColor: 'rgba(255,255,255,0.2)',
+        overlayColor: 'rgba(255,255,255,0.5)',
       }}>
       <Drawer.Screen name="BottomTabs" component={BottomTabs} />
     </Drawer.Navigator>

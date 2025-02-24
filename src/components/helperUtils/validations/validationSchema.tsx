@@ -96,3 +96,28 @@ export const registerValidationSchema = Yup.object().shape({
     .trim()
     .required('Onboarding availability is required'),
 });
+
+export const registerCustomerValidationSchema = Yup.object().shape({
+  name: Yup.string()
+    .trim()
+    .min(3, 'Company Name must be at least 3 characters')
+    .required('Company Name is required'),
+
+  phoneNumber: Yup.string()
+    .matches(/^\d+$/, 'Phone Number must contain only digits')
+    .min(10, 'Phone Number must be at least 10 digits')
+    .max(12, 'Phone Number must be at most 12 digits')
+    .required('Company Phone Number is required'),
+
+  email: Yup.string()
+    .email('Invalid email format')
+    .required('Company Email is required'),
+
+  password: Yup.string()
+    .min(6, 'Password must be at least 6 characters')
+    .required('Password is required'),
+
+  confirmPassword: Yup.string()
+    .oneOf([Yup.ref('password')], 'Passwords must match')
+    .required('Confirm Password is required'),
+});

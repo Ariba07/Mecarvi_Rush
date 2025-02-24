@@ -24,6 +24,7 @@ import Notification from './src/screens/notification/Notification';
 import Service from './src/screens/service/Service';
 import Search from './src/screens/search/Search';
 import Product from './src/screens/products/Products';
+import Address from './src/screens/address/Address';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -76,6 +77,7 @@ const App = () => {
           <Stack.Screen name="Service" component={Service} />
           <Stack.Screen name="Search" component={Search} />
           <Stack.Screen name="Products" component={Product} />
+          <Stack.Screen name="Address" component={Address} />
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>

@@ -49,7 +49,9 @@ const Service: React.FC = () => {
           numColumns={3} // Ensures each row contains 3 items
           keyExtractor={item => item.id}
           renderItem={({item}) => (
-            <TouchableOpacity style={styles.serviceCard}>
+            <TouchableOpacity
+              style={styles.serviceCard}
+              onPress={() => navigation.navigate('Products')}>
               <Image
                 source={item.image}
                 style={styles.serviceImage}

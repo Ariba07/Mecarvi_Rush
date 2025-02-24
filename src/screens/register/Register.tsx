@@ -24,7 +24,7 @@ import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
 import {useDispatch} from 'react-redux';
 import {Formik} from 'formik';
-import {registerValidationSchema} from '../../components/helperUtils/validations/validationSchema';
+import {registerCustomerValidationSchema} from '../../components/helperUtils/validations/validationSchema';
 import {updateCustomerField} from '../../slice/Slice';
 
 const {width, height} = Dimensions.get('window'); // Get screen dimensions
@@ -83,7 +83,7 @@ const Register = () => {
                     password: '',
                     confirmPassword: '',
                   }}
-                  validationSchema={registerValidationSchema}
+                  validationSchema={registerCustomerValidationSchema}
                   onSubmit={handleNext}>
                   {({handleChange, handleSubmit, values, errors, touched}) => (
                     <>

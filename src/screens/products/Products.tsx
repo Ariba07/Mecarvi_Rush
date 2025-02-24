@@ -5,8 +5,9 @@ import {
   StyleSheet,
   View,
   TextInput,
+  Text,
 } from 'react-native';
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
@@ -33,14 +34,14 @@ const products = [
   },
   {
     id: '3',
-    name: 'SideWalk Sign Board',
-    price: '$220',
+    name: 'Custom Banner',
+    price: '$180',
     image: require('../../assets/images/s1.png'),
   },
   {
     id: '4',
-    name: 'SideWalk Sign Board',
-    price: '$220',
+    name: 'Vinyl Sticker',
+    price: '$150',
     image: require('../../assets/images/s1.png'),
   },
 ];
@@ -48,6 +49,15 @@ const products = [
 const Product: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredProducts, setFilteredProducts] = useState(products);
+
+  useEffect(() => {
+    const filteredData = products.filter(item =>
+      item.name.toLowerCase().includes(searchQuery.toLowerCase()),
+    );
+    setFilteredProducts(filteredData);
+  }, [searchQuery]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -60,14 +70,17 @@ const Product: React.FC = () => {
             <Icon name="search" size={20} color={'#333333'} />
             <TextInput
               style={styles.searchInput}
-              placeholder="Search"
+              placeholder="Search products..."
               placeholderTextColor="#888"
+              value={searchQuery}
+              onChangeText={text => setSearchQuery(text)}
             />
           </View>
         </View>
 
+        {/* Product List */}
         <FlatList
-          data={products}
+          data={filteredProducts}
           keyExtractor={item => item.id}
           renderItem={({item}) => (
             <ProductCard
@@ -78,6 +91,12 @@ const Product: React.FC = () => {
             />
           )}
           showsVerticalScrollIndicator={false}
+          ListEmptyComponent={
+            <View style={styles.noResults}>
+              <Icon name="search-off" size={50} color="#888" />
+              <Text style={styles.noResultsText}>No products found</Text>
+            </View>
+          }
         />
       </View>
     </SafeAreaView>
@@ -91,14 +110,8 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    paddingHorizontal: Platform.select({
-      ios: wp(6),
-      android: wp(5),
-    }),
-    paddingBottom: Platform.select({
-      ios: hp(4),
-      android: hp(8),
-    }),
+    paddingHorizontal: Platform.select({ios: wp(6), android: wp(5)}),
+    paddingBottom: Platform.select({ios: hp(4), android: hp(3)}),
   },
   searchContainer: {
     flexDirection: 'row',
@@ -120,14 +133,14 @@ const styles = StyleSheet.create({
     fontSize: wp(4),
     color: '#333',
   },
-  filterButton: {
-    width: hp(6),
-    height: hp(6),
-    backgroundColor: '#FF00A6',
-    borderRadius: wp(2),
-    justifyContent: 'center',
+  noResults: {
     alignItems: 'center',
-    marginLeft: wp(2),
+    marginTop: hp(5),
+  },
+  noResultsText: {
+    fontSize: wp(4),
+    color: '#888',
+    marginTop: hp(1),
   },
 });
 

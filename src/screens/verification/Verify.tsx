@@ -34,11 +34,11 @@ const Verify = () => {
   const number = useSelector(
     (state: {auth: {phoneNumber: string}}) => state.auth.phoneNumber,
   );
-  const data = useSelector(selectBusinessAuthState);
+  // const data = useSelector(selectBusinessAuthState);
 
-  useEffect(() => {
-    console.log(data);
-  }, [data]);
+  // useEffect(() => {
+  //   console.log(data);
+  // }, [data]);
 
   useEffect(() => {
     const backAction = () => {

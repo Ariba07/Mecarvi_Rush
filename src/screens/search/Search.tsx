@@ -6,8 +6,9 @@ import {
   View,
   TextInput,
   TouchableOpacity,
+  Text,
 } from 'react-native';
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
@@ -35,14 +36,14 @@ const products = [
   },
   {
     id: '3',
-    name: 'SideWalk Sign Board',
-    price: '$220',
+    name: 'Custom Banner',
+    price: '$180',
     image: require('../../assets/images/s1.png'),
   },
   {
     id: '4',
-    name: 'SideWalk Sign Board',
-    price: '$220',
+    name: 'Vinyl Sticker',
+    price: '$150',
     image: require('../../assets/images/s1.png'),
   },
 ];
@@ -50,6 +51,16 @@ const products = [
 const Search: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredProducts, setFilteredProducts] = useState(products);
+
+  useEffect(() => {
+    // Filter products based on search query
+    const filteredData = products.filter(item =>
+      item.name.toLowerCase().includes(searchQuery.toLowerCase()),
+    );
+    setFilteredProducts(filteredData);
+  }, [searchQuery]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -62,8 +73,10 @@ const Search: React.FC = () => {
             <Icon name="search" size={20} color={'#333333'} />
             <TextInput
               style={styles.searchInput}
-              placeholder="Signage"
+              placeholder="Search items..."
               placeholderTextColor="#888"
+              value={searchQuery}
+              onChangeText={text => setSearchQuery(text)}
             />
           </View>
           <TouchableOpacity style={styles.filterButton}>
@@ -71,8 +84,9 @@ const Search: React.FC = () => {
           </TouchableOpacity>
         </View>
 
+        {/* Product List */}
         <FlatList
-          data={products}
+          data={filteredProducts}
           keyExtractor={item => item.id}
           renderItem={({item}) => (
             <ProductCard
@@ -83,6 +97,12 @@ const Search: React.FC = () => {
             />
           )}
           showsVerticalScrollIndicator={false}
+          ListEmptyComponent={
+            <View style={styles.noResults}>
+              <Icon name="search-off" size={50} color="#888" />
+              <Text style={styles.searchInput}>No Result Found</Text>
+            </View>
+          }
         />
       </View>
     </SafeAreaView>
@@ -96,14 +116,8 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    paddingHorizontal: Platform.select({
-      ios: wp(6),
-      android: wp(5),
-    }),
-    paddingBottom: Platform.select({
-      ios: hp(4),
-      android: hp(8),
-    }),
+    paddingHorizontal: Platform.select({ios: wp(6), android: wp(5)}),
+    paddingBottom: Platform.select({ios: hp(4), android: hp(3)}),
   },
   searchContainer: {
     flexDirection: 'row',
@@ -133,6 +147,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: wp(2),
+  },
+  noResults: {
+    alignItems: 'center',
+    marginTop: hp(5),
   },
 });
 

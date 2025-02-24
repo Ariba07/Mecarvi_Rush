@@ -1,5 +1,5 @@
 import axios, {AxiosRequestConfig, AxiosResponse} from 'axios';
-const API_BASE_URL = 'http://192.168.1.110:8000/api/';
+const API_BASE_URL = 'http://192.168.1.15:8000/api/';
 
 if (!API_BASE_URL) {
   throw new Error('API_BASE_URL is not defined in the environment variables.');
@@ -8,7 +8,7 @@ if (!API_BASE_URL) {
 interface RequestOptions {
   method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   endpoint: string;
-  data?: Record<string, unknown>;
+  data?: Record<string, unknown> | FormData; // ✅ Allow FormData
   token?: string;
 }
 

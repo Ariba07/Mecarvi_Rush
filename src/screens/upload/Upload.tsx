@@ -3,34 +3,38 @@ import React, {useState} from 'react';
 import {
   View,
   Text,
-  ImageBackground,
-  StyleSheet,
   Image,
   Platform,
   Dimensions,
-  TouchableWithoutFeedback,
-  Keyboard,
   TouchableOpacity,
   PermissionsAndroid,
+  ImageBackground,
+  Keyboard,
+  StyleSheet,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import {PERMISSIONS, request, RESULTS} from 'react-native-permissions';
+import {launchCamera, CameraOptions} from 'react-native-image-picker';
+import {useNavigation} from '@react-navigation/native';
+import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {useDispatch, useSelector} from 'react-redux';
+import {
+  ImageData,
+  selectCardImage,
+  selectCnicImage,
+  selectCustomerAuthState,
+  selectPhotoImage,
+  updateCard,
+  updateCnic,
+  updatePhoto,
+} from '../../slice/Slice';
+import CustomButton from '../../components/common/buttons/CustomButton';
+import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
-import CustomButton from '../../components/common/buttons/CustomButton';
-import {useNavigation} from '@react-navigation/native';
-import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
-import {launchCamera, CameraOptions} from 'react-native-image-picker';
-import {useDispatch, useSelector} from 'react-redux';
-import {
-  AuthState,
-  selectOption,
-  updateBusinessField,
-  updateCustomerField,
-} from '../../slice/Slice';
-import ImageResizer from 'react-native-image-resizer';
+import axios from 'axios';
 
 const {width, height} = Dimensions.get('window');
 
@@ -38,40 +42,38 @@ interface VerifyScreenProps {
   title: string;
   label: string;
   imageSource: any;
-  nextScreen: keyof RootStackParamList;
 }
-
 const VerifyScreen: React.FC<VerifyScreenProps> = ({
   title,
   label,
   imageSource,
-  nextScreen,
 }) => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+  const [cnicImage, setCnicImage] = useState<ImageData | null>(null);
+  const [cardImage, setCardImage] = useState<ImageData | null>(null);
+  const [photoImage, setPhotoImage] = useState<ImageData | null>(null);
+  const customerData = useSelector(selectCustomerAuthState);
+  const cnic = useSelector(selectCnicImage);
+  const photo = useSelector(selectPhotoImage);
+  const card = useSelector(selectCardImage);
   const dispatch = useDispatch();
-  const [imageUri, setImageUri] = useState<string | null>(null);
-  const role = useSelector(selectOption);
 
   const requestCameraPermission = async () => {
     if (Platform.OS === 'ios') {
       const result = await request(PERMISSIONS.IOS.CAMERA);
       return result === RESULTS.GRANTED;
-    }
-    return true;
-  };
-
-  const openCamera = async () => {
-    if (Platform.OS === 'android') {
+    } else if (Platform.OS === 'android') {
       const granted = await PermissionsAndroid.request(
         PermissionsAndroid.PERMISSIONS.CAMERA,
       );
-      if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-        console.log('Camera permission denied');
-        return;
-      }
+      return granted === PermissionsAndroid.RESULTS.GRANTED;
     }
+    return false;
+  };
 
+  const openCamera = async () => {
     const hasPermission = await requestCameraPermission();
     if (!hasPermission) {
       console.log('Camera permission denied');
@@ -82,84 +84,150 @@ const VerifyScreen: React.FC<VerifyScreenProps> = ({
       mediaType: 'photo',
       cameraType: 'back',
       saveToPhotos: false,
-      quality: 1.0, // Maximum quality before compression
+      quality: 1.0,
       maxWidth: 4000,
       maxHeight: 3000,
     };
 
-    launchCamera(options, async response => {
+    launchCamera(options, response => {
       if (response.didCancel) {
         console.log('User cancelled camera');
-      } else if (response.errorMessage) {
-        console.log('Camera error: ', response.errorMessage);
-      } else if (response.assets && response.assets.length > 0) {
-        const image = response.assets[0];
+        return;
+      }
 
-        if (image.uri && image.fileSize) {
-          let fileSizeKB = image.fileSize / 1024;
-          let fileSizeMB = fileSizeKB / 1024;
-          console.log(`Original Size: ${fileSizeMB.toFixed(2)} MB`);
+      if (response.errorMessage) {
+        console.log('Camera error:', response.errorMessage);
+        return;
+      }
 
-          // Increase threshold to 1MB (1024 KB)
-          if (fileSizeKB > 1024) {
-            try {
-              const compressedImage = await ImageResizer.createResizedImage(
-                image.uri,
-                image.width ? image.width / 2 : 2000,
-                image.height ? image.height / 2 : 1500,
-                'WEBP',
-                95, // Quality reduction
-                0,
-                undefined,
-                false,
-              );
+      const image = response.assets?.[0]; // Get first image
 
-              console.log('Compressed Image URI:', compressedImage.uri);
-              console.log(
-                'Compressed File Size:',
-                compressedImage.size / 1024,
-                'KB',
-              );
+      if (!image?.uri) {
+        console.log('Image URI not found');
+        return;
+      }
 
-              setImageUri(compressedImage.uri);
-            } catch (error) {
-              console.log('Image compression error:', error);
-            }
-          } else {
-            console.log('Image is already within the 1MB limit.');
-            setImageUri(image.uri);
-          }
-        } else {
-          console.log('File size unknown');
-        }
+      console.log('Image Size (bytes):', image.fileSize); // Log the image size
+      if (image.fileSize) {
+        console.log(
+          'Image Size (MB):',
+          (image.fileSize / (1024 * 1024)).toFixed(2),
+          'MB',
+        ); // Convert to MB
+      }
+
+      const imageObject: ImageData = {
+        uri: image.uri,
+        type: image.type || 'image/jpeg',
+        name: image.fileName || `image_${Date.now()}.jpg`,
+        fileSize: image.fileSize,
+        width: image.width,
+        height: image.height,
+      };
+
+      console.log('IMage', imageObject);
+
+      // Dispatch immediately with the imageObject instead of relying on state updates
+      switch (label) {
+        case 'CNIC Front Picture':
+          setCnicImage(imageObject); // This updates local state
+          dispatch(updateCnic(imageObject)); // This updates Redux store
+          break;
+        case 'Credit Card Picture':
+          setCardImage(imageObject);
+          dispatch(updateCard(imageObject));
+          break;
+        case 'Live Photo':
+          setPhotoImage(imageObject);
+          dispatch(updatePhoto(imageObject));
+          break;
+        default:
+          console.log('Unknown label:', label);
       }
     });
   };
 
-  const handleNext = () => {
-    if (imageUri) {
-      let fieldName: keyof AuthState | null = null;
+  const handleNext = async () => {
+    if (label === 'CNIC Front Picture') {
+      navigation.navigate('Card');
+    } else if (label === 'Credit Card Picture') {
+      navigation.navigate('Photo');
+    } else if (label === 'Live Photo') {
+      try {
+        const formData = new FormData();
 
-      if (label === 'CNIC Front Picture') {
-        fieldName = 'cnic';
-      } else if (label === 'Credit Card Picture') {
-        fieldName = 'card';
-      } else if (label === 'Live Photo') {
-        fieldName = 'photo';
-      }
+        // Add text fields
+        formData.append('full_name', customerData.fullName);
+        formData.append('email', customerData.email);
+        formData.append('phone_number', customerData.phoneNumber);
+        formData.append('password', customerData.password);
 
-      if (fieldName) {
-        if (role === 'customer') {
-          dispatch(updateCustomerField({field: fieldName, value: imageUri}));
-        } else if (role === 'service') {
-          dispatch(updateBusinessField({field: fieldName, value: imageUri}));
+        // Add image fields - make sure to append the actual file object
+        // For cnic image
+        if (cnic) {
+          const cnicFile = {
+            uri: cnic.uri,
+            type: cnic.type || 'image/jpeg',
+            name: cnic.name || 'cnic_image.jpg',
+          };
+          formData.append('cnic_image', cnicFile);
+        }
+
+        // For credit card image
+        if (card) {
+          const cardFile = {
+            uri: card.uri,
+            type: card.type || 'image/jpeg',
+            name: card.name || 'credit_card_image.jpg',
+          };
+          formData.append('credit_card_image', cardFile);
+        }
+
+        // For security image
+        if (photo) {
+          const photoFile = {
+            uri: photo.uri,
+            type: photo.type || 'image/jpeg',
+            name: photo.name || 'security_image.jpg',
+          };
+          formData.append('security_image', photoFile);
+        }
+
+        // Log the FormData to verify structure
+        console.log('FormData:', formData);
+
+        // const response = await apiHelper({
+        //   method: 'POST',
+        //   endpoint: 'customers/register/',
+        //   data: formData,
+        // });
+        const response = await axios({
+          method: 'POST',
+          url: 'http://192.168.1.15:8000/api/customers/register/',
+          data: formData,
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'multipart/form-data',
+          },
+          transformRequest: (data, _headers) => {
+            return data; // Prevent axios from trying to transform FormData
+          },
+        });
+
+        console.log('Upload successful:', response);
+        navigation.replace('Verify');
+      } catch (error: any) {
+        console.error('Upload error:', error);
+        if (error.response) {
+          console.error('Server Response Data:', error.response.data);
+          console.error('Server Response Status:', error.response.status);
+          console.error('Server Response Headers:', error.response.headers);
+        } else if (error.request) {
+          console.error('No response received:', error.request);
+        } else {
+          console.error('Error Message:', error.message);
         }
       }
-    }
-    if (label === 'Live Photo') {
-      navigation.replace(nextScreen);
-    } else {
-      navigation.navigate(nextScreen);
     }
   };
 
@@ -181,9 +249,19 @@ const VerifyScreen: React.FC<VerifyScreenProps> = ({
               <Text style={styles.label}>{label}</Text>
               <TouchableOpacity onPress={openCamera}>
                 <View style={styles.box}>
-                  {imageUri ? (
+                  {label === 'CNIC Front Picture' && cnicImage ? (
                     <Image
-                      source={{uri: imageUri}}
+                      source={{uri: cnicImage.uri}}
+                      style={styles.imagePreview}
+                    />
+                  ) : label === 'Credit Card Picture' && cardImage ? (
+                    <Image
+                      source={{uri: cardImage.uri}}
+                      style={styles.imagePreview}
+                    />
+                  ) : label === 'Live Photo' && photoImage ? (
+                    <Image
+                      source={{uri: photoImage.uri}}
                       style={styles.imagePreview}
                     />
                   ) : (
@@ -209,7 +287,6 @@ const Upload = () => (
     title="Verify identity"
     label="CNIC Front Picture"
     imageSource={require('../../assets/images/cnic.png')}
-    nextScreen="Card"
   />
 );
 
@@ -218,7 +295,6 @@ export const Card = () => (
     title="Verify identity"
     label="Credit Card Picture"
     imageSource={require('../../assets/images/card.png')}
-    nextScreen="Photo"
   />
 );
 
@@ -227,7 +303,6 @@ export const Photo = () => (
     title="Verify identity"
     label="Live Photo"
     imageSource={require('../../assets/images/live.png')}
-    nextScreen="Verify"
   />
 );
 

@@ -131,7 +131,11 @@ const Dashboard: React.FC = () => {
           showsVerticalScrollIndicator={false}>
           {/** Filter Section */}
           <View style={styles.filterContainer}>
-            <View style={styles.locationContainer}>
+            <TouchableOpacity
+              style={styles.locationContainer}
+              onPress={() => {
+                move.navigate('Address');
+              }}>
               <View style={styles.location}>
                 <View style={styles.locationRow}>
                   <Icon name="location" size={20} color={'#FF00A7'} />
@@ -139,7 +143,7 @@ const Dashboard: React.FC = () => {
                   <Icon name="chevron-down" size={15} color={'#5c5c5c'} />
                 </View>
               </View>
-            </View>
+            </TouchableOpacity>
             <View style={styles.iconContainer}>
               <TouchableOpacity
                 style={styles.iconBox}
@@ -211,14 +215,16 @@ const Dashboard: React.FC = () => {
               horizontal
               keyExtractor={item => item.id}
               renderItem={({item}) => (
-                <View style={styles.serviceCard}>
+                <TouchableOpacity
+                  style={styles.serviceCard}
+                  onPress={() => move.navigate('Products')}>
                   <Image
                     source={item.image}
                     style={styles.serviceImage}
                     resizeMode="contain"
                   />
                   <Text style={styles.serviceName}>{item.name}</Text>
-                </View>
+                </TouchableOpacity>
               )}
               showsHorizontalScrollIndicator={false}
             />

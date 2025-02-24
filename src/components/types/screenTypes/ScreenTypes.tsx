@@ -27,4 +27,5 @@ export type RootStackParamList = {
   Service: undefined;
   Search: undefined;
   Products: undefined;
+  Address: undefined;
 };
