@@ -28,4 +28,5 @@ export type RootStackParamList = {
   Search: undefined;
   Products: undefined;
   Address: undefined;
+  Message: {chatId: string; chatName: string};
 };

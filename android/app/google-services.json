@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "334376253693",
+    "project_id": "mecarvi-rush",
+    "storage_bucket": "mecarvi-rush.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:334376253693:android:c5c9dbcae6e5b7846fe694",
+        "android_client_info": {
+          "package_name": "com.mecarvi_rush"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCyTh8-6lpIsZCjRV3NXtC--wgcQJ2JyWY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
