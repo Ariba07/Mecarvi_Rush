@@ -29,6 +29,9 @@ import Message from './src/screens/message/Message';
 import Tracking from './src/screens/tracking/Tracking';
 import OrderDetails from './src/screens/orderDetail/OrderDetails';
 import Review from './src/screens/review/Review';
+import Support from './src/screens/support/Support';
+import Profile from './src/screens/profile/Profile';
+import Points from './src/screens/points/Points';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -86,6 +89,9 @@ const App = () => {
           <Stack.Screen name="Tracking" component={Tracking} />
           <Stack.Screen name="OrderDetails" component={OrderDetails} />
           <Stack.Screen name="Review" component={Review} />
+          <Stack.Screen name="Points" component={Points} />
+          <Stack.Screen name="Profile" component={Profile} />
+          <Stack.Screen name="Support" component={Support} />
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>

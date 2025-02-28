@@ -35,6 +35,7 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import axios from 'axios';
+import {API_BASE_URL} from '../../components/helperUtils/apiHelper/ApiHelper';
 
 const {width, height} = Dimensions.get('window');
 
@@ -203,7 +204,7 @@ const VerifyScreen: React.FC<VerifyScreenProps> = ({
         // });
         const response = await axios({
           method: 'POST',
-          url: 'http://192.168.1.15:8000/api/customers/register/',
+          url: `${API_BASE_URL}customers/register/`,
           data: formData,
           headers: {
             Accept: 'application/json',

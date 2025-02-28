@@ -32,4 +32,7 @@ export type RootStackParamList = {
   Tracking: undefined;
   OrderDetails: undefined;
   Review: undefined;
+  Support: undefined;
+  Profile: undefined;
+  Points: undefined;
 };
