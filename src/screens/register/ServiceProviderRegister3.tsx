@@ -25,7 +25,7 @@ import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
 import {Formik} from 'formik';
 import DocumentPicker from 'react-native-document-picker';
-import {registerValidationSchema} from '../../components/helperUtils/validations/validationSchema';
+import {registerValidationSchema3} from '../../components/helperUtils/validations/validationSchema';
 import {Icon} from 'react-native-elements';
 import {updateBusinessField} from '../../slice/Slice';
 import {useDispatch} from 'react-redux';
@@ -91,6 +91,7 @@ const ServiceProviderRegister3 = () => {
         type: [DocumentPicker.types.images, DocumentPicker.types.pdf],
       });
       setFieldValue(fieldName, res);
+      console.log(res);
     } catch (err) {
       if (DocumentPicker.isCancel(err)) {
         console.log('User cancelled the document picker');
@@ -134,7 +135,7 @@ const ServiceProviderRegister3 = () => {
                     documentVerification: null as any,
                     onboardingAvailability: '',
                   }}
-                  validationSchema={registerValidationSchema}
+                  validationSchema={registerValidationSchema3}
                   onSubmit={handleNext}>
                   {({
                     handleChange,

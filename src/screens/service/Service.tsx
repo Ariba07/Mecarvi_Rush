@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
@@ -17,35 +17,34 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import Header from '../../components/common/header/Header';
-
-const services = [
-  {
-    id: '1',
-    name: 'Printing',
-    image: require('../../assets/images/printing.png'),
-  },
-  {
-    id: '2',
-    name: 'Embroidery',
-    image: require('../../assets/images/embroidary.png'),
-  },
-  {id: '3', name: 'Signage', image: require('../../assets/images/signage.png')},
-  {id: '4', name: 'Signage', image: require('../../assets/images/signage.png')},
-  {id: '5', name: 'Signage', image: require('../../assets/images/signage.png')},
-  {id: '6', name: 'Signage', image: require('../../assets/images/signage.png')},
-  {id: '7', name: 'Signage', image: require('../../assets/images/signage.png')},
-];
+import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 
 const Service: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const [categories, setCategories] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response: {data: {data: any[]}} = await apiHelper({
+          method: 'GET',
+          endpoint: 'categories/?parent_only=1',
+        });
+        setCategories(response?.data?.data || []); // Ensure response data is valid
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+    fetchCategories();
+  }, [categories]); // Runs once when the component mounts
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <Header title="Services" onBackPress={() => navigation.goBack()} />
         <FlatList
-          data={services}
+          data={categories}
           numColumns={3} // Ensures each row contains 3 items
           keyExtractor={item => item.id}
           renderItem={({item}) => (
@@ -53,7 +52,7 @@ const Service: React.FC = () => {
               style={styles.serviceCard}
               onPress={() => navigation.navigate('Products')}>
               <Image
-                source={item.image}
+                source={{uri: item.icon}}
                 style={styles.serviceImage}
                 resizeMode="contain"
               />
@@ -105,6 +104,9 @@ const styles = StyleSheet.create({
     marginTop: hp('1%'),
     fontSize: wp('3.5%'),
     fontWeight: 'bold',
+    alignSelf: 'center',
+    textAlign: 'center',
+    maxWidth: wp('20%'), // Ensure text does not overflow the card
   },
 });
 

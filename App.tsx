@@ -23,7 +23,6 @@ import DrawerNavigator from './src/components/navigators/drawer/Drawer';
 import Notification from './src/screens/notification/Notification';
 import Service from './src/screens/service/Service';
 import Search from './src/screens/search/Search';
-import Product from './src/screens/products/Products';
 import Address from './src/screens/address/Address';
 import Message from './src/screens/message/Message';
 import Tracking from './src/screens/tracking/Tracking';
@@ -32,6 +31,8 @@ import Review from './src/screens/review/Review';
 import Support from './src/screens/support/Support';
 import Profile from './src/screens/profile/Profile';
 import Points from './src/screens/points/Points';
+import Products from './src/screens/products/Products';
+import Product from './src/screens/product/Product';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -83,7 +84,7 @@ const App = () => {
           <Stack.Screen name="Notification" component={Notification} />
           <Stack.Screen name="Service" component={Service} />
           <Stack.Screen name="Search" component={Search} />
-          <Stack.Screen name="Products" component={Product} />
+          <Stack.Screen name="Products" component={Products} />
           <Stack.Screen name="Address" component={Address} />
           <Stack.Screen name="Message" component={Message} />
           <Stack.Screen name="Tracking" component={Tracking} />
@@ -92,6 +93,7 @@ const App = () => {
           <Stack.Screen name="Points" component={Points} />
           <Stack.Screen name="Profile" component={Profile} />
           <Stack.Screen name="Support" component={Support} />
+          <Stack.Screen name="Product" component={Product} />
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>

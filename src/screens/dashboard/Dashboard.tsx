@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -22,25 +22,12 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import ProductCard from '../../components/common/productCard/ProductCard';
 import SideMenu from '../../assets/images/SideMenu.svg';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 
 const banners = [
   {id: '1', image: require('../../assets/images/Banner.png')},
   {id: '2', image: require('../../assets/images/Banner.png')},
   {id: '3', image: require('../../assets/images/Banner.png')},
-];
-
-const services = [
-  {
-    id: '1',
-    name: 'Printing',
-    image: require('../../assets/images/printing.png'),
-  },
-  {
-    id: '2',
-    name: 'Embroidery',
-    image: require('../../assets/images/embroidary.png'),
-  },
-  {id: '3', name: 'Signage', image: require('../../assets/images/signage.png')},
 ];
 
 const recommended = [
@@ -73,6 +60,7 @@ const recommended = [
 const Dashboard: React.FC = () => {
   const navigation = useNavigation<DrawerNavigationProp<RootStackParamList>>();
   const move = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const [categories, setCategories] = useState<any[]>([]);
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [selectedTab, setSelectedTab] = useState<'prints' | 'rentals'>(
@@ -82,6 +70,21 @@ const Dashboard: React.FC = () => {
   const renderBanner = ({item}: any) => (
     <Image source={item.image} style={styles.banner} resizeMode="cover" />
   );
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response: {data: {data: any[]}} = await apiHelper({
+          method: 'GET',
+          endpoint: 'categories/?parent_only=1',
+        });
+        setCategories(response?.data?.data || []); // Ensure response data is valid
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+    fetchCategories();
+  }, [categories]); // Runs once when the component mounts
 
   return (
     <SafeAreaView style={styles.container}>
@@ -194,6 +197,7 @@ const Dashboard: React.FC = () => {
               />
             ))}
           </View>
+
           {/* Services Section */}
           <View style={styles.section}>
             <View
@@ -211,7 +215,7 @@ const Dashboard: React.FC = () => {
               </TouchableOpacity>
             </View>
             <FlatList
-              data={services}
+              data={categories}
               horizontal
               keyExtractor={item => item.id}
               renderItem={({item}) => (
@@ -219,11 +223,13 @@ const Dashboard: React.FC = () => {
                   style={styles.serviceCard}
                   onPress={() => move.navigate('Products')}>
                   <Image
-                    source={item.image}
+                    source={{uri: item.icon}} // Ensure correct format
                     style={styles.serviceImage}
                     resizeMode="contain"
                   />
-                  <Text style={styles.serviceName}>{item.name}</Text>
+                  <Text style={styles.serviceName} numberOfLines={1}>
+                    {item.name}
+                  </Text>
                 </TouchableOpacity>
               )}
               showsHorizontalScrollIndicator={false}
@@ -294,6 +300,9 @@ const styles = StyleSheet.create({
     marginTop: hp('1%'),
     fontSize: wp('3.5%'),
     fontWeight: 'bold',
+    alignSelf: 'center',
+    textAlign: 'center',
+    maxWidth: wp('20%'), // Ensure text does not overflow the card
   },
   header: {
     flexDirection: 'row',

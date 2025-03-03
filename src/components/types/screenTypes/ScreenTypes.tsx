@@ -35,4 +35,5 @@ export type RootStackParamList = {
   Support: undefined;
   Profile: undefined;
   Points: undefined;
+  Product: undefined;
 };

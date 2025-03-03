@@ -23,7 +23,7 @@ import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
 import {Formik} from 'formik';
-import {registerValidationSchema} from '../../components/helperUtils/validations/validationSchema';
+import {registerValidationSchema2} from '../../components/helperUtils/validations/validationSchema';
 import {useDispatch} from 'react-redux';
 import {updateBusinessField} from '../../slice/Slice';
 
@@ -101,7 +101,7 @@ const ServiceProviderRegister2 = () => {
                     targetMarket: '',
                   }}
                   onSubmit={navigateToUpload}
-                  validationSchema={registerValidationSchema}>
+                  validationSchema={registerValidationSchema2}>
                   {({
                     handleChange,
                     handleSubmit,

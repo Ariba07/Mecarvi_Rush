@@ -106,6 +106,8 @@ const authSlice = createSlice({
           'documentVerification',
           'onboardingAvailability',
           'password',
+          'email',
+          'phoneNumber',
         ].includes(action.payload.field)
       ) {
         state[action.payload.field] = action.payload.value;
@@ -160,6 +162,8 @@ export const selectBusinessAuthState = (state: {auth: AuthState}) => ({
   documentVerification: state.auth.documentVerification,
   onboardingAvailability: state.auth.onboardingAvailability,
   password: state.auth.password,
+  email: state.auth.email,
+  phoneNumber: state.auth.phoneNumber,
 });
 
 export const selectCnicImage = (state: {auth: AuthState}) => state.auth.cnic;

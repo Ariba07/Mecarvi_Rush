@@ -46,7 +46,7 @@ const products = [
   },
 ];
 
-const Product: React.FC = () => {
+const Products: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [searchQuery, setSearchQuery] = useState('');
@@ -144,4 +144,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Product;
+export default Products;

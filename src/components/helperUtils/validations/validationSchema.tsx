@@ -6,11 +6,6 @@ export const registerValidationSchema = Yup.object().shape({
     .min(3, 'Company Name must be at least 3 characters')
     .required('Company Name is required'),
 
-  ownerName: Yup.string()
-    .trim()
-    .min(3, 'Company Name must be at least 3 characters')
-    .required('Company Name is required'),
-
   registrationNumber: Yup.string()
     .trim()
     .min(3, 'Company Registration Number must be at least 3 characters')
@@ -46,21 +41,28 @@ export const registerValidationSchema = Yup.object().shape({
     .max(12, 'Phone Number must be at most 12 digits')
     .required('Company Phone Number is required'),
 
+  email: Yup.string()
+    .email('Invalid email format')
+    .required('Company Email is required'),
+
+  website: Yup.string().trim().url('Invalid URL format').notRequired(), // Website is optional
+});
+
+export const registerValidationSchema1 = Yup.object().shape({
+  ownerName: Yup.string()
+    .trim()
+    .min(3, 'Company Name must be at least 3 characters')
+    .required('Company Name is required'),
+
   ownerPhoneNumber: Yup.string()
     .matches(/^\d+$/, 'Phone Number must contain only digits')
     .min(10, 'Phone Number must be at least 10 digits')
     .max(12, 'Phone Number must be at most 12 digits')
     .required('Company Phone Number is required'),
 
-  email: Yup.string()
-    .email('Invalid email format')
-    .required('Company Email is required'),
-
   ownerEmail: Yup.string()
     .email('Invalid email format')
     .required('Company Email is required'),
-
-  website: Yup.string().trim().url('Invalid URL format').notRequired(), // Website is optional
 
   linkedIn: Yup.string().trim().url('Invalid URL format').notRequired(), // Website is optional
 
@@ -71,7 +73,8 @@ export const registerValidationSchema = Yup.object().shape({
   confirmPassword: Yup.string()
     .oneOf([Yup.ref('password')], 'Passwords must match')
     .required('Confirm Password is required'),
-
+});
+export const registerValidationSchema2 = Yup.object().shape({
   serviceOffered: Yup.string().trim().required('Service Offered is required'),
 
   productionCapacity: Yup.string()
@@ -83,7 +86,8 @@ export const registerValidationSchema = Yup.object().shape({
   specialization: Yup.string().trim().notRequired(),
 
   targetMarket: Yup.string().trim().required('Target Market is required'),
-
+});
+export const registerValidationSchema3 = Yup.object().shape({
   facebookLink: Yup.string().trim().url('Invalid URL format').notRequired(),
   instagramLink: Yup.string().trim().url('Invalid URL format').notRequired(),
   logoUpload: Yup.string().trim().required('Logo upload is required'),

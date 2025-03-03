@@ -23,7 +23,7 @@ import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
 import {Formik} from 'formik';
-import {registerValidationSchema} from '../../components/helperUtils/validations/validationSchema';
+import {registerValidationSchema1} from '../../components/helperUtils/validations/validationSchema';
 import {updateBusinessField} from '../../slice/Slice';
 import {useDispatch} from 'react-redux';
 
@@ -98,7 +98,7 @@ const ServiceProviderRegister1 = () => {
                     password: '',
                     confirmPassword: '',
                   }}
-                  validationSchema={registerValidationSchema}
+                  validationSchema={registerValidationSchema1}
                   onSubmit={handleNext}>
                   {({handleChange, handleSubmit, values, errors, touched}) => (
                     <>

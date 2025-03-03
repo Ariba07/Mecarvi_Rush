@@ -20,9 +20,11 @@ import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {useDispatch, useSelector} from 'react-redux';
 import {
   ImageData,
+  selectBusinessAuthState,
   selectCardImage,
   selectCnicImage,
   selectCustomerAuthState,
+  selectOption,
   selectPhotoImage,
   updateCard,
   updateCnic,
@@ -56,10 +58,13 @@ const VerifyScreen: React.FC<VerifyScreenProps> = ({
   const [cardImage, setCardImage] = useState<ImageData | null>(null);
   const [photoImage, setPhotoImage] = useState<ImageData | null>(null);
   const customerData = useSelector(selectCustomerAuthState);
+  const serviceData = useSelector(selectBusinessAuthState);
   const cnic = useSelector(selectCnicImage);
   const photo = useSelector(selectPhotoImage);
   const card = useSelector(selectCardImage);
   const dispatch = useDispatch();
+  const option = useSelector(selectOption);
+  console.log(serviceData.portfolio);
 
   const requestCameraPermission = async () => {
     if (Platform.OS === 'ios') {
@@ -155,44 +160,114 @@ const VerifyScreen: React.FC<VerifyScreenProps> = ({
       navigation.navigate('Photo');
     } else if (label === 'Live Photo') {
       try {
+        const endpoint =
+          option === 'customer'
+            ? 'customers/register/'
+            : 'service-provider/register';
         const formData = new FormData();
 
         // Add text fields
-        formData.append('full_name', customerData.fullName);
-        formData.append('email', customerData.email);
-        formData.append('phone_number', customerData.phoneNumber);
-        formData.append('password', customerData.password);
+        if (option === 'customer' && customerData) {
+          formData.append('full_name', customerData.fullName);
+          formData.append('email', customerData.email);
+          formData.append('phone_number', customerData.phoneNumber);
+          formData.append('password', customerData.password);
+        } else if (option === 'service' && serviceData) {
+          formData.append('password', serviceData.password);
 
-        // Add image fields - make sure to append the actual file object
-        // For cnic image
-        if (cnic) {
-          const cnicFile = {
-            uri: cnic.uri,
-            type: cnic.type || 'image/jpeg',
-            name: cnic.name || 'cnic_image.jpg',
-          };
-          formData.append('cnic_image', cnicFile);
+          formData.append('service_provider_name', serviceData.name || '');
+          formData.append(
+            'registration_number',
+            serviceData.registrationNumber || '',
+          );
+          formData.append(
+            'state_registration',
+            serviceData.stateRegistration || '',
+          );
+          formData.append('tax_identification_number', serviceData.tin || '');
+          formData.append(
+            'legal_structure',
+            serviceData.businessStructure || '',
+          );
+          formData.append(
+            'year_established',
+            serviceData.yearEstablished || '',
+          );
+          formData.append('address', serviceData.address || '');
+          formData.append('full_name', serviceData.ownerName || '');
+          formData.append('service_provider_email', serviceData.email || '');
+
+          formData.append(
+            'service_provider_phone_number',
+            serviceData.phoneNumber || '',
+          );
+
+          formData.append(
+            'user_phone_number',
+            serviceData.ownerPhoneNumber || '',
+          );
+          formData.append('email', serviceData.ownerEmail || '');
+          formData.append('linkedin_link', serviceData.linkedIn || '');
+          formData.append(
+            'production_capacity',
+            serviceData.productionCapacity || '',
+          );
+          formData.append(
+            'average_turnaround_time',
+            serviceData.turnaroundTime || '',
+          );
+          formData.append('specialization', serviceData.specialization || '');
+          formData.append('target_market', serviceData.targetMarket || '');
+          formData.append('facebook_link', serviceData.facebookLink || '');
+          formData.append('instagram_link', serviceData.instagramLink || '');
+          formData.append(
+            'onboarding_call_availability',
+            serviceData.onboardingAvailability || '',
+          );
+          formData.append('website_url', serviceData.website || '');
+
+          // Append service offered as an array
+          if (serviceData.serviceOffered?.length) {
+            const servicesString = serviceData.serviceOffered.join(','); // Convert array to comma-separated string
+            formData.append('services_offered', servicesString);
+          }
         }
 
-        // For credit card image
-        if (card) {
-          const cardFile = {
-            uri: card.uri,
-            type: card.type || 'image/jpeg',
-            name: card.name || 'credit_card_image.jpg',
-          };
-          formData.append('credit_card_image', cardFile);
-        }
+        // Function to handle both images & PDF uploads
+        const appendFile = (
+          fieldName: string,
+          file: any,
+          fileType: 'image' | 'pdf',
+        ) => {
+          if (file && file.uri) {
+            formData.append(fieldName, {
+              uri: file.uri,
+              type: fileType === 'pdf' ? 'application/pdf' : 'image/jpeg',
+              name:
+                file.name ||
+                `${fieldName}.${fileType === 'pdf' ? 'pdf' : 'jpg'}`,
+            });
+          }
+        };
 
-        // For security image
-        if (photo) {
-          const photoFile = {
-            uri: photo.uri,
-            type: photo.type || 'image/jpeg',
-            name: photo.name || 'security_image.jpg',
-          };
-          formData.append('security_image', photoFile);
-        }
+        // Append standard images
+        appendFile('cnic_image', cnic, 'image');
+        appendFile('credit_card_image', card, 'image');
+        appendFile('security_image', photo, 'image');
+        appendFile('logo', serviceData?.logoUpload, 'image');
+
+        // Append PDF files
+        appendFile('portfolio', serviceData?.portfolio, 'pdf');
+        appendFile(
+          'proof_of_business_registration',
+          serviceData?.businessProof,
+          'pdf',
+        );
+        appendFile(
+          'verification_document',
+          serviceData?.documentVerification,
+          'pdf',
+        );
 
         // Log the FormData to verify structure
         console.log('FormData:', formData);
@@ -204,7 +279,7 @@ const VerifyScreen: React.FC<VerifyScreenProps> = ({
         // });
         const response = await axios({
           method: 'POST',
-          url: `${API_BASE_URL}customers/register/`,
+          url: `${API_BASE_URL}${endpoint}`,
           data: formData,
           headers: {
             Accept: 'application/json',
