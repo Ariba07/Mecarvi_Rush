@@ -33,6 +33,7 @@ import Profile from './src/screens/profile/Profile';
 import Points from './src/screens/points/Points';
 import Products from './src/screens/products/Products';
 import Product from './src/screens/product/Product';
+import Quote from './src/screens/quote/Quote';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -94,6 +95,7 @@ const App = () => {
           <Stack.Screen name="Profile" component={Profile} />
           <Stack.Screen name="Support" component={Support} />
           <Stack.Screen name="Product" component={Product} />
+          <Stack.Screen name="Quote" component={Quote} />
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>

@@ -4,14 +4,14 @@ import {
   View,
   SafeAreaView,
   Platform,
-  StyleSheet,
   Image,
   TouchableOpacity,
   Text,
   Animated,
-  Dimensions,
   Easing,
   ScrollView,
+  TextInput,
+  Dimensions,
 } from 'react-native';
 import {
   widthPercentageToDP as wp,
@@ -24,6 +24,10 @@ import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes
 import {Icon} from 'react-native-elements';
 import BestSeller from '../../assets/images/BestSeller.svg';
 import {renderStars} from '../../components/common/review/RenderStars';
+import CustomTextInput from '../../components/common/textInput/CustomTextInput';
+import File from '../../assets/images/File.svg';
+import {styles} from '../../assets/styles/product/Product';
+import DocumentPicker from 'react-native-document-picker';
 
 const images = [
   require('../../assets/images/product.png'),
@@ -31,9 +35,36 @@ const images = [
   require('../../assets/images/Orders.png'),
 ];
 
+const attributes = [
+  {
+    label: 'Sidewalk Sign Size',
+    placeholder: 'Sidewalk Sign Size',
+    key: 'size',
+    isMultiSelect: false,
+  },
+  {
+    label: 'Sidewalk Sign Material',
+    placeholder: 'Sidewalk Sign Material',
+    key: 'material',
+    isMultiSelect: false,
+  },
+  {
+    label: 'Sidewalk Sign Hardware',
+    placeholder: 'Sidewalk Sign Hardware',
+    key: 'hardware',
+    isMultiSelect: false,
+  },
+  {
+    label: 'Sidewalk Sign Artwork',
+    placeholder: 'Sidewalk Sign Artwork',
+    key: 'artwork',
+    isMultiSelect: true,
+  }, // Example Multi-Select
+];
+
 const tabs = ['Specification', 'Policy', 'Reviews'];
 const screenWidth = Dimensions.get('window').width;
-const tabWidth = screenWidth / tabs.length; // Adjust tab width dynamically
+const tabWidth = screenWidth / tabs.length;
 
 const specifications = [
   {label: 'Frame Material', value: 'Aluminum, Plastic'},
@@ -66,6 +97,23 @@ const Product = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [activeTab, setActiveTab] = useState(0); // Default selected tab
   const translateX = useRef(new Animated.Value(activeTab * tabWidth)).current; // Initial position
+  const [reviewText, setReviewText] = useState<string>('');
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const [frontFile, setFrontFile] = useState<any | null>(null);
+  const [backFile, setBackFile] = useState<any | null>(null);
+
+  const colors = ['grey', '#cccccc'];
+
+  const [attributeValues, setAttributeValues] = useState<{
+    [key: string]: string;
+  }>({});
+
+  const handleChange = (key: string, value: string | string[]) => {
+    if (Array.isArray(value)) {
+      value = value.join(', ');
+    }
+    setAttributeValues(prevValues => ({...prevValues, [key]: value}));
+  };
 
   const animateUnderline = (index: number) => {
     setActiveTab(index);
@@ -89,6 +137,23 @@ const Product = () => {
     );
   };
 
+  const pickDocument = async (setFile: Function) => {
+    try {
+      const res = await DocumentPicker.pickSingle({
+        type: [DocumentPicker.types.images], // Allow only images
+      });
+
+      console.log('Selected File:', res); // Debugging: check selected file details
+      setFile(res); // Set the entire file object in state
+    } catch (err) {
+      if (DocumentPicker.isCancel(err)) {
+        console.log('User cancelled the document picker');
+      } else {
+        console.log('Error picking document:', err);
+      }
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
@@ -97,7 +162,11 @@ const Product = () => {
           <Header title="Detail" onBackPress={() => navigation.goBack()} />
         </View>
 
-        <ScrollView>
+        <ScrollView
+          contentContainerStyle={{
+            paddingBottom: Platform.OS === 'ios' ? undefined : hp(1),
+          }} // Add extra padding
+          keyboardShouldPersistTaps="handled">
           {/* Image Slider Section */}
           <View style={styles.imageSliderContainer}>
             <TouchableOpacity
@@ -124,6 +193,7 @@ const Product = () => {
               />
             </TouchableOpacity>
           </View>
+
           {/* Product Details Section */}
           <View style={styles.productDetailsContainer}>
             {/* Best Seller Tag */}
@@ -203,161 +273,113 @@ const Product = () => {
               </Text>
             )}
             {activeTab === 2 && (
-              <Text style={styles.contentText}>Reviews Content</Text>
+              <Text style={styles.contentText}>No Reviews Found</Text>
             )}
+          </View>
+
+          {/** Attributes */}
+          <View style={styles.attributeContainer}>
+            {attributes.map(attr => (
+              <View key={attr.key} style={{marginBottom: hp(2)}}>
+                <Text style={styles.label}>{attr.label}</Text>
+                <CustomTextInput
+                  placeholder={attr.placeholder}
+                  value={attributeValues[attr.key] || ''}
+                  width={wp(90)}
+                  onChangeText={text => handleChange(attr.key, text)}
+                />
+              </View>
+            ))}
+
+            {/* Color Options */}
+            <Text style={styles.label}>Color</Text>
+            <View style={styles.colorOptionsContainer}>
+              {colors.map((color, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.colorOption,
+                    {backgroundColor: color},
+                    selectedColor === color && styles.selectedBorder,
+                  ]}
+                  onPress={() => setSelectedColor(color)}
+                />
+              ))}
+            </View>
+
+            {/* Upload Logo/Artwork */}
+            <Text style={styles.label}>Upload Logo/Artwork</Text>
+            <View style={styles.uploadContainer}>
+              <TouchableOpacity
+                style={styles.uploadBox}
+                onPress={() => pickDocument(setFrontFile)}>
+                {frontFile ? (
+                  <Image
+                    source={{uri: frontFile.uri}}
+                    style={styles.uploadedImage}
+                  />
+                ) : (
+                  <>
+                    <File
+                      width={wp(10)}
+                      height={wp(10)}
+                      style={styles.fileIcon}
+                    />
+                    <Text style={styles.uploadText}>Front Image</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.uploadBox}
+                onPress={() => pickDocument(setBackFile)}>
+                {backFile ? (
+                  <Image
+                    source={{uri: backFile.uri}}
+                    style={styles.uploadedImage}
+                  />
+                ) : (
+                  <>
+                    <File
+                      width={wp(10)}
+                      height={wp(10)}
+                      style={styles.fileIcon}
+                    />
+                    <Text style={styles.uploadText}>Back Image</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.label}>Order Notes</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Write description"
+              multiline
+              value={reviewText}
+              onChangeText={setReviewText}
+              placeholderTextColor={'#9c9c9c'}
+            />
+            <View style={styles.buttonContainer}>
+              <View style={styles.row}>
+                <TouchableOpacity style={styles.button}>
+                  <Text style={styles.buttonText}>Choose for me</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={() => navigation.navigate('Quote')}>
+                  <Text style={styles.buttonText}>Request a Quote</Text>
+                </TouchableOpacity>
+              </View>
+              <TouchableOpacity style={[styles.button, styles.fullWidthButton]}>
+                <Text style={styles.buttonText}>Add Marketplace</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </ScrollView>
       </View>
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#F5F7FA',
-  },
-  container: {
-    flex: 1,
-  },
-  headerContainer: {
-    paddingHorizontal: Platform.select({
-      ios: wp(6),
-      android: wp(5),
-    }),
-  },
-  imageSliderContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '100%',
-  },
-  productImage: {
-    width: wp(70),
-    height: hp(30),
-    resizeMode: 'contain',
-  },
-  navigationButton: {
-    width: wp(10),
-    height: wp(10),
-    borderRadius: wp(5),
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginHorizontal: wp(2),
-  },
-  productDetailsContainer: {
-    paddingHorizontal: Platform.select({
-      ios: wp(6),
-      android: wp(5),
-    }),
-  },
-  bestSellerBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#03A7A7',
-    borderRadius: wp(2),
-    padding: wp(0.5),
-    width: wp(22),
-    justifyContent: 'center',
-  },
-  bestSellerText: {
-    fontSize: wp(3.2),
-    fontWeight: 'bold',
-    color: '#ffffff',
-    marginLeft: wp(1),
-  },
-  productInfoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: wp(3),
-    justifyContent: 'space-between',
-  },
-  productTitle: {
-    fontSize: wp(5),
-    fontWeight: 'bold',
-    color: '#000000',
-  },
-  ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: wp(0.5),
-    justifyContent: 'space-between',
-  },
-  ratingText: {
-    fontSize: wp(3),
-    fontWeight: 'bold',
-    color: '#000000',
-    marginLeft: wp(1),
-  },
-  productPrice: {
-    fontSize: wp(4),
-    fontWeight: 'bold',
-    color: '#FF0080',
-  },
-  tabContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    position: 'relative',
-  },
-  tabButton: {
-    paddingVertical: wp(2),
-    width: tabWidth,
-    alignItems: 'center',
-  },
-  tabText: {
-    fontSize: wp(4),
-    color: 'grey',
-    fontWeight: 'bold',
-    marginBottom: Platform.OS === 'ios' ? hp(1) : hp(0.5),
-  },
-  activeTabText: {
-    color: 'black',
-  },
-  underline: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    width: tabWidth * 0.6,
-    height: hp(0.3),
-    backgroundColor: '#FF0080',
-    borderRadius: 5,
-    marginLeft: tabWidth * 0.2,
-    marginBottom: Platform.OS === 'ios' ? hp(1) : hp(0.5),
-  },
-  contentContainer: {
-    padding: 20,
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#9c9c9c',
-    borderTopWidth: 1,
-    borderTopColor: '#9c9c9c',
-  },
-  contentText: {
-    fontSize: wp(5),
-    color: '#FF0080',
-    fontWeight: 'bold',
-  },
-  policyText: {
-    fontSize: wp(3.5),
-    color: '#9c9c9c',
-    textAlign: 'justify',
-  },
-  specRow: {
-    flexDirection: 'row',
-    paddingVertical: wp(1),
-  },
-  specLabel: {
-    fontSize: wp(4),
-    fontWeight: 'bold',
-    color: '#333',
-    width: '50%',
-  },
-  specValue: {
-    fontSize: wp(3.8),
-    color: '#666',
-    width: '50%',
-  },
-});
 
 export default Product;

@@ -48,7 +48,9 @@ const Login = () => {
       });
 
       navigation.replace('Subscription');
-    } catch (error) {}
+    } catch (error) {
+      console.log((error as any)?.message);
+    }
   };
 
   // const handleLogin = () => {

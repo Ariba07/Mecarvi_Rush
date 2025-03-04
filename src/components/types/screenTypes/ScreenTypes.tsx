@@ -36,4 +36,5 @@ export type RootStackParamList = {
   Profile: undefined;
   Points: undefined;
   Product: undefined;
+  Quote: undefined;
 };

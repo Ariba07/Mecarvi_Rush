@@ -21,6 +21,7 @@ interface CustomTextInputProps {
   value?: string | string[];
   onChangeText?: (text: string | string[]) => void;
   isMultiSelect?: boolean;
+  width?: number;
 }
 
 const dropdownOptions: {[key: string]: string[]} = {
@@ -29,6 +30,14 @@ const dropdownOptions: {[key: string]: string[]} = {
   'Select Capacity': ['Small', 'Medium', 'Large'],
   'Select Your Target Market': ['Local', 'National', 'International'],
   'Select Services': ['Consulting', 'Development', 'Marketing'],
+  'Sidewalk Sign Size': ['Small', 'Medium', 'Large'],
+  'Sidewalk Sign Material': ['Aluminum', 'Plastic', 'Wood'],
+  'Sidewalk Sign Hardware': ['A-Frame', 'H-Frame', 'No Frame'],
+  'Sidewalk Sign Artwork': [
+    'Printed Graphic',
+    'Vinyl Lettering',
+    'Custom Design',
+  ],
 };
 
 const CustomTextInput: React.FC<CustomTextInputProps> = ({
@@ -37,6 +46,7 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
   value,
   onChangeText,
   isMultiSelect = false,
+  width,
 }) => {
   const [isPasswordVisible, setPasswordVisible] = useState(!secureTextEntry);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
@@ -73,7 +83,7 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
       {isDropdownField ? (
         <>
           <TouchableOpacity
-            style={styles.container}
+            style={[styles.container, {width: width ? width : wp(80)}]}
             onPress={handleDropdownPress}>
             <TextInput
               style={styles.input}
@@ -95,7 +105,11 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
           </TouchableOpacity>
 
           {activeDropdown === placeholder && (
-            <View style={styles.dropdownContainer}>
+            <View
+              style={[
+                styles.dropdownContainer,
+                {width: width ? width : wp(80)},
+              ]}>
               <ScrollView nestedScrollEnabled style={styles.dropdownScroll}>
                 {dropdownOptions[placeholder].map(item => (
                   <TouchableOpacity
@@ -115,7 +129,7 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
           )}
         </>
       ) : (
-        <View style={styles.container}>
+        <View style={[styles.container, {width: width ? width : wp(80)}]}>
           <TextInput
             style={styles.input}
             placeholder={placeholder}
@@ -155,7 +169,6 @@ const styles = StyleSheet.create({
     borderRadius: wp(2),
     paddingVertical: Platform.OS === 'ios' ? hp(1.5) : hp(0.2),
     paddingHorizontal: wp(2),
-    width: wp(80),
     alignSelf: 'center',
     backgroundColor: '#fff',
   },
@@ -166,7 +179,6 @@ const styles = StyleSheet.create({
   },
   dropdownContainer: {
     position: 'absolute',
-    width: wp(80),
     backgroundColor: '#fff',
     borderWidth: 1,
     borderColor: '#ccc',
