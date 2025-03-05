@@ -2,7 +2,6 @@
 import React from 'react';
 import {Platform, ViewStyle} from 'react-native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import Dashboard from '../../../screens/dashboard/Dashboard';
 import Orders from '../../../screens/orders/Orders';
 import Chats from '../../../screens/chat/Chats';
 import Settings from '../../../screens/settings/Settings';
@@ -16,6 +15,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
+import Index from '../../../screens/dashboard/Index';
 
 const Tab = createBottomTabNavigator();
 
@@ -71,7 +71,7 @@ const BottomTabs: React.FC = () => {
         tabBarLabel: () => null, // Hide labels
         headerShown: false,
       })}>
-      <Tab.Screen name="Dashboard" component={Dashboard} />
+      <Tab.Screen name="Dashboard" component={Index} />
       <Tab.Screen name="Orders" component={Orders} />
       <Tab.Screen name="Chats" component={Chats} />
       <Tab.Screen name="Settings" component={Settings} />

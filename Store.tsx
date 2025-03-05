@@ -1,10 +1,16 @@
 import {configureStore} from '@reduxjs/toolkit';
-import authReducer from './src/slice/Slice'; // Import your auth slice
+import authReducer from './src/slice/Slice';
 
 const store = configureStore({
   reducer: {
-    auth: authReducer, // Add auth slice to Redux store
+    auth: authReducer,
   },
+  middleware: getDefaultMiddleware =>
+    getDefaultMiddleware({
+      serializableCheck: {
+        warnAfter: 64, // Increases the warning threshold to avoid minor warnings
+      },
+    }),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

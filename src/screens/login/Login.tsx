@@ -25,6 +25,8 @@ import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
 import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
+import {useDispatch} from 'react-redux';
+import {setRole} from '../../slice/Slice';
 
 const {width, height} = Dimensions.get('window'); // Get screen dimensions
 
@@ -38,16 +40,19 @@ const Login = () => {
   const [isChecked, setIsChecked] = useState(false);
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const dispatch = useDispatch();
 
   const handleLogin = async (values: {email: string; password: string}) => {
     try {
-      await apiHelper({
+      const response = await apiHelper({
         method: 'POST',
         endpoint: 'authentication/login/',
         data: values,
       });
 
       navigation.replace('Subscription');
+      const data = response as {data: {user: {roles: string[]}}};
+      dispatch(setRole(data.data.user.roles[0]));
     } catch (error) {
       console.log((error as any)?.message);
     }

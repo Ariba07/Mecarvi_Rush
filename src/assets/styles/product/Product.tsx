@@ -53,7 +53,7 @@ export const styles = StyleSheet.create({
     backgroundColor: '#03A7A7',
     borderRadius: wp(2),
     padding: wp(0.5),
-    width: wp(22),
+    width: Platform.OS === 'ios' ? wp(25) : wp(22),
     justifyContent: 'center',
   },
   bestSellerText: {
@@ -188,7 +188,7 @@ export const styles = StyleSheet.create({
   },
   button: {
     backgroundColor: '#03A7A7',
-    paddingVertical: hp(1.8),
+    paddingVertical: Platform.OS === 'ios' ? hp(1.5) : hp(1.8),
     paddingHorizontal: wp(5),
     borderRadius: 10,
     alignItems: 'center',
@@ -201,7 +201,7 @@ export const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#fff',
-    fontSize: hp(2),
+    fontSize: hp(1.6),
     fontWeight: 'bold',
   },
   colorOptionsContainer: {
