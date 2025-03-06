@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-native/no-inline-styles */
 import React, {useState} from 'react';
 import {
@@ -42,25 +43,25 @@ const Login = () => {
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const dispatch = useDispatch();
 
-  const handleLogin = async (values: {email: string; password: string}) => {
-    try {
-      const response = await apiHelper({
-        method: 'POST',
-        endpoint: 'authentication/login/',
-        data: values,
-      });
+  // const handleLogin = async (values: {email: string; password: string}) => {
+  //   try {
+  //     const response = await apiHelper({
+  //       method: 'POST',
+  //       endpoint: 'authentication/login/',
+  //       data: values,
+  //     });
 
-      navigation.replace('Subscription');
-      const data = response as {data: {user: {roles: string[]}}};
-      dispatch(setRole(data.data.user.roles[0]));
-    } catch (error) {
-      console.log((error as any)?.message);
-    }
-  };
-
-  // const handleLogin = () => {
-  //   navigation.replace('Subscription');
+  //     navigation.replace('Subscription');
+  //     const data = response as {data: {user: {roles: string[]}}};
+  //     dispatch(setRole(data.data.user.roles[0]));
+  //   } catch (error) {
+  //     console.log((error as any)?.message);
+  //   }
   // };
+
+  const handleLogin = () => {
+    navigation.replace('Subscription');
+  };
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>

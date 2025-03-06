@@ -20,6 +20,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import SideMenu from '../../assets/images/SideMenu.svg';
 import PieChart from 'react-native-pie-chart';
 import OrderCard from '../../components/common/orderCard/OrderCard';
+import { orders } from '../../components/helperUtils/orderTypes/Types';
 
 const ServiceProviderDashboard = () => {
   const navigation = useNavigation<DrawerNavigationProp<RootStackParamList>>();
@@ -55,40 +56,7 @@ const ServiceProviderDashboard = () => {
     },
   ];
 
-  const orders = [
-    {
-      id: '1',
-      name: 'Aluminium Sign',
-      price: '$220',
-      image: require('../../assets/images/s1.png'),
-      status: 'Processing',
-      color: '#03A7A7',
-    },
-    {
-      id: '2',
-      name: 'SideWalk Sign Board',
-      price: '$220',
-      image: require('../../assets/images/s1.png'),
-      status: 'Completed',
-      color: '#069F3D',
-    },
-    {
-      id: '3',
-      name: 'Custom Banner',
-      price: '$180',
-      image: require('../../assets/images/s1.png'),
-      status: 'Decline',
-      color: '#FF0004',
-    },
-    {
-      id: '4',
-      name: 'Vinyl Sticker',
-      price: '$150',
-      image: require('../../assets/images/s1.png'),
-      status: 'Pending',
-      color: '#FFB800',
-    },
-  ];
+
 
   return (
     <SafeAreaView style={styles.safeArea}>

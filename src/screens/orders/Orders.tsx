@@ -18,56 +18,9 @@ import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
 import {renderStars} from '../../components/common/review/RenderStars';
+import {order} from '../../components/helperUtils/orderTypes/Types';
 
 const tabs = ['All', 'Progress', 'Delivered'];
-const orders = [
-  {
-    id: '1',
-    title: 'Sidewalk Sign Board',
-    company: 'Creative Ink Solutions',
-    location: 'New York, USA',
-    date: '03 Jun 2023',
-    price: '$245.00',
-    image: require('../../assets/images/Orders.png'), // Replace with actual image path
-    status: 'Progress',
-  },
-  {
-    id: '2',
-    title: 'Service Name',
-    review: '2',
-    date: '11 Mar 2025',
-    price: '$245.00',
-    image: require('../../assets/images/Orders.png'),
-    status: 'Delivered',
-  },
-  {
-    id: '3',
-    title: 'Service Name',
-    review: '1.5',
-    date: '11 Mar 2025',
-    price: '$245.00',
-    status: 'Delivered',
-    image: require('../../assets/images/Orders.png'), // Replace with actual image path
-  },
-  {
-    id: '4',
-    title: 'Service Name',
-    review: '4.0',
-    date: '11 Mar 2025',
-    price: '$245.00',
-    status: 'Delivered',
-    image: require('../../assets/images/Orders.png'), // Replace with actual image path
-  },
-  {
-    id: '5',
-    title: 'Service Name',
-    review: '5.0',
-    date: '11 Mar 2025',
-    price: '$245.00',
-    status: 'Delivered',
-    image: require('../../assets/images/Orders.png'), // Replace with actual image path
-  },
-];
 
 const Orders = () => {
   const navigation =
@@ -76,8 +29,8 @@ const Orders = () => {
 
   const filteredOrders =
     selectedTab === 'All'
-      ? orders
-      : orders.filter(order => order.status === selectedTab);
+      ? order
+      : order.filter(ord => ord.status === selectedTab);
 
   const renderProgressItem = ({item}: {item: any}) => (
     <View style={styles.card}>

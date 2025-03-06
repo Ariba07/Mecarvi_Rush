@@ -2,7 +2,7 @@
 import React from 'react';
 import {Platform, ViewStyle} from 'react-native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import Orders from '../../../screens/orders/Orders';
+import OrderIndex from '../../../screens/orders/OrderIndex';
 import Chats from '../../../screens/chat/Chats';
 import Settings from '../../../screens/settings/Settings';
 import {
@@ -72,7 +72,7 @@ const BottomTabs: React.FC = () => {
         headerShown: false,
       })}>
       <Tab.Screen name="Dashboard" component={Index} />
-      <Tab.Screen name="Orders" component={Orders} />
+      <Tab.Screen name="Orders" component={OrderIndex} />
       <Tab.Screen name="Chats" component={Chats} />
       <Tab.Screen name="Settings" component={Settings} />
     </Tab.Navigator>
