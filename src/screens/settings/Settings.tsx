@@ -23,7 +23,12 @@ import Money from '../../assets/images/Money.svg';
 import Truck from '../../assets/images/Truck.svg';
 import Log from '../../assets/images/Log.svg';
 import Service from '../../assets/images/Service.svg';
+import Dollar from '../../assets/images/Dollar.svg';
+import Products from '../../assets/images/Products.svg';
+import Notify from '../../assets/images/Notify.svg';
 import {Icon} from 'react-native-elements';
+import {selectRole} from '../../slice/Slice';
+import {useSelector} from 'react-redux';
 
 const menuItems = [
   {
@@ -77,9 +82,62 @@ const menuItems = [
   },
 ];
 
+const menuItem = [
+  {
+    id: '1',
+    title: 'My Profile',
+    icon: <Profile width={wp(5)} height={wp(5)} />,
+    bgColor: '#F4C542',
+    route: 'Profile',
+  },
+  {
+    id: '2',
+    title: 'My Products',
+    icon: <Products width={wp(5)} height={wp(5)} />,
+    bgColor: '#FF4081',
+    route: 'Services',
+  },
+  {
+    id: '3',
+    title: 'My Orders',
+    icon: <List width={wp(5)} height={wp(5)} />,
+    bgColor: '#26C6DA',
+    route: 'Orders',
+  },
+  {
+    id: '4',
+    title: 'Wallet',
+    icon: <Money width={wp(5)} height={wp(5)} />,
+    bgColor: '#FFA726',
+    route: 'Subscription',
+  },
+  {
+    id: '5',
+    title: 'Notification',
+    icon: <Notify width={wp(5)} height={wp(5)} />,
+    bgColor: '#66BB6A',
+    route: 'Notification',
+  },
+  {
+    id: '6',
+    title: 'Subscription',
+    icon: <Dollar width={wp(5)} height={wp(5)} />,
+    bgColor: '#42A5F5',
+    route: 'Subscription',
+  },
+  {
+    id: '7',
+    title: 'Log Out',
+    icon: <Log width={wp(5)} height={wp(5)} />,
+    bgColor: '#5C6BC0',
+    route: 'Login',
+  },
+];
+
 const Settings = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const role = useSelector(selectRole);
 
   const renderItem = ({item}: {item: (typeof menuItems)[0]}) => (
     <TouchableOpacity
@@ -103,7 +161,7 @@ const Settings = () => {
       <View style={styles.container}>
         <Header title="Settings" onBackPress={() => navigation.goBack()} />
         <FlatList
-          data={menuItems}
+          data={role === 'admin' ? menuItems : menuItem}
           keyExtractor={item => item.id}
           renderItem={renderItem}
           contentContainerStyle={styles.listContainer}

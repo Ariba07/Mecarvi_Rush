@@ -34,6 +34,8 @@ import Points from './src/screens/points/Points';
 import Products from './src/screens/products/Products';
 import Product from './src/screens/product/Product';
 import Quote from './src/screens/quote/Quote';
+import ServicesProducts from './src/screens/services/ServicesProducts';
+import ProductPrice from './src/screens/productPrice/ProductPrice';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -96,6 +98,8 @@ const App = () => {
           <Stack.Screen name="Support" component={Support} />
           <Stack.Screen name="Product" component={Product} />
           <Stack.Screen name="Quote" component={Quote} />
+          <Stack.Screen name="Services" component={ServicesProducts} />
+          <Stack.Screen name="ProductPrice" component={ProductPrice} />
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>

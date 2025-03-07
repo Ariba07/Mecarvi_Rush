@@ -10,38 +10,53 @@ import {
   Platform,
   StyleSheet,
 } from 'react-native';
-import firestore from '@react-native-firebase/firestore';
+import {
+  collection,
+  doc,
+  orderBy,
+  query,
+  onSnapshot,
+  addDoc,
+  serverTimestamp,
+} from 'firebase/firestore';
 import {RouteProp, useRoute} from '@react-navigation/native';
-import {FirebaseFirestoreTypes} from '@react-native-firebase/firestore';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
+import {db} from '../../../FirebaseConfig';
 
 type MessagesRouteProp = RouteProp<RootStackParamList, 'Message'>;
 
 interface Message {
   id: string;
-  createdAt: FirebaseFirestoreTypes.Timestamp;
   text: string;
+  createdAt: any;
+  sender: string; // Added sender field
 }
 
-const Message: React.FC = () => {
+const currentUser = 'user123'; // TEMP: Replace this when adding authentication
+
+const MessageScreen: React.FC = () => {
   const route = useRoute<MessagesRouteProp>();
   const {chatId, chatName} = route.params;
   const [messages, setMessages] = useState<Message[]>([]);
   const [text, setText] = useState('');
 
   useEffect(() => {
-    const unsubscribe = firestore()
-      .collection('chats')
-      .doc(chatId)
-      .collection('messages')
-      .orderBy('createdAt', 'desc')
-      .onSnapshot(snapshot => {
-        const fetchedMessages: Message[] = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as Message[];
-        setMessages(fetchedMessages);
-      });
+    const messagesRef = collection(
+      doc(collection(db, 'chats'), chatId),
+      'messages',
+    );
+    const q = query(messagesRef, orderBy('createdAt', 'desc'));
+
+    const unsubscribe = onSnapshot(q, snapshot => {
+      const fetchedMessages: Message[] = snapshot.docs.map(messageDoc => ({
+        id: messageDoc.id,
+        text: messageDoc.data().text,
+        sender: messageDoc.data().sender || 'unknown',
+        createdAt: messageDoc.data().createdAt || serverTimestamp(),
+      }));
+
+      setMessages(fetchedMessages);
+    });
 
     return () => unsubscribe();
   }, [chatId]);
@@ -51,14 +66,15 @@ const Message: React.FC = () => {
       return;
     }
 
-    await firestore()
-      .collection('chats')
-      .doc(chatId)
-      .collection('messages')
-      .add({
-        text,
-        createdAt: firestore.FieldValue.serverTimestamp(),
-      });
+    const messagesRef = collection(
+      doc(collection(db, 'chats'), chatId),
+      'messages',
+    );
+    await addDoc(messagesRef, {
+      text,
+      sender: currentUser, // TEMP: Replace with authenticated user ID
+      createdAt: serverTimestamp(),
+    });
 
     setText('');
   };
@@ -71,11 +87,24 @@ const Message: React.FC = () => {
         data={messages}
         inverted
         keyExtractor={item => item.id}
-        renderItem={({item}) => (
-          <View style={styles.message}>
-            <Text style={styles.messageText}>{item.text}</Text>
-          </View>
-        )}
+        renderItem={({item}) => {
+          const isSent = item.sender === currentUser;
+          return (
+            <View
+              style={[
+                styles.message,
+                isSent ? styles.sentMessage : styles.receivedMessage,
+              ]}>
+              <Text
+                style={[
+                  styles.messageText,
+                  isSent ? styles.sentText : styles.receivedText,
+                ]}>
+                {item.text}
+              </Text>
+            </View>
+          );
+        }}
       />
 
       <View style={styles.inputContainer}>
@@ -95,17 +124,26 @@ const Message: React.FC = () => {
 
 // Styles
 const styles = StyleSheet.create({
-  container: {flex: 1, backgroundColor: '#f0f0f0'},
+  container: {flex: 1, backgroundColor: '#f0f0f0', paddingHorizontal: 10},
   message: {
-    backgroundColor: '#fff',
-    padding: 10,
-    borderRadius: 8,
+    maxWidth: '75%',
+    padding: 12,
+    borderRadius: 10,
     marginVertical: 5,
-    marginHorizontal: 10,
-    alignSelf: 'flex-start',
-    maxWidth: '80%',
   },
-  messageText: {fontSize: 16, color: '#000'},
+  sentMessage: {
+    backgroundColor: '#007bff',
+    alignSelf: 'flex-end',
+    borderTopRightRadius: 0,
+  },
+  receivedMessage: {
+    backgroundColor: '#fff',
+    alignSelf: 'flex-start',
+    borderTopLeftRadius: 0,
+  },
+  messageText: {fontSize: 16},
+  sentText: {color: '#fff'},
+  receivedText: {color: '#000'},
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -131,4 +169,4 @@ const styles = StyleSheet.create({
   sendText: {color: '#fff', fontWeight: 'bold'},
 });
 
-export default Message;
+export default MessageScreen;

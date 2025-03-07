@@ -38,4 +38,6 @@ export type RootStackParamList = {
   Product: undefined;
   Quote: undefined;
   ServiceProviderDashboard: undefined;
+  Services: undefined;
+  ProductPrice: undefined;
 };

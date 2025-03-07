@@ -1,5 +1,13 @@
+/* eslint-disable react-native/no-inline-styles */
 import React from 'react';
-import {View, Text, Image, StyleSheet, TouchableOpacity} from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  Platform,
+} from 'react-native';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -14,6 +22,7 @@ interface ProductCardProps {
   image: any;
   status: string;
   color: string;
+  borderColor?: string;
 }
 
 const OrderCard: React.FC<ProductCardProps> = ({
@@ -22,13 +31,17 @@ const OrderCard: React.FC<ProductCardProps> = ({
   image,
   status,
   color,
+  borderColor,
 }) => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   return (
     <TouchableOpacity
+      disabled={status === 'Add Your Price' || status === 'Add to cart'}
       style={styles.card}
-      onPress={() => navigation.navigate('Product')}>
+      onPress={() => {
+        navigation.navigate('Product');
+      }}>
       {/* Image Container */}
       <View style={styles.imageContainer}>
         <Image source={image} style={styles.image} resizeMode="cover" />
@@ -39,13 +52,33 @@ const OrderCard: React.FC<ProductCardProps> = ({
         <Text style={styles.name}>{name}</Text>
 
         {/* Ratings */}
-        <View style={styles.ratingContainer}>
-          <Text style={styles.rating}>New York,USA .2m ago</Text>
-        </View>
+        {status !== 'Add Your Price' && status !== 'Add to cart' && (
+          <View style={styles.ratingContainer}>
+            <Text style={styles.rating}>New York,USA .2m ago</Text>
+          </View>
+        )}
 
         {/* Add to Cart Button */}
-        <TouchableOpacity style={[styles.cartButton, {backgroundColor: color}]}>
-          <Text style={styles.cartText}>{status}</Text>
+        <TouchableOpacity
+          disabled={status !== 'Add Your Price' && status !== 'Add to cart'}
+          onPress={() => {
+            status === 'Add Your Price' && navigation.navigate('ProductPrice');
+          }}
+          style={[
+            styles.cartButton,
+            {
+              backgroundColor: color,
+              borderColor: borderColor,
+              borderWidth: borderColor ? 1 : 0,
+            },
+          ]}>
+          <Text
+            style={[
+              styles.cartText,
+              {color: status === 'Add Your Price' ? borderColor : 'white'},
+            ]}>
+            {status}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -107,10 +140,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   cartText: {
-    color: 'white',
-    fontSize: wp('3.5%'),
+    fontSize: Platform.OS === 'ios' ? wp('3%') : wp('3.5%'),
     fontWeight: '600',
-    marginLeft: wp('2%'),
   },
   price: {
     fontSize: wp('4%'),

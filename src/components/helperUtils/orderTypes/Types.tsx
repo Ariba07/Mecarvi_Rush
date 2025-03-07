@@ -121,3 +121,61 @@ export const order = [
     image: require('../../../assets/images/Orders.png'), // Replace with actual image path
   },
 ];
+
+export const products = [
+  {
+    id: '1',
+    name: 'Aluminium Sign',
+    price: '$220',
+    image: require('../../../assets/images/s1.png'),
+  },
+  {
+    id: '2',
+    name: 'SideWalk Sign Board',
+    price: '$220',
+    image: require('../../../assets/images/s1.png'),
+  },
+  {
+    id: '3',
+    name: 'Custom Banner',
+    price: '$180',
+    image: require('../../../assets/images/s1.png'),
+  },
+  {
+    id: '4',
+    name: 'Vinyl Sticker',
+    price: '$150',
+    image: require('../../../assets/images/s1.png'),
+  },
+  {
+    id: '5',
+    name: 'Vinyl Sticker',
+    price: '$150',
+    image: require('../../../assets/images/s1.png'),
+    status: 'Cancelled',
+  },
+  {
+    id: '6',
+    name: 'Vinyl Sticker',
+    price: '$150',
+    image: require('../../../assets/images/s1.png'),
+  },
+  {
+    id: '7',
+    name: 'Vinyl Sticker',
+    price: '$150',
+    image: require('../../../assets/images/s1.png'),
+  },
+  {
+    id: '8',
+    name: 'Vinyl Sticker',
+    price: '$150',
+    image: require('../../../assets/images/s1.png'),
+  },
+  {
+    id: '9',
+    name: 'Vinyl Sticker',
+    price: '$150',
+    image: require('../../../assets/images/s1.png'),
+  },
+];

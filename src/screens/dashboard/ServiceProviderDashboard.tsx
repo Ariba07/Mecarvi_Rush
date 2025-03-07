@@ -20,7 +20,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import SideMenu from '../../assets/images/SideMenu.svg';
 import PieChart from 'react-native-pie-chart';
 import OrderCard from '../../components/common/orderCard/OrderCard';
-import { orders } from '../../components/helperUtils/orderTypes/Types';
+import {orders} from '../../components/helperUtils/orderTypes/Types';
 
 const ServiceProviderDashboard = () => {
   const navigation = useNavigation<DrawerNavigationProp<RootStackParamList>>();
@@ -56,8 +56,6 @@ const ServiceProviderDashboard = () => {
     },
   ];
 
-
-
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
@@ -72,7 +70,9 @@ const ServiceProviderDashboard = () => {
               <Text style={styles.welcomeText}>Welcome Back</Text>
             </View>
           </View>
-          <TouchableOpacity style={styles.iconBox}>
+          <TouchableOpacity
+            style={styles.iconBox}
+            onPress={() => navigation.navigate('Notification')}>
             <Icon name="notifications-outline" size={20} color={'#333333'} />
           </TouchableOpacity>
         </View>
@@ -133,7 +133,7 @@ const ServiceProviderDashboard = () => {
               <Text style={styles.seeAllText}>See All</Text>
             </TouchableOpacity>
           </View>
-          {orders.map(item => (
+          {orders.slice(0, 5).map(item => (
             <OrderCard
               key={item.id}
               name={item.name}
