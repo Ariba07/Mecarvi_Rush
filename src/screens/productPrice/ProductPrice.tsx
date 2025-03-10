@@ -39,7 +39,7 @@ const ProductPrice = () => {
         {/* Product Title & Rating */}
         <View style={styles.productInfoContainer}>
           <View>
-            <Text style={styles.productTitle}>Signage</Text>
+            <Text style={styles.productTitle}>Signage Sign Board</Text>
             <View style={styles.ratingContainer}>
               {renderStars(Number('4.5'))}
               <Text style={styles.ratingText}>4.5</Text>
@@ -108,7 +108,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: wp(0.5),
-    justifyContent: 'space-between',
   },
   ratingText: {
     fontSize: wp(3),

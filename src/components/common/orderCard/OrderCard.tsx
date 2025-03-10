@@ -40,7 +40,7 @@ const OrderCard: React.FC<ProductCardProps> = ({
       disabled={status === 'Add Your Price' || status === 'Add to cart'}
       style={styles.card}
       onPress={() => {
-        navigation.navigate('Product');
+        navigation.navigate('ServiceProviderOrderDetail');
       }}>
       {/* Image Container */}
       <View style={styles.imageContainer}>

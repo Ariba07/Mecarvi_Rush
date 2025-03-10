@@ -5,16 +5,16 @@ import {Platform} from 'react-native';
 const firebaseConfig = {
   apiKey:
     Platform.OS === 'ios'
-      ? 'AIzaSyCdKPMj7q6FFWjId7F9irNalCXc3lbNHIY' // iOS API Key
-      : 'AIzaSyCyTh8-6lpIsZCjRV3NXtC--wgcQJ2JyWY', // Android API Key
+      ? 'AIzaSyAV8UHltOdV-JdOB2223cODmULiQTop-iQ' // Updated iOS API Key
+      : 'AIzaSyBugwvjfiPnh-9EK_sMH_AwV4pVHL0Nvj4', // Updated Android API Key
   authDomain: 'mecarvi-rush.firebaseapp.com',
-  projectId: 'mecarvi-rush',
-  storageBucket: 'mecarvi-rush.firebasestorage.app',
-  messagingSenderId: '334376253693',
+  projectId: 'mecarvirush',
+  storageBucket: 'mecarvirush.firebasestorage.app',
+  messagingSenderId: '429796383185',
   appId:
     Platform.OS === 'ios'
-      ? '1:334376253693:ios:c6f1a2c2843e86036fe694' // iOS App ID
-      : '1:334376253693:android:c5c9dbcae6e5b7846fe694', // Android App ID
+      ? '1:429796383185:ios:9b333b35d2b5dc511428f0' // Updated iOS App ID
+      : '1:429796383185:android:5e422ffb88850d1d1428f0', // Updated Android App ID
 };
 
 // Initialize Firebase only if it’s not already initialized

@@ -29,7 +29,7 @@ const ServiceProviderDashboard = () => {
     {title: 'Total Orders', value: '1,250 Orders', icon: 'cart-outline'},
     {title: 'Total Customers', value: '980 Customers', icon: 'people-outline'},
     {title: 'Total Earnings', value: '$12,500.00', icon: 'cash-outline'},
-    {title: 'Support Tickets', value: '980 Customers', icon: 'mail-outline'},
+    {title: 'Support Tickets', value: '80 Customers', icon: 'mail-outline'},
   ];
 
   const chartData = [
@@ -89,7 +89,7 @@ const ServiceProviderDashboard = () => {
                   (index + 1) % 2 === 0 && styles.cardLastInRow, // Remove right border for second card in each row
                   index >= 2 && styles.cardLastRow, // Remove bottom border for last two cards
                 ]}>
-                <Icon name={item.icon} size={24} color={'#00C49F'} />
+                <Icon name={item.icon} size={24} color={'#03A7A7'} />
                 <Text style={styles.cardTitle}>{item.title}</Text>
                 <Text style={styles.cardValue}>{item.value}</Text>
               </View>
@@ -129,7 +129,7 @@ const ServiceProviderDashboard = () => {
           {/* Recent Orders */}
           <View style={styles.recentOrdersHeader}>
             <Text style={styles.sectionTitle}>Recent Orders</Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate('Orders')}>
               <Text style={styles.seeAllText}>See All</Text>
             </TouchableOpacity>
           </View>

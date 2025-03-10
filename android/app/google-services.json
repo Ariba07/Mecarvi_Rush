@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "334376253693",
-    "project_id": "mecarvi-rush",
-    "storage_bucket": "mecarvi-rush.firebasestorage.app"
+    "project_number": "429796383185",
+    "project_id": "mecarvirush",
+    "storage_bucket": "mecarvirush.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:334376253693:android:c5c9dbcae6e5b7846fe694",
+        "mobilesdk_app_id": "1:429796383185:android:5e422ffb88850d1d1428f0",
         "android_client_info": {
           "package_name": "com.mecarvi_rush"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyCyTh8-6lpIsZCjRV3NXtC--wgcQJ2JyWY"
+          "current_key": "AIzaSyBugwvjfiPnh-9EK_sMH_AwV4pVHL0Nvj4"
         }
       ],
       "services": {

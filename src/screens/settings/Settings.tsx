@@ -88,7 +88,7 @@ const menuItem = [
     title: 'My Profile',
     icon: <Profile width={wp(5)} height={wp(5)} />,
     bgColor: '#F4C542',
-    route: 'Profile',
+    route: 'ServiceProviderProfile',
   },
   {
     id: '2',
