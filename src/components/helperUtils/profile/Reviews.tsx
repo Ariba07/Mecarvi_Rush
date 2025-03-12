@@ -72,8 +72,8 @@ const Reviews = () => {
             </View>
           </View>
         )}
-        contentContainerStyle={{paddingBottom: hp(10)}} // ✅ Add extra space at bottom
-        showsVerticalScrollIndicator={false} // ✅ Hide scroll indicator
+        contentContainerStyle={{paddingBottom: hp(5)}} // Already present
+        showsVerticalScrollIndicator={false} // Already present
       />
     </View>
   );

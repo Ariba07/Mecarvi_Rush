@@ -6,7 +6,6 @@ import {
   SafeAreaView,
   Image,
   Platform,
-  Keyboard,
   FlatList,
   TouchableOpacity,
 } from 'react-native';
@@ -18,7 +17,6 @@ import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
 import Header from '../../components/common/header/Header';
-import {TouchableWithoutFeedback} from 'react-native';
 import Rate from '../../assets/images/Rate.svg';
 import ServiceList from '../../components/helperUtils/profile/ServiceList';
 import AboutUs from '../../components/helperUtils/profile/AboutUs';
@@ -38,58 +36,58 @@ const ServiceProviderProfile = () => {
   const [selectedTab, setSelectedTab] = useState('Services');
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.container}>
-          <Header title="Profile" onBackPress={() => navigation.goBack()} />
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <Header title="Profile" onBackPress={() => navigation.goBack()} />
 
-          {/* Profile Image & Name */}
-          <View style={styles.profileContainer}>
-            <Image
-              source={require('../../assets/images/Orders.png')} // Replace with your image
-              style={styles.profileImage}
-              resizeMode="cover"
-            />
-            <Text style={styles.storeName}>Your name</Text>
-            <Text style={styles.label}>New York, USA</Text>
-            <View style={styles.ratings}>
-              <Rate width={wp(3)} height={wp(3)} />
-              <Text style={styles.ratingText}> 4.9 (12 Reviews)</Text>
-            </View>
+        {/* Profile Image & Name */}
+        <View style={styles.profileContainer}>
+          <Image
+            source={require('../../assets/images/Orders.png')} // Replace with your image
+            style={styles.profileImage}
+            resizeMode="cover"
+          />
+          <Text style={styles.storeName}>Your name</Text>
+          <Text style={styles.label}>New York, USA</Text>
+          <View style={styles.ratings}>
+            <Rate width={wp(3)} height={wp(3)} />
+            <Text style={styles.ratingText}> 4.9 (12 Reviews)</Text>
           </View>
-          <View>
-            <FlatList
-              data={tabs}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              keyExtractor={item => item.label}
-              contentContainerStyle={styles.tabContainer}
-              renderItem={({item}) => (
-                <TouchableOpacity
-                  onPress={() => setSelectedTab(item.label)}
-                  style={styles.tabButton}>
-                  <Text
-                    style={[
-                      styles.tabText,
-                      selectedTab === item.label && styles.activeTab,
-                    ]}>
-                    {item.label}
-                  </Text>
-                  {selectedTab === item.label && (
-                    <View style={styles.activeUnderline} />
-                  )}
-                </TouchableOpacity>
-              )}
-            />
-          </View>
-
+        </View>
+        <View>
+          <FlatList
+            data={tabs}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            keyExtractor={item => item.label}
+            contentContainerStyle={styles.tabContainer}
+            renderItem={({item}) => (
+              <TouchableOpacity
+                onPress={() => setSelectedTab(item.label)}
+                style={styles.tabButton}>
+                <Text
+                  style={[
+                    styles.tabText,
+                    selectedTab === item.label && styles.activeTab,
+                  ]}>
+                  {item.label}
+                </Text>
+                {selectedTab === item.label && (
+                  <View style={styles.activeUnderline} />
+                )}
+              </TouchableOpacity>
+            )}
+          />
+        </View>
+        {/* Tab Content */}
+        <View style={styles.contentContainer}>
           {selectedTab === 'Services' && <ServiceList />}
           {selectedTab === 'About' && <AboutUs />}
           {selectedTab === 'Work' && <Work />}
           {selectedTab === 'Reviews' && <Reviews />}
         </View>
-      </SafeAreaView>
-    </TouchableWithoutFeedback>
+      </View>
+    </SafeAreaView>
   );
 };
 
@@ -163,6 +161,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF0080',
     width: '100%',
     borderRadius: wp(3),
+  },
+  contentContainer: {
+    flex: 1, // Takes remaining space
   },
 });
 

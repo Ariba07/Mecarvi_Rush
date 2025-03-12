@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text, StyleSheet} from 'react-native';
+import {View, Text, StyleSheet, Platform} from 'react-native';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -29,7 +29,7 @@ const AboutUs = () => {
         </View>
 
         <View style={styles.timeRow}>
-          <FontAwesome name="circle" size={wp(2.5)} color="green" />
+          <FontAwesome name="circle" size={wp(2)} color="green" />
           <Text style={styles.openText}> Open:</Text>
           <Text style={styles.timeText}>
             {' '}
@@ -38,7 +38,7 @@ const AboutUs = () => {
         </View>
 
         <View style={styles.timeRow}>
-          <FontAwesome name="circle" size={wp(2.5)} color="red" />
+          <FontAwesome name="circle" size={wp(2)} color="red" />
           <Text style={styles.closedText}> Closed:</Text>
           <Text style={styles.timeText}> Saturday - Sunday</Text>
         </View>
@@ -89,19 +89,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   openText: {
-    fontSize: wp(4),
+    fontSize: Platform.OS === 'ios' ? wp(3.5) : wp(3.5),
     fontWeight: 'bold',
     color: 'green',
     marginLeft: wp(1.5),
   },
   closedText: {
-    fontSize: wp(4),
+    fontSize: Platform.OS === 'ios' ? wp(3.5) : wp(3.5),
     fontWeight: 'bold',
     color: 'red',
     marginLeft: wp(1.5),
   },
   timeText: {
-    fontSize: wp(4),
+    fontSize: Platform.OS === 'ios' ? wp(3.5) : wp(3.5),
     color: '#333',
     marginLeft: wp(1),
   },

@@ -21,6 +21,9 @@ type WorkItem = {
 const previousWorks: WorkItem[] = [
   {id: '1', image: require('../../../assets/images/Orders.png')},
   {id: '2', image: require('../../../assets/images/Orders.png')},
+  {id: '3', image: require('../../../assets/images/Orders.png')},
+  {id: '4', image: require('../../../assets/images/Orders.png')},
+  {id: '5', image: require('../../../assets/images/Orders.png')},
 ];
 
 const Work = () => {

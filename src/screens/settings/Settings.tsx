@@ -109,7 +109,7 @@ const menuItem = [
     title: 'Wallet',
     icon: <Money width={wp(5)} height={wp(5)} />,
     bgColor: '#FFA726',
-    route: 'Subscription',
+    route: 'Wallet',
   },
   {
     id: '5',

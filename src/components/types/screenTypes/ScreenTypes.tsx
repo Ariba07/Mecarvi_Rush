@@ -42,4 +42,8 @@ export type RootStackParamList = {
   ProductPrice: undefined;
   ServiceProviderOrderDetail: undefined;
   ServiceProviderProfile: undefined;
+  Wallet: undefined;
+  Withdraw: undefined;
+  WithdrawBalance: undefined;
+  WithdrawConfirm: undefined;
 };

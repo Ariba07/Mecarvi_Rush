@@ -56,12 +56,10 @@ const ServiceList = () => {
           </View>
         )}
       />
-
       <CustomButton title="Add new service" onPress={() => {}} />
     </SafeAreaView>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1, // Ensures full-screen usage

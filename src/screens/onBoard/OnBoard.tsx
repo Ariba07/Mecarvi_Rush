@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
   },
   skipButton: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? hp(6) : hp(5), // Adjust for status bar differences
+    top: Platform.OS === 'ios' ? hp(6) : hp(5),
     right: wp(8),
   },
   skipText: {
@@ -140,8 +140,8 @@ const styles = StyleSheet.create({
     fontWeight: Platform.OS === 'ios' ? '600' : 'bold',
   },
   image: {
-    width: wp(80),
-    height: hp(30),
+    width: Platform.OS === 'ios' ? wp(80) : wp(85),
+    height: Platform.OS === 'ios' ? hp(30) : hp(35),
     resizeMode: 'cover',
     marginBottom: hp(2),
   },

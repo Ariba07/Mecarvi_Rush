@@ -38,6 +38,10 @@ import ServicesProducts from './src/screens/services/ServicesProducts';
 import ProductPrice from './src/screens/productPrice/ProductPrice';
 import ServiceProviderOrderDetail from './src/screens/orderDetail/ServiceProviderOrderDetail';
 import ServiceProviderProfile from './src/screens/profile/ServiceProviderProfile';
+import Wallet from './src/screens/wallet/Wallet';
+import Withdraw from './src/screens/withdraw/Withdraw';
+import WithdrawBalance from './src/screens/withdraw_balance/WithdrawBalance';
+import WithdrawConfirm from './src/screens/popups/WithdrawConfirm';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -110,6 +114,10 @@ const App = () => {
             name="ServiceProviderProfile"
             component={ServiceProviderProfile}
           />
+          <Stack.Screen name="Wallet" component={Wallet} />
+          <Stack.Screen name="Withdraw" component={Withdraw} />
+          <Stack.Screen name="WithdrawBalance" component={WithdrawBalance} />
+          <Stack.Screen name="WithdrawConfirm" component={WithdrawConfirm} />
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>
