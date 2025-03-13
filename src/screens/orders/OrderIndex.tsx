@@ -7,7 +7,7 @@ import ServiceProviderOrders from './ServiceProviderOrders';
 const OrderIndex = () => {
   const role = useSelector(selectRole);
 
-  return role === 'admin' ? <Orders /> : <ServiceProviderOrders />;
+  return role !== 'admin' ? <Orders /> : <ServiceProviderOrders />;
 };
 
 export default OrderIndex;

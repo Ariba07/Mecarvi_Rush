@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-native/no-inline-styles */
 import React, {useEffect, useState} from 'react';
 import {
@@ -78,7 +79,7 @@ const Dashboard: React.FC = () => {
           method: 'GET',
           endpoint: 'categories/?parent_only=1',
         });
-        setCategories(response?.data?.data || []); // Ensure response data is valid
+        // setCategories(response?.data?.data || []); // Ensure response data is valid
       } catch (error) {
         console.error('Error fetching categories:', error);
       }

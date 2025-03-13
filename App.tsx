@@ -42,6 +42,7 @@ import Wallet from './src/screens/wallet/Wallet';
 import Withdraw from './src/screens/withdraw/Withdraw';
 import WithdrawBalance from './src/screens/withdraw_balance/WithdrawBalance';
 import WithdrawConfirm from './src/screens/popups/WithdrawConfirm';
+import Cart from './src/screens/cart/Cart';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -118,6 +119,7 @@ const App = () => {
           <Stack.Screen name="Withdraw" component={Withdraw} />
           <Stack.Screen name="WithdrawBalance" component={WithdrawBalance} />
           <Stack.Screen name="WithdrawConfirm" component={WithdrawConfirm} />
+          <Stack.Screen name="Cart" component={Cart} />
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>

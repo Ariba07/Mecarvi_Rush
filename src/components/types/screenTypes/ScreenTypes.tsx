@@ -46,4 +46,5 @@ export type RootStackParamList = {
   Withdraw: undefined;
   WithdrawBalance: undefined;
   WithdrawConfirm: undefined;
+  Cart: undefined;
 };

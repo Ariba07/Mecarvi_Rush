@@ -362,7 +362,9 @@ const Product = () => {
             />
             <View style={styles.buttonContainer}>
               <View style={styles.row}>
-                <TouchableOpacity style={styles.button}>
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={() => navigation.navigate('Cart')}>
                   <Text style={styles.buttonText}>Choose for me</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
