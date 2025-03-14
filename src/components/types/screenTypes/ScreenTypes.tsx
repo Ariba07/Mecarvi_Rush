@@ -47,4 +47,10 @@ export type RootStackParamList = {
   WithdrawBalance: undefined;
   WithdrawConfirm: undefined;
   Cart: undefined;
+  Schedule: undefined;
+  Booking: undefined;
+  Checkout: undefined;
+  Receipt: undefined;
+  MarketPlace: {fromProduct: boolean};
+  ShopProfile: {fromBid: boolean};
 };

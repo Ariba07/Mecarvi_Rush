@@ -373,7 +373,9 @@ const Product = () => {
                   <Text style={styles.buttonText}>Request a Quote</Text>
                 </TouchableOpacity>
               </View>
-              <TouchableOpacity style={[styles.button, styles.fullWidthButton]}>
+              <TouchableOpacity
+                style={[styles.button, styles.fullWidthButton]}
+                onPress={() => navigation.navigate('MarketPlace', {fromProduct: true})}>
                 <Text style={styles.buttonText}>Add Marketplace</Text>
               </TouchableOpacity>
             </View>

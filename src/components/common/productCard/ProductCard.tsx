@@ -42,7 +42,11 @@ const ProductCard: React.FC<ProductCardProps> = ({name, price, image}) => {
         </View>
 
         {/* Add to Cart Button */}
-        <TouchableOpacity style={styles.cartButton}>
+        <TouchableOpacity
+          style={styles.cartButton}
+          onPress={() => {
+            navigation.navigate('Cart');
+          }}>
           <Icon name="cart" size={wp('4%')} color="white" />
           <Text style={styles.cartText}>Add to cart</Text>
         </TouchableOpacity>

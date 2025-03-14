@@ -43,6 +43,12 @@ import Withdraw from './src/screens/withdraw/Withdraw';
 import WithdrawBalance from './src/screens/withdraw_balance/WithdrawBalance';
 import WithdrawConfirm from './src/screens/popups/WithdrawConfirm';
 import Cart from './src/screens/cart/Cart';
+import Schedule from './src/screens/schedule/Schedule';
+import Booking from './src/screens/booking/Booking';
+import Checkout from './src/screens/checkout/Checkout';
+import Receipt from './src/screens/popups/SuccessPayment';
+import MarketPlace from './src/screens/marketPlace/MarketPlace';
+import ShopProfile from './src/screens/shop/ShopProfile';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -120,6 +126,12 @@ const App = () => {
           <Stack.Screen name="WithdrawBalance" component={WithdrawBalance} />
           <Stack.Screen name="WithdrawConfirm" component={WithdrawConfirm} />
           <Stack.Screen name="Cart" component={Cart} />
+          <Stack.Screen name="Schedule" component={Schedule} />
+          <Stack.Screen name="Checkout" component={Checkout} />
+          <Stack.Screen name="Booking" component={Booking} />
+          <Stack.Screen name="Receipt" component={Receipt} />
+          <Stack.Screen name="MarketPlace" component={MarketPlace} />
+          <Stack.Screen name="ShopProfile" component={ShopProfile} />
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>

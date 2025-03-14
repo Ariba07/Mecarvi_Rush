@@ -16,6 +16,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
+import {TouchableOpacity} from 'react-native';
 
 const notifications = [
   {
@@ -60,7 +61,11 @@ const Notification: React.FC = () => {
           data={notifications}
           keyExtractor={item => item.id}
           renderItem={({item}) => (
-            <View style={styles.notificationCard}>
+            <TouchableOpacity
+              style={styles.notificationCard}
+              onPress={() => {
+                navigation.navigate('MarketPlace', {fromProduct: false});
+              }}>
               <View
                 style={[styles.iconContainer, {backgroundColor: item.bgColor}]}>
                 <Image source={item.icon} style={styles.icon} />
@@ -71,7 +76,7 @@ const Notification: React.FC = () => {
                 </Text>
                 <Text style={styles.date}>{item.date}</Text>
               </View>
-            </View>
+            </TouchableOpacity>
           )}
           showsVerticalScrollIndicator={false}
         />

@@ -75,10 +75,10 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response: {data: {data: any[]}} = await apiHelper({
-          method: 'GET',
-          endpoint: 'categories/?parent_only=1',
-        });
+        // const response: {data: {data: any[]}} = await apiHelper({
+        //   method: 'GET',
+        //   endpoint: 'categories/?parent_only=1',
+        // });
         // setCategories(response?.data?.data || []); // Ensure response data is valid
       } catch (error) {
         console.error('Error fetching categories:', error);
