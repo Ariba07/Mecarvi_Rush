@@ -48,6 +48,7 @@ export interface AuthState {
   //others
   option: string;
   role: string;
+  user_id: number;
 }
 
 export const initialState: AuthState = {
@@ -59,6 +60,7 @@ export const initialState: AuthState = {
   card: null,
   option: '',
   role: '',
+  user_id: 0,
 };
 
 const authSlice = createSlice({
@@ -128,9 +130,13 @@ const authSlice = createSlice({
     setOption: (state, action: PayloadAction<string>) => {
       state.option = action.payload;
     },
-
-    setRole: (state, action: PayloadAction<string>) => {
-      state.role = action.payload;
+    setUser: (state, action: PayloadAction<{role: string; userId: number}>) => {
+      state.role = action.payload.role;
+      state.user_id = action.payload.userId;
+    },
+    clearUser: state => {
+      state.role = '';
+      state.user_id = 0;
     },
   },
 });
@@ -179,6 +185,7 @@ export const selectCardImage = (state: {auth: AuthState}) => state.auth.card;
 export const selectOption = (state: {auth: AuthState}) => state.auth.option;
 
 export const selectRole = (state: {auth: AuthState}) => state.auth.role;
+export const selectUserId = (state: {auth: AuthState}) => state.auth.user_id;
 
 export const {
   updateCustomerField,
@@ -187,6 +194,7 @@ export const {
   updateCard,
   updateCnic,
   updatePhoto,
-  setRole,
+  setUser,
+  clearUser,
 } = authSlice.actions;
 export default authSlice.reducer;

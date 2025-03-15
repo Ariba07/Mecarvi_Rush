@@ -1,5 +1,5 @@
 import axios, {AxiosRequestConfig, AxiosResponse} from 'axios';
-export const API_BASE_URL = 'http://192.168.1.15:8000/api/';
+export const API_BASE_URL = 'http://192.168.1.16:8002/api/';
 
 if (!API_BASE_URL) {
   throw new Error('API_BASE_URL is not defined in the environment variables.');

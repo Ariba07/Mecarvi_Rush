@@ -38,6 +38,7 @@ const dropdownOptions: {[key: string]: string[]} = {
     'Vinyl Lettering',
     'Custom Design',
   ],
+  'Address-type': ['shipping', 'billing'], // Added for AddressCreate
 };
 
 const CustomTextInput: React.FC<CustomTextInputProps> = ({

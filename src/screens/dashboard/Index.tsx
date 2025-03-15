@@ -7,7 +7,7 @@ import ServiceProviderDashboard from './ServiceProviderDashboard';
 const Index = () => {
   const role = useSelector(selectRole);
 
-  return role !== 'admin' ? <Dashboard /> : <ServiceProviderDashboard />;
+  return role === 'admin' ? <Dashboard /> : <ServiceProviderDashboard />;
 };
 
 export default Index;
