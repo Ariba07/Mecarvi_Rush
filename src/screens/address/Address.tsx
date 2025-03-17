@@ -189,7 +189,9 @@ const Address = () => {
           renderItem={renderItem}
           keyExtractor={item => item.id.toString()}
           contentContainerStyle={{paddingBottom: hp(5)}}
-          ListEmptyComponent={<Text>No addresses found</Text>}
+          ListEmptyComponent={
+            <Text style={styles.emptyText}>No addresses found</Text>
+          }
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -269,6 +271,12 @@ const styles = StyleSheet.create({
   addButtonText: {
     color: '#333',
     fontSize: wp(4),
+    fontWeight: 'bold',
+  },
+  emptyText: {
+    fontSize: wp(6),
+    color: '#FF00A7',
+    textAlign: 'center', // Ensures text is centered within its container
     fontWeight: 'bold',
   },
 });

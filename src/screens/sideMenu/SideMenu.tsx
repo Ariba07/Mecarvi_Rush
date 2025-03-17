@@ -21,11 +21,17 @@ import Theme from '../../assets/images/Theme.svg';
 import Category from '../../assets/images/Category.svg';
 import Logout from '../../assets/images/Logout.svg';
 import Points from '../../assets/images/Points.svg';
+import {useDispatch} from 'react-redux';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {clearUser} from '../../slice/Slice';
+import {useNavigation} from '@react-navigation/native';
+import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
 
 const menuItems = [
   {id: 1, name: 'Home', icon: <Main />, navigate: 'Home'},
   {id: 2, name: 'My Bookings', icon: <Booking />, navigate: 'Bookings'},
-  {id: 3, name: 'Categories', icon: <Category />, navigate: 'Categories'},
+  {id: 3, name: 'Categories', icon: <Category />, navigate: 'Services'},
   {
     id: 4,
     name: 'Subscription',
@@ -37,6 +43,19 @@ const menuItems = [
 ];
 
 const SideMenu = () => {
+  const dispatch = useDispatch();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.removeItem('@login_credentials');
+      dispatch(clearUser());
+      navigation.replace('Login');
+    } catch (error) {
+      console.log('Error during logout:', error);
+    }
+  };
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
@@ -60,7 +79,12 @@ const SideMenu = () => {
           </TouchableOpacity>
         </View>
         {menuItems.map(item => (
-          <TouchableOpacity key={item.id} style={styles.menuItem}>
+          <TouchableOpacity
+            key={item.id}
+            style={styles.menuItem}
+            onPress={() => {
+              item.name === 'Log Out' ? handleLogout() : undefined;
+            }}>
             {item.icon}
             <Text style={styles.menuText}>{item.name}</Text>
           </TouchableOpacity>

@@ -137,6 +137,7 @@ const authSlice = createSlice({
     clearUser: state => {
       state.role = '';
       state.user_id = 0;
+      state.option = '';
     },
   },
 });

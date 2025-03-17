@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-native/no-inline-styles */
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -8,9 +9,10 @@ import {
   TouchableOpacity,
   Image,
   Platform,
-  Dimensions,
   TouchableWithoutFeedback,
   Keyboard,
+  Alert,
+  Dimensions,
 } from 'react-native';
 import {Formik} from 'formik';
 import * as Yup from 'yup';
@@ -27,6 +29,7 @@ import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes
 import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 import {useDispatch} from 'react-redux';
 import {setUser} from '../../slice/Slice';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const {width, height} = Dimensions.get('window'); // Get screen dimensions
 
@@ -36,11 +39,46 @@ const loginValidationSchema = Yup.object().shape({
   password: Yup.string().required('Password is required'),
 });
 
+const STORAGE_KEY = '@login_credentials';
+
 const Login = () => {
   const [isChecked, setIsChecked] = useState(false);
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const dispatch = useDispatch();
+  const [initialValues, setInitialValues] = useState({email: '', password: ''});
+
+  // Check for saved credentials on mount and auto-login if present
+  useEffect(() => {
+    const autoLogin = async () => {
+      try {
+        const savedCredentials = await AsyncStorage.getItem(STORAGE_KEY);
+        if (savedCredentials) {
+          const {email, password} = JSON.parse(savedCredentials);
+          const response = await apiHelper({
+            method: 'POST',
+            endpoint: 'authentication/login/',
+            data: {email, password},
+          });
+          const data = response as {
+            data: {user: {id: number; roles: string[]}};
+          };
+          dispatch(
+            setUser({
+              role: data.data.user.roles[0],
+              userId: data.data.user.id,
+            }),
+          );
+          navigation.replace('Drawer'); // Navigate to Drawer if login succeeds
+        }
+      } catch (error) {
+        console.log('Auto-login failed:', (error as any)?.message);
+        // Optionally clear invalid credentials on failure
+        AsyncStorage.removeItem(STORAGE_KEY).catch(console.error);
+      }
+    };
+    autoLogin();
+  }, [navigation, dispatch]);
 
   const handleLogin = async (values: {email: string; password: string}) => {
     try {
@@ -50,7 +88,8 @@ const Login = () => {
         data: values,
       });
 
-      navigation.replace('Subscription');
+      // Navigate and dispatch user data
+      navigation.replace('Drawer');
       const data = response as {data: {user: {id: number; roles: string[]}}};
       dispatch(
         setUser({
@@ -58,14 +97,22 @@ const Login = () => {
           userId: data.data.user.id,
         }),
       );
+
+      // Save credentials if "Remember Me" is checked
+      if (isChecked) {
+        await AsyncStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({email: values.email, password: values.password}),
+        );
+      } else {
+        // Clear credentials if "Remember Me" is unchecked
+        await AsyncStorage.removeItem(STORAGE_KEY);
+      }
     } catch (error) {
       console.log((error as any)?.message);
+      Alert.alert('Error', 'Login failed. Please check your credentials.');
     }
   };
-
-  // const handleLogin = () => {
-  //   navigation.replace('Subscription');
-  // };
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -83,7 +130,7 @@ const Login = () => {
             <Text style={styles.title}>Login</Text>
 
             <Formik
-              initialValues={{email: '', password: ''}}
+              initialValues={initialValues}
               validationSchema={loginValidationSchema}
               onSubmit={handleLogin}>
               {({handleChange, handleSubmit, values, errors, touched}) => (

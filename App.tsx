@@ -50,90 +50,97 @@ import Receipt from './src/screens/popups/SuccessPayment';
 import MarketPlace from './src/screens/marketPlace/MarketPlace';
 import ShopProfile from './src/screens/shop/ShopProfile';
 
+import {StripeProvider} from '@stripe/stripe-react-native'; // Import StripeProvider
+
 const Stack = createNativeStackNavigator<RootStackParamList>();
+
+const STRIPE_KEY =
+  'pk_test_51R2R3sQGkbRqDEDibvMt3ZizRgvwrFvgYMYsxSUEM6PEBv0adSrxBLdvJWgG5bvOHUwhZcAX3QeKTXxO06dvfTSH00KrElXiGO';
 
 const App = () => {
   return (
     <Provider store={store}>
-      <NavigationContainer>
-        <StatusBar
-          translucent
-          backgroundColor="transparent"
-          barStyle="light-content"
-        />
-        <Stack.Navigator
-          initialRouteName="Splash"
-          screenOptions={{
-            headerShown: false,
-            navigationBarHidden: Platform.OS === 'android',
-            animation: 'simple_push',
-          }}>
-          <Stack.Screen name="Splash" component={Splash} />
-          <Stack.Screen name="OnBoard" component={OnBoard} />
-          <Stack.Screen name="Login" component={Login} />
-          <Stack.Screen name="Forget" component={Forget} />
-          <Stack.Screen name="Verify" component={Verify} />
-          <Stack.Screen name="Reset" component={Reset} />
-          <Stack.Screen name="Options" component={Options} />
-          <Stack.Screen name="Register" component={Register} />
-          <Stack.Screen name="Upload" component={Upload} />
-          <Stack.Screen name="Card" component={Card} />
-          <Stack.Screen name="Photo" component={Photo} />
-          <Stack.Screen name="Drawer" component={DrawerNavigator} />
-          <Stack.Screen name="Subscription" component={Subscription} />
-          <Stack.Screen
-            name="ServiceProviderRegister"
-            component={ServiceProviderRegister}
+      <StripeProvider publishableKey={STRIPE_KEY}>
+        <NavigationContainer>
+          <StatusBar
+            translucent
+            backgroundColor="transparent"
+            barStyle="light-content"
           />
-          <Stack.Screen
-            name="ServiceProviderRegister1"
-            component={ServiceProviderRegister1}
-          />
-          <Stack.Screen
-            name="ServiceProviderRegister2"
-            component={ServiceProviderRegister2}
-          />
-          <Stack.Screen
-            name="ServiceProviderRegister3"
-            component={ServiceProviderRegister3}
-          />
-          <Stack.Screen name="Notification" component={Notification} />
-          <Stack.Screen name="Service" component={Service} />
-          <Stack.Screen name="Search" component={Search} />
-          <Stack.Screen name="Products" component={Products} />
-          <Stack.Screen name="Address" component={Address} />
-          <Stack.Screen name="Message" component={Message} />
-          <Stack.Screen name="Tracking" component={Tracking} />
-          <Stack.Screen name="OrderDetails" component={OrderDetails} />
-          <Stack.Screen name="Review" component={Review} />
-          <Stack.Screen name="Points" component={Points} />
-          <Stack.Screen name="Profile" component={Profile} />
-          <Stack.Screen name="Support" component={Support} />
-          <Stack.Screen name="Product" component={Product} />
-          <Stack.Screen name="Quote" component={Quote} />
-          <Stack.Screen name="Services" component={ServicesProducts} />
-          <Stack.Screen name="ProductPrice" component={ProductPrice} />
-          <Stack.Screen
-            name="ServiceProviderOrderDetail"
-            component={ServiceProviderOrderDetail}
-          />
-          <Stack.Screen
-            name="ServiceProviderProfile"
-            component={ServiceProviderProfile}
-          />
-          <Stack.Screen name="Wallet" component={Wallet} />
-          <Stack.Screen name="Withdraw" component={Withdraw} />
-          <Stack.Screen name="WithdrawBalance" component={WithdrawBalance} />
-          <Stack.Screen name="WithdrawConfirm" component={WithdrawConfirm} />
-          <Stack.Screen name="Cart" component={Cart} />
-          <Stack.Screen name="Schedule" component={Schedule} />
-          <Stack.Screen name="Checkout" component={Checkout} />
-          <Stack.Screen name="Booking" component={Booking} />
-          <Stack.Screen name="Receipt" component={Receipt} />
-          <Stack.Screen name="MarketPlace" component={MarketPlace} />
-          <Stack.Screen name="ShopProfile" component={ShopProfile} />
-        </Stack.Navigator>
-      </NavigationContainer>
+          <Stack.Navigator
+            initialRouteName="Splash"
+            screenOptions={{
+              headerShown: false,
+              navigationBarHidden: Platform.OS === 'android',
+              animation: 'simple_push',
+            }}>
+            <Stack.Screen name="Splash" component={Splash} />
+            <Stack.Screen name="OnBoard" component={OnBoard} />
+            <Stack.Screen name="Login" component={Login} />
+            <Stack.Screen name="Forget" component={Forget} />
+            <Stack.Screen name="Verify" component={Verify} />
+            <Stack.Screen name="Reset" component={Reset} />
+            <Stack.Screen name="Options" component={Options} />
+            <Stack.Screen name="Register" component={Register} />
+            <Stack.Screen name="Upload" component={Upload} />
+            <Stack.Screen name="Card" component={Card} />
+            <Stack.Screen name="Photo" component={Photo} />
+            <Stack.Screen name="Drawer" component={DrawerNavigator} />
+            <Stack.Screen name="Subscription" component={Subscription} />
+            <Stack.Screen
+              name="ServiceProviderRegister"
+              component={ServiceProviderRegister}
+            />
+            <Stack.Screen
+              name="ServiceProviderRegister1"
+              component={ServiceProviderRegister1}
+            />
+            <Stack.Screen
+              name="ServiceProviderRegister2"
+              component={ServiceProviderRegister2}
+            />
+            <Stack.Screen
+              name="ServiceProviderRegister3"
+              component={ServiceProviderRegister3}
+            />
+            <Stack.Screen name="Notification" component={Notification} />
+            <Stack.Screen name="Service" component={Service} />
+            <Stack.Screen name="Search" component={Search} />
+            <Stack.Screen name="Products" component={Products} />
+            <Stack.Screen name="Address" component={Address} />
+            <Stack.Screen name="Message" component={Message} />
+            <Stack.Screen name="Tracking" component={Tracking} />
+            <Stack.Screen name="OrderDetails" component={OrderDetails} />
+            <Stack.Screen name="Review" component={Review} />
+            <Stack.Screen name="Points" component={Points} />
+            <Stack.Screen name="Profile" component={Profile} />
+            <Stack.Screen name="Support" component={Support} />
+            <Stack.Screen name="Product" component={Product} />
+            <Stack.Screen name="Quote" component={Quote} />
+            <Stack.Screen name="Services" component={ServicesProducts} />
+            <Stack.Screen name="ProductPrice" component={ProductPrice} />
+            <Stack.Screen
+              name="ServiceProviderOrderDetail"
+              component={ServiceProviderOrderDetail}
+            />
+            <Stack.Screen
+              name="ServiceProviderProfile"
+              component={ServiceProviderProfile}
+            />
+            <Stack.Screen name="Wallet" component={Wallet} />
+            <Stack.Screen name="Withdraw" component={Withdraw} />
+            <Stack.Screen name="WithdrawBalance" component={WithdrawBalance} />
+            <Stack.Screen name="WithdrawConfirm" component={WithdrawConfirm} />
+            <Stack.Screen name="Cart" component={Cart} />
+            <Stack.Screen name="Schedule" component={Schedule} />
+            <Stack.Screen name="Checkout" component={Checkout} />
+            <Stack.Screen name="Booking" component={Booking} />
+            <Stack.Screen name="Receipt" component={Receipt} />
+            <Stack.Screen name="MarketPlace" component={MarketPlace} />
+            <Stack.Screen name="ShopProfile" component={ShopProfile} />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </StripeProvider>
     </Provider>
   );
 };

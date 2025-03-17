@@ -10,6 +10,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "@react-native-async-storage/async-storage": "^1.24.0",
     "@react-native-firebase/app": "^21.11.0",
     "@react-native-firebase/firestore": "^21.11.0",
     "@react-navigation/bottom-tabs": "^7.2.0",
@@ -19,6 +20,7 @@
     "@reduxjs/toolkit": "^2.5.1",
     "@rneui/base": "github:react-native-elements/react-native-elements#base",
     "@rneui/themed": "github:react-native-elements/react-native-elements#themed",
+    "@stripe/stripe-react-native": "^0.43.0",
     "axios": "^1.7.9",
     "country-state-city": "^3.2.1",
     "formik": "^2.4.6",

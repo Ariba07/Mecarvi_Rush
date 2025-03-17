@@ -27,8 +27,9 @@ import Dollar from '../../assets/images/Dollar.svg';
 import Products from '../../assets/images/Products.svg';
 import Notify from '../../assets/images/Notify.svg';
 import {Icon} from 'react-native-elements';
-import {selectRole} from '../../slice/Slice';
-import {useSelector} from 'react-redux';
+import {clearUser, selectRole} from '../../slice/Slice';
+import {useDispatch, useSelector} from 'react-redux';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const menuItems = [
   {
@@ -78,7 +79,7 @@ const menuItems = [
     title: 'Log Out',
     icon: <Log width={wp(5)} height={wp(5)} />,
     bgColor: '#5C6BC0',
-    route: 'Login',
+    route: '',
   },
 ];
 
@@ -138,11 +139,26 @@ const Settings = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const role = useSelector(selectRole);
+  const dispatch = useDispatch();
+
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.removeItem('@login_credentials');
+      dispatch(clearUser());
+      navigation.replace('Login');
+    } catch (error) {
+      console.log('Error during logout:', error);
+    }
+  };
 
   const renderItem = ({item}: {item: (typeof menuItems)[0]}) => (
     <TouchableOpacity
       style={styles.menuItem}
-      onPress={() => navigation.navigate(item.route as any)}>
+      onPress={() => {
+        item.title === 'Log Out'
+          ? handleLogout()
+          : navigation.navigate(item.route as any);
+      }}>
       <View style={[styles.iconContainer, {backgroundColor: item.bgColor}]}>
         {item.icon}
       </View>

@@ -1,6 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-// screens/Subscription.js
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -8,6 +7,7 @@ import {
   StyleSheet,
   SafeAreaView,
   Platform,
+  Alert,
 } from 'react-native';
 import {
   widthPercentageToDP as wp,
@@ -19,16 +19,18 @@ import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
 import CustomButton from '../../components/common/buttons/CustomButton';
+import CardPaymentBottomSheet from '../../components/cardPayment/CardPaymentModal';
+import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 
 const plans = [
   {
-    id: 'basic',
+    id: 'free',
     title: 'Basic Plan',
     price: '$0.00/month',
     features: ['Limited orders per month', 'Access to basic features'],
   },
   {
-    id: 'premium',
+    id: 'paid',
     title: 'Premium Plan',
     price: '$29.99/month',
     features: [
@@ -40,9 +42,52 @@ const plans = [
 ];
 
 const Subscription = () => {
-  const [selectedPlan, setSelectedPlan] = useState('basic');
+  const [selectedPlan, setSelectedPlan] = useState('free');
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (errorMessage) {
+      const timer = setTimeout(() => setErrorMessage(null), 2000);
+      return () => clearTimeout(timer); // Cleanup timer on unmount or error change
+    }
+  }, [errorMessage]);
+
+  const handleSubscriptionSubmit = async (paymentMethodId: string) => {
+    if (!paymentMethodId || !selectedPlan) {
+      setErrorMessage('Invalid plan or payment method. Please try again.');
+      return;
+    }
+
+    setErrorMessage(null);
+
+    try {
+      const response = await apiHelper({
+        method: 'POST',
+        endpoint: 'subscribe',
+        data: {plan: selectedPlan, payment_method: paymentMethodId},
+      });
+
+      // Assuming apiHelper returns a JSON response or an object
+      const result = await (response as any).json(); // Adjust based on apiHelper return type
+      if (result.error) {
+        throw new Error(result.error.message || 'Subscription creation failed');
+      }
+
+      const {subscriptionId} = result;
+      console.log('Subscription created:', subscriptionId);
+      Alert.alert('Success', 'Subscription created successfully!');
+      setIsModalVisible(false); // Close modal on success
+    } catch (error: any) {
+      console.error('Error creating subscription:', error);
+      setErrorMessage(
+        error.message ||
+          'An error occurred while creating your subscription. Please try again.',
+      );
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -79,14 +124,31 @@ const Subscription = () => {
                 ))}
               </TouchableOpacity>
             ))}
+            {errorMessage && (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>{errorMessage}</Text>
+              </View>
+            )}
           </View>
         </View>
 
         <CustomButton
-          title="Choose Plan"
-          onPress={() => console.log('Plan chosen')}
+          title={'Choose Plan'}
+          onPress={() => setIsModalVisible(true)}
         />
       </View>
+      <CardPaymentBottomSheet
+        isVisible={isModalVisible}
+        onClose={() => setIsModalVisible(false)}
+        onSubmit={handleSubscriptionSubmit}
+        subscriptionDetails={{
+          planName:
+            plans.find(plan => plan.id === selectedPlan)?.title ||
+            'Unknown Plan',
+          price: selectedPlan === 'free' ? 0.0 : 29.99,
+          billingFrequency: 'Monthly',
+        }}
+      />
     </SafeAreaView>
   );
 };
@@ -99,7 +161,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: Platform.select({
-      ios: wp(6), // Slightly more padding on iOS
+      ios: wp(6),
       android: wp(5),
     }),
     paddingBottom: Platform.select({
@@ -109,7 +171,7 @@ const styles = StyleSheet.create({
   },
   heading: {
     fontSize: Platform.select({
-      ios: wp(6.5), // Slightly larger font size for iOS
+      ios: wp(6.5),
       android: wp(7),
     }),
     fontWeight: 'bold',
@@ -179,6 +241,18 @@ const styles = StyleSheet.create({
       android: wp(3.5),
     }),
     color: '#555',
+  },
+  errorContainer: {
+    backgroundColor: '#FFE6E6',
+    padding: wp(3),
+    borderRadius: wp(2),
+    marginVertical: hp(2),
+    alignItems: 'center',
+  },
+  errorText: {
+    color: '#FF3333',
+    fontSize: wp(3.5),
+    textAlign: 'center',
   },
 });
 

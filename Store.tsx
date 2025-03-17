@@ -7,9 +7,8 @@ const store = configureStore({
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({
-      serializableCheck: {
-        warnAfter: 64, // Increases the warning threshold to avoid minor warnings
-      },
+      immutableCheck: false,
+      serializableCheck: false,
     }),
 });
 
