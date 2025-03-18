@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React from 'react';
+import React, {useContext} from 'react';
 import {
   View,
   Text,
@@ -26,6 +26,7 @@ import {Formik} from 'formik';
 import {registerValidationSchema2} from '../../components/helperUtils/validations/validationSchema';
 import {useDispatch} from 'react-redux';
 import {updateBusinessField} from '../../slice/Slice';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
 const {width: screenWidth, height: screenHeight} = Dimensions.get('window');
 
@@ -34,6 +35,14 @@ const ServiceProviderRegister2 = () => {
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const dispatch = useDispatch();
+  useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const {theme} = useContext(ThemeContext); // Access theme
+
+  // Determine the background image based on the theme
+  const backgroundImage =
+    theme.backgroundColor === '#ffffff'
+      ? require('../../assets/images/BG.png') // Light theme
+      : require('../../assets/images/dark.png'); // Dark theme
 
   const navigateToUpload = (values: any) => {
     // Dispatch all business-related fields
@@ -71,9 +80,7 @@ const ServiceProviderRegister2 = () => {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={{flex: 1, backgroundColor: '#ffffff'}}>
-        <ImageBackground
-          source={require('../../assets/images/BG.png')}
-          style={styles.background}>
+        <ImageBackground source={backgroundImage} style={styles.background}>
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             style={styles.container}>
@@ -111,7 +118,7 @@ const ServiceProviderRegister2 = () => {
                     setFieldValue,
                   }) => (
                     <>
-                      <Text style={styles.label}>Service Offered</Text>
+                      <Text style={[styles.label, {color: theme.text}]}>Service Offered</Text>
                       <CustomTextInput
                         placeholder="Select Services"
                         value={values.serviceOffered.join(', ')} // Convert array to a string for display
@@ -126,7 +133,7 @@ const ServiceProviderRegister2 = () => {
                         </Text>
                       )}
 
-                      <Text style={styles.label}>Production Capacity</Text>
+                      <Text style={[styles.label, {color: theme.text}]}>Production Capacity</Text>
                       <CustomTextInput
                         placeholder="Select Capacity"
                         value={values.productionCapacity}
@@ -141,7 +148,7 @@ const ServiceProviderRegister2 = () => {
                           </Text>
                         )}
 
-                      <Text style={styles.label}>
+                      <Text style={[styles.label, {color: theme.text}]}>
                         Average Turnaround Time for Orders
                       </Text>
                       <CustomTextInput
@@ -157,7 +164,7 @@ const ServiceProviderRegister2 = () => {
                         </Text>
                       )}
 
-                      <Text style={styles.label}>
+                      <Text style={[styles.label, {color: theme.text}]}>
                         Specialization (Optional)
                       </Text>
                       <CustomTextInput
@@ -173,7 +180,7 @@ const ServiceProviderRegister2 = () => {
                         </Text>
                       )}
 
-                      <Text style={styles.label}>Target Market</Text>
+                      <Text style={[styles.label, {color: theme.text}]}>Target Market</Text>
                       <CustomTextInput
                         placeholder="Select Your Target Market"
                         value={values.targetMarket}

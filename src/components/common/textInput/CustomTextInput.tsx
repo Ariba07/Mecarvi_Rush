@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useState} from 'react';
+import React, {useContext, useState} from 'react';
 import {
   TextInput,
   StyleSheet,
@@ -14,6 +14,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
+import {ThemeContext} from '../../helperUtils/theme/ThemeContext';
 
 interface CustomTextInputProps {
   placeholder: string;
@@ -54,6 +55,7 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
   const [selectedServices, setSelectedServices] = useState<string[]>(
     Array.isArray(value) ? value : [],
   );
+  const {theme} = useContext(ThemeContext); // Access theme
 
   const isDropdownField = placeholder in dropdownOptions;
 
@@ -84,10 +86,16 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
       {isDropdownField ? (
         <>
           <TouchableOpacity
-            style={[styles.container, {width: width ? width : wp(80)}]}
+            style={[
+              styles.container,
+              {
+                width: width ? width : wp(80),
+                backgroundColor: theme.backgroundColor,
+              },
+            ]}
             onPress={handleDropdownPress}>
             <TextInput
-              style={styles.input}
+              style={[styles.input, {color: theme.input}]}
               placeholder={placeholder}
               value={
                 isMultiSelect
@@ -130,9 +138,16 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
           )}
         </>
       ) : (
-        <View style={[styles.container, {width: width ? width : wp(80)}]}>
+        <View
+          style={[
+            styles.container,
+            {
+              width: width ? width : wp(80),
+              backgroundColor: theme.backgroundColor,
+            },
+          ]}>
           <TextInput
-            style={styles.input}
+            style={[styles.input, {color: theme.input}]}
             placeholder={placeholder}
             secureTextEntry={!isPasswordVisible}
             value={value as string}
@@ -171,12 +186,10 @@ const styles = StyleSheet.create({
     paddingVertical: Platform.OS === 'ios' ? hp(1.5) : hp(0.2),
     paddingHorizontal: wp(2),
     alignSelf: 'center',
-    backgroundColor: '#fff',
   },
   input: {
     flex: 1,
     fontSize: wp(3.5),
-    color: '#000',
   },
   dropdownContainer: {
     position: 'absolute',

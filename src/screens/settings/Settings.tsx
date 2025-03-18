@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Text,
   SafeAreaView,
@@ -30,6 +30,8 @@ import {Icon} from 'react-native-elements';
 import {clearUser, selectRole} from '../../slice/Slice';
 import {useDispatch, useSelector} from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const STORAGE_KEY = '@login_credentials'; // Match the key used in your Login component
 
 const menuItems = [
   {
@@ -138,8 +140,35 @@ const menuItem = [
 const Settings = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const role = useSelector(selectRole);
+  const reduxRole = useSelector(selectRole); // Role from Redux store
   const dispatch = useDispatch();
+  const [role, setRole] = useState<string | null>(null); // Local state for role
+
+  useEffect(() => {
+    const fetchRoleFromStorage = async () => {
+      try {
+        const savedCredentials = await AsyncStorage.getItem(STORAGE_KEY);
+        if (savedCredentials) {
+          const {role: storedRole} = JSON.parse(savedCredentials);
+          if (storedRole) {
+            setRole(storedRole); // Use role from AsyncStorage if it exists
+          } else {
+            setRole(reduxRole); // Fallback to Redux role if not in AsyncStorage
+          }
+        } else {
+          setRole(reduxRole); // Fallback to Redux role if no credentials in AsyncStorage
+        }
+      } catch (error) {
+        console.log(
+          'Error fetching role from AsyncStorage:',
+          (error as any)?.message,
+        );
+        setRole(reduxRole); // Fallback to Redux role on error
+      }
+    };
+
+    fetchRoleFromStorage();
+  }, [reduxRole]); // Dependency on reduxRole to update if it changes
 
   const handleLogout = async () => {
     try {
@@ -150,6 +179,10 @@ const Settings = () => {
       console.log('Error during logout:', error);
     }
   };
+
+  if (role === null) {
+    return null; // Or a loading spinner: <ActivityIndicator />
+  }
 
   const renderItem = ({item}: {item: (typeof menuItems)[0]}) => (
     <TouchableOpacity

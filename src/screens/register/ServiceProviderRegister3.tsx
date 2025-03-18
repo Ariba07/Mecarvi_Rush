@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React from 'react';
+import React, {useContext} from 'react';
 import {
   View,
   Text,
@@ -29,6 +29,7 @@ import {registerValidationSchema3} from '../../components/helperUtils/validation
 import {Icon} from 'react-native-elements';
 import {updateBusinessField} from '../../slice/Slice';
 import {useDispatch} from 'react-redux';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
 const {width, height} = Dimensions.get('window');
 
@@ -37,6 +38,15 @@ const ServiceProviderRegister3 = () => {
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const dispatch = useDispatch();
+
+  useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const {theme} = useContext(ThemeContext); // Access theme
+
+  // Determine the background image based on the theme
+  const backgroundImage =
+    theme.backgroundColor === '#ffffff'
+      ? require('../../assets/images/BG.png') // Light theme
+      : require('../../assets/images/dark.png'); // Dark theme
 
   const handleNext = (values: any) => {
     // Dispatch all business-related fields
@@ -104,9 +114,7 @@ const ServiceProviderRegister3 = () => {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={{flex: 1, backgroundColor: '#ffffff'}}>
-        <ImageBackground
-          source={require('../../assets/images/BG.png')}
-          style={styles.background}>
+        <ImageBackground source={backgroundImage} style={styles.background}>
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             style={styles.container}>
@@ -146,7 +154,9 @@ const ServiceProviderRegister3 = () => {
                     touched,
                   }) => (
                     <>
-                      <Text style={styles.label}>Facebook link</Text>
+                      <Text style={[styles.label, {color: theme.text}]}>
+                        Facebook link
+                      </Text>
                       <CustomTextInput
                         placeholder="Enter Facebook Link"
                         value={values.facebookLink}
@@ -160,7 +170,9 @@ const ServiceProviderRegister3 = () => {
                         </Text>
                       )}
 
-                      <Text style={styles.label}>Instagram Link</Text>
+                      <Text style={[styles.label, {color: theme.text}]}>
+                        Instagram Link
+                      </Text>
                       <CustomTextInput
                         placeholder="Enter Instagram Link"
                         value={values.instagramLink}
@@ -174,7 +186,9 @@ const ServiceProviderRegister3 = () => {
                         </Text>
                       )}
 
-                      <Text style={styles.label}>Upload Logo</Text>
+                      <Text style={[styles.label, {color: theme.text}]}>
+                        Upload Logo
+                      </Text>
                       <TouchableOpacity
                         style={styles.uploadButton}
                         onPress={() =>
@@ -193,7 +207,9 @@ const ServiceProviderRegister3 = () => {
                         />
                       </TouchableOpacity>
 
-                      <Text style={styles.label}>Portfolio (Optional)</Text>
+                      <Text style={[styles.label, {color: theme.text}]}>
+                        Portfolio (Optional)
+                      </Text>
                       <TouchableOpacity
                         style={styles.uploadButton}
                         onPress={() =>
@@ -212,7 +228,7 @@ const ServiceProviderRegister3 = () => {
                         />
                       </TouchableOpacity>
 
-                      <Text style={styles.label}>
+                      <Text style={[styles.label, {color: theme.text}]}>
                         Proof of Business Registration
                       </Text>
                       <TouchableOpacity
@@ -233,7 +249,7 @@ const ServiceProviderRegister3 = () => {
                         />
                       </TouchableOpacity>
 
-                      <Text style={styles.label}>
+                      <Text style={[styles.label, {color: theme.text}]}>
                         Document Verification (Optional)
                       </Text>
                       <TouchableOpacity
@@ -254,7 +270,7 @@ const ServiceProviderRegister3 = () => {
                         />
                       </TouchableOpacity>
 
-                      <Text style={styles.label}>
+                      <Text style={[styles.label, {color: theme.text}]}>
                         Availability for Onboarding Call
                       </Text>
                       <CustomTextInput

@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useState, useRef, useEffect} from 'react';
+import React, {useState, useRef, useEffect, useContext} from 'react';
 import {
   View,
   Text,
@@ -22,7 +22,7 @@ import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
 import {useSelector} from 'react-redux';
-import {selectBusinessAuthState} from '../../slice/Slice';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
 const {width, height} = Dimensions.get('window'); // Get screen dimensions
 
@@ -34,11 +34,13 @@ const Verify = () => {
   const number = useSelector(
     (state: {auth: {phoneNumber: string}}) => state.auth.phoneNumber,
   );
-  // const data = useSelector(selectBusinessAuthState);
+  const {theme} = useContext(ThemeContext); // Access theme
 
-  // useEffect(() => {
-  //   console.log(data);
-  // }, [data]);
+  // Determine the background image based on the theme
+  const backgroundImage =
+    theme.backgroundColor === '#ffffff'
+      ? require('../../assets/images/BG.png') // Light theme
+      : require('../../assets/images/dark.png'); // Dark theme
 
   useEffect(() => {
     const backAction = () => {
@@ -82,9 +84,7 @@ const Verify = () => {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={{flex: 1, backgroundColor: '#ffffff'}}>
-        <ImageBackground
-          style={styles.background}
-          source={require('../../assets/images/BG.png')}>
+        <ImageBackground style={styles.background} source={backgroundImage}>
           {/* Logo */}
           <View style={styles.logoView}>
             <Image
@@ -95,12 +95,14 @@ const Verify = () => {
 
           <View style={styles.container}>
             {/* Title */}
-            <Text style={styles.title}>Verify Code</Text>
+            <Text style={[styles.title, {color: theme.text}]}>Verify Code</Text>
             <View style={{marginVertical: hp(2)}}>
-              <Text style={styles.subtitle}>
+              <Text style={[styles.subtitle, {color: theme.text}]}>
                 We have sent the code verification to
               </Text>
-              <Text style={styles.phoneNumber}>{number}</Text>
+              <Text style={[styles.phoneNumber, {color: theme.text}]}>
+                {number}
+              </Text>
             </View>
 
             {/* Code Input */}
@@ -109,7 +111,10 @@ const Verify = () => {
                 <TextInput
                   key={index}
                   ref={el => (inputs.current[index] = el)} // Assign ref for each input
-                  style={styles.codeInput}
+                  style={[
+                    styles.codeInput,
+                    {color: theme.text, backgroundColor: theme.backgroundColor},
+                  ]}
                   keyboardType="numeric"
                   maxLength={1}
                   value={digit}
@@ -184,8 +189,6 @@ const styles = StyleSheet.create({
     borderRadius: wp(2),
     textAlign: 'center',
     fontSize: wp(5),
-    backgroundColor: '#f9f9f9',
-    color: '#000',
   },
   verifyButton: {
     backgroundColor: '#03A7A7', // Green button

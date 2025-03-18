@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef, useContext} from 'react';
 import {
   View,
   Text,
@@ -17,16 +17,18 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
-const OnboardingScreen = () => {
+const OnboardingScreen: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
   const [currentIndex, setCurrentIndex] = useState(0);
   const buttonFill = useRef(new Animated.Value(0)).current;
 
   const screens = [
     {
-      image: require('../../assets/images/1st.png'), // Add the correct path to your image
+      image: require('../../assets/images/1st.png'),
       title: 'Welcome to Macarvi!',
       description:
         'All your printing needs in one place – business cards, flyers, t-shirts, embroidery & more!',
@@ -54,7 +56,7 @@ const OnboardingScreen = () => {
       }).start();
       setCurrentIndex(currentIndex + 1);
     } else {
-      navigation.replace('Login'); // Change "Home" to your main screen route
+      navigation.replace('Login');
     }
   };
 
@@ -64,7 +66,7 @@ const OnboardingScreen = () => {
   });
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, {backgroundColor: theme.backgroundColor}]}>
       <TouchableOpacity
         style={styles.skipButton}
         onPress={() => {
@@ -76,7 +78,7 @@ const OnboardingScreen = () => {
       <Image source={screens[currentIndex].image} style={styles.image} />
       <View style={styles.textContainer}>
         <Text style={styles.title}>{screens[currentIndex].title}</Text>
-        <Text style={styles.description}>
+        <Text style={[styles.description, {color: theme.text}]}>
           {screens[currentIndex].description}
         </Text>
       </View>
@@ -90,7 +92,11 @@ const OnboardingScreen = () => {
         ))}
       </View>
 
-      <View style={styles.buttonContainerWrapper}>
+      <View
+        style={[
+          styles.buttonContainerWrapper,
+          {backgroundColor: theme.button},
+        ]}>
         <Animated.View style={[styles.buttonFill, {width: buttonWidth}]} />
         <TouchableOpacity
           style={styles.buttonContainer}
@@ -123,11 +129,10 @@ const OnboardingScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
     padding: wp(8),
-    paddingTop: Platform.OS === 'ios' ? hp(6) : hp(4), // More padding for iOS due to notch
+    paddingTop: Platform.OS === 'ios' ? hp(6) : hp(4),
   },
   skipButton: {
     position: 'absolute',
@@ -157,7 +162,6 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: wp(3.5),
-    color: '#001F3F',
     textAlign: 'center',
     maxWidth: wp(70),
   },
@@ -180,9 +184,8 @@ const styles = StyleSheet.create({
     height: hp(6),
     borderRadius: wp(2),
     overflow: 'hidden',
-    backgroundColor: '#E9EEF2',
     position: 'relative',
-    top: hp(Platform.OS === 'ios' ? 8 : 6), // Adjust for platform differences
+    top: hp(Platform.OS === 'ios' ? 8 : 6),
     flexDirection: 'row',
   },
   buttonFill: {
@@ -203,6 +206,17 @@ const styles = StyleSheet.create({
     fontSize: wp(4.5),
     fontWeight: 'bold',
     color: '#FFFFFF',
+  },
+  // Styles for the toggle button
+  toggleButton: {
+    marginBottom: hp(2),
+    padding: wp(2),
+    backgroundColor: '#00C5D1',
+    borderRadius: wp(1),
+  },
+  toggleText: {
+    color: '#FFFFFF',
+    fontSize: wp(4),
   },
 });
 

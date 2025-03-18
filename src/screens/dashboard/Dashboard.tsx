@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-native/no-inline-styles */
-import React, {useEffect, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -24,6 +23,7 @@ import ProductCard from '../../components/common/productCard/ProductCard';
 import SideMenu from '../../assets/images/SideMenu.svg';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
 const banners = [
   {id: '1', image: require('../../assets/images/Banner.png')},
@@ -62,6 +62,7 @@ const Dashboard: React.FC = () => {
   const navigation = useNavigation<DrawerNavigationProp<RootStackParamList>>();
   const move = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [categories, setCategories] = useState<any[]>([]);
+  const {theme} = useContext(ThemeContext); // Access theme
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [selectedTab, setSelectedTab] = useState<'prints' | 'rentals'>(
@@ -75,20 +76,20 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        // const response: {data: {data: any[]}} = await apiHelper({
-        //   method: 'GET',
-        //   endpoint: 'categories/?parent_only=1',
-        // });
-        // setCategories(response?.data?.data || []); // Ensure response data is valid
+        const response: { data: { data: any[] } } = await apiHelper({
+          method: 'GET',
+          endpoint: 'categories/?parent_only=1',
+        });
+        setCategories(response.data.data || []);
       } catch (error) {
         console.error('Error fetching categories:', error);
       }
     };
     fetchCategories();
-  }, [categories]); // Runs once when the component mounts
+  }, []); // Empty dependency array
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, {backgroundColor: theme.whole}]}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.openDrawer()}>
@@ -106,7 +107,9 @@ const Dashboard: React.FC = () => {
             <Text
               style={[
                 styles.title,
-                selectedTab === 'prints' && styles.selectedTabText,
+                selectedTab === 'prints'
+                  ? styles.selectedTabText
+                  : {color: theme.text},
               ]}>
               Prints
             </Text>
@@ -121,7 +124,9 @@ const Dashboard: React.FC = () => {
             <Text
               style={[
                 styles.title,
-                selectedTab === 'rentals' && styles.selectedTabText,
+                selectedTab === 'rentals'
+                  ? styles.selectedTabText
+                  : {color: theme.text},
               ]}>
               Rentals
             </Text>
@@ -136,33 +141,40 @@ const Dashboard: React.FC = () => {
           {/** Filter Section */}
           <View style={styles.filterContainer}>
             <TouchableOpacity
-              style={styles.locationContainer}
+              style={[
+                styles.locationContainer,
+                {backgroundColor: theme.backgroundColor},
+              ]}
               onPress={() => {
                 move.navigate('Address');
               }}>
               <View style={styles.location}>
-                <View style={styles.locationRow}>
-                  <Icon name="location" size={20} color={'#FF00A7'} />
-                  <Text>New York,USA</Text>
-                  <Icon name="chevron-down" size={15} color={'#5c5c5c'} />
-                </View>
+                <Icon name="location" size={20} color={'#FF00A7'} />
+                <Text style={{color: theme.text}}>New York,USA </Text>
+                <Icon name="chevron-down" size={15} color={'#5c5c5c'} />
               </View>
             </TouchableOpacity>
             <View style={styles.iconContainer}>
               <TouchableOpacity
-                style={styles.iconBox}
+                style={[
+                  styles.iconBox,
+                  {backgroundColor: theme.backgroundColor},
+                ]}
                 onPress={() => move.navigate('Search')}>
-                <Icon name="search-outline" size={20} color={'#333333'} />
+                <Icon name="search-outline" size={20} color={'#9c9c9c'} />
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.iconBox}
+                style={[
+                  styles.iconBox,
+                  {backgroundColor: theme.backgroundColor},
+                ]}
                 onPress={() => {
                   move.navigate('Notification');
                 }}>
                 <Icon
                   name="notifications-outline"
                   size={20}
-                  color={'#333333'}
+                  color={'#9c9c9c'}
                 />
               </TouchableOpacity>
             </View>
@@ -207,7 +219,9 @@ const Dashboard: React.FC = () => {
                 alignItems: 'center',
                 justifyContent: 'space-between',
               }}>
-              <Text style={styles.sectionTitle}>Services</Text>
+              <Text style={[styles.sectionTitle, {color: theme.text}]}>
+                Services
+              </Text>
               <TouchableOpacity onPress={() => move.navigate('Service')}>
                 <Text
                   style={{textDecorationLine: 'underline', color: '#FF00A7'}}>
@@ -221,14 +235,19 @@ const Dashboard: React.FC = () => {
               keyExtractor={item => item.id}
               renderItem={({item}) => (
                 <TouchableOpacity
-                  style={styles.serviceCard}
+                  style={[
+                    styles.serviceCard,
+                    {backgroundColor: theme.backgroundColor},
+                  ]}
                   onPress={() => move.navigate('Products')}>
                   <Image
                     source={{uri: item.icon}} // Ensure correct format
                     style={styles.serviceImage}
                     resizeMode="contain"
                   />
-                  <Text style={styles.serviceName} numberOfLines={1}>
+                  <Text
+                    style={[styles.serviceName, {color: theme.text}]}
+                    numberOfLines={1}>
                     {item.name}
                   </Text>
                 </TouchableOpacity>
@@ -238,7 +257,9 @@ const Dashboard: React.FC = () => {
           </View>
           {/* Recommended Section */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Recommended</Text>
+            <Text style={[styles.sectionTitle, {color: theme.text}]}>
+              Recommended
+            </Text>
             {recommended.map(item => (
               <ProductCard
                 key={item.id}

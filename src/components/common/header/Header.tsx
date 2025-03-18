@@ -1,10 +1,11 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import {View, Text, TouchableOpacity, StyleSheet, Platform} from 'react-native';
 import {Icon} from 'react-native-elements';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
+import {ThemeContext} from '../../helperUtils/theme/ThemeContext';
 
 interface HeaderProps {
   title: string;
@@ -12,17 +13,24 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({title, onBackPress}) => {
+  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
+
   return (
     <View style={styles.container}>
       {onBackPress ? (
         <TouchableOpacity onPress={onBackPress} style={styles.iconBackground}>
-          <Icon name="chevron-left" size={wp(5)} color="#333" type="feather" />
+          <Icon
+            name="chevron-left"
+            size={wp(5)}
+            color={theme.header}
+            type="feather"
+          />
         </TouchableOpacity>
       ) : (
         <View style={styles.placeholder} />
       )}
 
-      <Text style={styles.title}>{title}</Text>
+      <Text style={[styles.title, {color: theme.header}]}>{title}</Text>
 
       {/* Placeholder for spacing when no back button exists */}
       <View style={styles.placeholder} />
@@ -50,7 +58,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: wp(5.2), // Responsive text size
     fontWeight: 'bold',
-    color: '#333',
     textAlign: 'center',
   },
   placeholder: {

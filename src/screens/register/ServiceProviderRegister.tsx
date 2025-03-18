@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React from 'react';
+import React, {useContext} from 'react';
 import {
   View,
   Text,
@@ -26,6 +26,7 @@ import {Formik} from 'formik';
 import {registerValidationSchema} from '../../components/helperUtils/validations/validationSchema';
 import {updateBusinessField} from '../../slice/Slice';
 import {useDispatch} from 'react-redux';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
 const {width, height} = Dimensions.get('window');
 
@@ -34,6 +35,14 @@ const ServiceProviderRegister = () => {
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const dispatch = useDispatch();
+  useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const {theme} = useContext(ThemeContext); // Access theme
+
+  // Determine the background image based on the theme
+  const backgroundImage =
+    theme.backgroundColor === '#ffffff'
+      ? require('../../assets/images/BG.png') // Light theme
+      : require('../../assets/images/dark.png'); // Dark theme
 
   const handleNext = (values: any) => {
     // Dispatch all business-related fields
@@ -77,9 +86,7 @@ const ServiceProviderRegister = () => {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={{flex: 1, backgroundColor: '#ffffff'}}>
-        <ImageBackground
-          source={require('../../assets/images/BG.png')}
-          style={styles.background}>
+        <ImageBackground source={backgroundImage} style={styles.background}>
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             style={styles.container}>
@@ -117,7 +124,7 @@ const ServiceProviderRegister = () => {
                   onSubmit={handleNext}>
                   {({handleChange, handleSubmit, values, errors, touched}) => (
                     <>
-                      <Text style={styles.label}>Company Name</Text>
+                      <Text style={[styles.label, {color: theme.text}]}>Company Name</Text>
                       <CustomTextInput
                         placeholder="Company Name"
                         value={values.name}
@@ -129,7 +136,7 @@ const ServiceProviderRegister = () => {
                         <Text style={styles.errorText}>{errors.name}</Text>
                       )}
 
-                      <Text style={styles.label}>
+                      <Text style={[styles.label, {color: theme.text}]}>
                         Company Registration Number
                       </Text>
                       <CustomTextInput
@@ -146,7 +153,7 @@ const ServiceProviderRegister = () => {
                           </Text>
                         )}
 
-                      <Text style={styles.label}>State Registration</Text>
+                      <Text style={[styles.label, {color: theme.text}]}>State Registration</Text>
                       <CustomTextInput
                         placeholder="State Registration"
                         value={values.stateRegistration}
@@ -161,7 +168,7 @@ const ServiceProviderRegister = () => {
                           </Text>
                         )}
 
-                      <Text style={styles.label}>
+                      <Text style={[styles.label, {color: theme.text}]}>
                         Tax Identification Number (TIN)
                       </Text>
                       <CustomTextInput
@@ -175,7 +182,7 @@ const ServiceProviderRegister = () => {
                         <Text style={styles.errorText}>{errors.tin}</Text>
                       )}
 
-                      <Text style={styles.label}>
+                      <Text style={[styles.label, {color: theme.text}]}>
                         Legal Structure of Business
                       </Text>
                       <CustomTextInput
@@ -192,7 +199,7 @@ const ServiceProviderRegister = () => {
                           </Text>
                         )}
 
-                      <Text style={styles.label}>Year Established</Text>
+                      <Text style={[styles.label, {color: theme.text}]}>Year Established</Text>
                       <CustomTextInput
                         placeholder="Year Established"
                         value={values.yearEstablished}
@@ -206,7 +213,7 @@ const ServiceProviderRegister = () => {
                         </Text>
                       )}
 
-                      <Text style={styles.label}>Company Address</Text>
+                      <Text style={[styles.label, {color: theme.text}]}>Company Address</Text>
                       <CustomTextInput
                         placeholder="Company Address"
                         value={values.address}
@@ -218,7 +225,7 @@ const ServiceProviderRegister = () => {
                         <Text style={styles.errorText}>{errors.address}</Text>
                       )}
 
-                      <Text style={styles.label}>Company Phone Number</Text>
+                      <Text style={[styles.label, {color: theme.text}]}>Company Phone Number</Text>
                       <CustomTextInput
                         placeholder="Company Phone Number"
                         value={values.phoneNumber}
@@ -232,7 +239,7 @@ const ServiceProviderRegister = () => {
                         </Text>
                       )}
 
-                      <Text style={styles.label}>Company Email</Text>
+                      <Text style={[styles.label, {color: theme.text}]}>Company Email</Text>
                       <CustomTextInput
                         placeholder="Company Email"
                         value={values.email}
@@ -244,7 +251,7 @@ const ServiceProviderRegister = () => {
                         <Text style={styles.errorText}>{errors.email}</Text>
                       )}
 
-                      <Text style={styles.label}>Website URL (Optional)</Text>
+                      <Text style={[styles.label, {color: theme.text}]}>Website URL (Optional)</Text>
                       <CustomTextInput
                         placeholder="URL"
                         value={values.website}

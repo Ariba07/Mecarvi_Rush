@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import {View, Text, Image, StyleSheet, TouchableOpacity} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {
@@ -8,6 +8,7 @@ import {
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../types/screenTypes/ScreenTypes';
+import {ThemeContext} from '../../helperUtils/theme/ThemeContext';
 
 interface ProductCardProps {
   name: string;
@@ -18,9 +19,11 @@ interface ProductCardProps {
 const ProductCard: React.FC<ProductCardProps> = ({name, price, image}) => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const {theme} = useContext(ThemeContext); // Access theme
+
   return (
     <TouchableOpacity
-      style={styles.card}
+      style={[styles.card, {backgroundColor: theme.backgroundColor}]}
       onPress={() => navigation.navigate('Product')}>
       {/* Image Container */}
       <View style={styles.imageContainer}>
@@ -29,7 +32,7 @@ const ProductCard: React.FC<ProductCardProps> = ({name, price, image}) => {
 
       {/* Product Info */}
       <View style={styles.info}>
-        <Text style={styles.name}>{name}</Text>
+        <Text style={[styles.name, {color: theme.text}]}>{name}</Text>
 
         {/* Ratings */}
         <View style={styles.ratingContainer}>
@@ -38,7 +41,7 @@ const ProductCard: React.FC<ProductCardProps> = ({name, price, image}) => {
             .map((_, index) => (
               <Icon key={index} name="star" size={wp('4%')} color="#FFD700" />
             ))}
-          <Text style={styles.rating}>5.0</Text>
+          <Text style={[styles.rating, {color: theme.text}]}>5.0</Text>
         </View>
 
         {/* Add to Cart Button */}
@@ -53,7 +56,7 @@ const ProductCard: React.FC<ProductCardProps> = ({name, price, image}) => {
       </View>
 
       {/* Price */}
-      <Text style={styles.price}>{price}</Text>
+      <Text style={[styles.price, {color: theme.text}]}>{price}</Text>
     </TouchableOpacity>
   );
 };

@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useState} from 'react';
+import React, {useContext, useState} from 'react';
 import {
   View,
   Text,
@@ -38,6 +38,7 @@ import {
 } from 'react-native-responsive-screen';
 import axios from 'axios';
 import {API_BASE_URL} from '../../components/helperUtils/apiHelper/ApiHelper';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
 const {width, height} = Dimensions.get('window');
 
@@ -65,6 +66,13 @@ const VerifyScreen: React.FC<VerifyScreenProps> = ({
   const dispatch = useDispatch();
   const option = useSelector(selectOption);
   console.log(serviceData.portfolio);
+  const {theme} = useContext(ThemeContext); // Access theme
+
+  // Determine the background image based on the theme
+  const backgroundImage =
+    theme.backgroundColor === '#ffffff'
+      ? require('../../assets/images/BG.png') // Light theme
+      : require('../../assets/images/dark.png'); // Dark theme
 
   const requestCameraPermission = async () => {
     if (Platform.OS === 'ios') {
@@ -310,9 +318,7 @@ const VerifyScreen: React.FC<VerifyScreenProps> = ({
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={{flex: 1, backgroundColor: '#ffffff'}}>
-        <ImageBackground
-          source={require('../../assets/images/BG.png')}
-          style={styles.background}>
+        <ImageBackground source={backgroundImage} style={styles.background}>
           <View style={styles.logoView}>
             <Image
               source={require('../../assets/images/headerLogo.png')}
@@ -322,7 +328,7 @@ const VerifyScreen: React.FC<VerifyScreenProps> = ({
           <View style={styles.container}>
             <Text style={styles.title}>{title}</Text>
             <View>
-              <Text style={styles.label}>{label}</Text>
+              <Text style={[styles.label, {color: theme.text}]}>{label}</Text>
               <TouchableOpacity onPress={openCamera}>
                 <View style={styles.box}>
                   {label === 'CNIC Front Picture' && cnicImage ? (

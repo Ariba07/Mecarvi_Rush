@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-native/no-inline-styles */
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useContext} from 'react';
 import {
   View,
   Text,
@@ -30,8 +30,9 @@ import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 import {useDispatch} from 'react-redux';
 import {setUser} from '../../slice/Slice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
-const {width, height} = Dimensions.get('window'); // Get screen dimensions
+const {width, height} = Dimensions.get('window');
 
 // **Validation Schema**
 const loginValidationSchema = Yup.object().shape({
@@ -41,44 +42,28 @@ const loginValidationSchema = Yup.object().shape({
 
 const STORAGE_KEY = '@login_credentials';
 
-const Login = () => {
+const Login: React.FC = () => {
   const [isChecked, setIsChecked] = useState(false);
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const dispatch = useDispatch();
   const [initialValues, setInitialValues] = useState({email: '', password: ''});
+  const {theme} = useContext(ThemeContext); // Access theme
 
-  // Check for saved credentials on mount and auto-login if present
   useEffect(() => {
-    const autoLogin = async () => {
+    const checkCredentials = async () => {
       try {
         const savedCredentials = await AsyncStorage.getItem(STORAGE_KEY);
         if (savedCredentials) {
-          const {email, password} = JSON.parse(savedCredentials);
-          const response = await apiHelper({
-            method: 'POST',
-            endpoint: 'authentication/login/',
-            data: {email, password},
-          });
-          const data = response as {
-            data: {user: {id: number; roles: string[]}};
-          };
-          dispatch(
-            setUser({
-              role: data.data.user.roles[0],
-              userId: data.data.user.id,
-            }),
-          );
-          navigation.replace('Drawer'); // Navigate to Drawer if login succeeds
+          // If credentials exist, assume user is authenticated and navigate
+          navigation.replace('Subscription');
         }
       } catch (error) {
-        console.log('Auto-login failed:', (error as any)?.message);
-        // Optionally clear invalid credentials on failure
-        AsyncStorage.removeItem(STORAGE_KEY).catch(console.error);
+        console.log('Error checking credentials:', (error as any)?.message);
       }
     };
-    autoLogin();
-  }, [navigation, dispatch]);
+    checkCredentials();
+  }, [navigation]); // Empty dependency array
 
   const handleLogin = async (values: {email: string; password: string}) => {
     try {
@@ -88,8 +73,7 @@ const Login = () => {
         data: values,
       });
 
-      // Navigate and dispatch user data
-      navigation.replace('Drawer');
+      navigation.replace('Subscription');
       const data = response as {data: {user: {id: number; roles: string[]}}};
       dispatch(
         setUser({
@@ -98,14 +82,18 @@ const Login = () => {
         }),
       );
 
-      // Save credentials if "Remember Me" is checked
+      // Store credentials, userId, and role in AsyncStorage if "Remember me" is checked
       if (isChecked) {
         await AsyncStorage.setItem(
           STORAGE_KEY,
-          JSON.stringify({email: values.email, password: values.password}),
+          JSON.stringify({
+            email: values.email,
+            password: values.password,
+            userId: data.data.user.id, // Add userId
+            role: data.data.user.roles[0], // Add role
+          }),
         );
       } else {
-        // Clear credentials if "Remember Me" is unchecked
         await AsyncStorage.removeItem(STORAGE_KEY);
       }
     } catch (error) {
@@ -114,12 +102,16 @@ const Login = () => {
     }
   };
 
+  // Determine the background image based on the theme
+  const backgroundImage =
+    theme.backgroundColor === '#ffffff'
+      ? require('../../assets/images/BG.png') // Light theme
+      : require('../../assets/images/dark.png'); // Dark theme
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View style={{flex: 1, backgroundColor: '#ffffff'}}>
-        <ImageBackground
-          source={require('../../assets/images/BG.png')}
-          style={styles.background}>
+      <View style={{flex: 1, backgroundColor: theme.backgroundColor}}>
+        <ImageBackground source={backgroundImage} style={styles.background}>
           <View style={styles.logoView}>
             <Image
               source={require('../../assets/images/headerLogo.png')}
@@ -135,9 +127,9 @@ const Login = () => {
               onSubmit={handleLogin}>
               {({handleChange, handleSubmit, values, errors, touched}) => (
                 <View>
-                  <Text style={styles.label}>Email</Text>
+                  <Text style={[styles.label, {color: theme.text}]}>Email</Text>
                   <CustomTextInput
-                    placeholder="email"
+                    placeholder="Email"
                     value={values.email}
                     onChangeText={text => handleChange('email')(text as string)}
                   />
@@ -145,7 +137,9 @@ const Login = () => {
                     <Text style={styles.errorText}>{errors.email}</Text>
                   )}
 
-                  <Text style={styles.label}>Password</Text>
+                  <Text style={[styles.label, {color: theme.text}]}>
+                    Password
+                  </Text>
                   <CustomTextInput
                     placeholder="Password"
                     secureTextEntry={true}
@@ -174,11 +168,15 @@ const Login = () => {
                           type="ionicon"
                         />
                       </View>
-                      <Text style={styles.rememberText}>Remember me</Text>
+                      <Text style={[styles.rememberText, {color: theme.text}]}>
+                        Remember me
+                      </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       onPress={() => navigation.navigate('Forget')}>
-                      <Text style={styles.forgotText}>Forgot Password?</Text>
+                      <Text style={[styles.forgotText, {color: theme.text}]}>
+                        Forgot Password?
+                      </Text>
                     </TouchableOpacity>
                   </View>
 
@@ -188,7 +186,9 @@ const Login = () => {
             </Formik>
 
             <View style={styles.footer}>
-              <Text style={styles.footerText}>Don't have an account?</Text>
+              <Text style={[styles.footerText, {color: theme.text}]}>
+                Don't have an account?
+              </Text>
               <TouchableOpacity onPress={() => navigation.navigate('Options')}>
                 <Text style={styles.registerText}>Register here</Text>
               </TouchableOpacity>

@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useState} from 'react';
+import React, {useContext, useState} from 'react';
 import {
   View,
   Text,
@@ -21,12 +21,20 @@ import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
 import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
 const {width, height} = Dimensions.get('window'); // Get screen dimensions
 
 const Forget = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const {theme} = useContext(ThemeContext); // Access theme
+
+  // Determine the background image based on the theme
+  const backgroundImage =
+    theme.backgroundColor === '#ffffff'
+      ? require('../../assets/images/BG.png') // Light theme
+      : require('../../assets/images/dark.png'); // Dark theme
 
   const [email, setEmail] = useState('');
 
@@ -45,9 +53,7 @@ const Forget = () => {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={{flex: 1, backgroundColor: '#ffffff'}}>
-        <ImageBackground
-          source={require('../../assets/images/BG.png')}
-          style={styles.background}>
+        <ImageBackground source={backgroundImage} style={styles.background}>
           <View style={styles.logoView}>
             <Image
               source={require('../../assets/images/headerLogo.png')}
@@ -58,7 +64,7 @@ const Forget = () => {
             {/* Form Section */}
             <Text style={styles.title}>Forget Password</Text>
             <View>
-              <Text style={styles.label}>Email</Text>
+              <Text style={[styles.label, {color: theme.text}]}>Email</Text>
               <CustomTextInput
                 placeholder="Email"
                 value={email}

@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React from 'react';
+import React, {useContext} from 'react';
 import {
   View,
   Text,
@@ -26,12 +26,21 @@ import {Formik} from 'formik';
 import {registerValidationSchema1} from '../../components/helperUtils/validations/validationSchema';
 import {updateBusinessField} from '../../slice/Slice';
 import {useDispatch} from 'react-redux';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
 const {width, height} = Dimensions.get('window');
 
 const ServiceProviderRegister1 = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const {theme} = useContext(ThemeContext); // Access theme
+
+  // Determine the background image based on the theme
+  const backgroundImage =
+    theme.backgroundColor === '#ffffff'
+      ? require('../../assets/images/BG.png') // Light theme
+      : require('../../assets/images/dark.png'); // Dark theme
 
   const dispatch = useDispatch();
 
@@ -66,9 +75,7 @@ const ServiceProviderRegister1 = () => {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={{flex: 1, backgroundColor: '#ffffff'}}>
-        <ImageBackground
-          source={require('../../assets/images/BG.png')}
-          style={styles.background}>
+        <ImageBackground source={backgroundImage} style={styles.background}>
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             style={styles.container}>
@@ -102,7 +109,7 @@ const ServiceProviderRegister1 = () => {
                   onSubmit={handleNext}>
                   {({handleChange, handleSubmit, values, errors, touched}) => (
                     <>
-                      <Text style={styles.label}>Owner Name</Text>
+                      <Text style={[styles.label, {color: theme.text}]}>Owner Name</Text>
                       <CustomTextInput
                         placeholder="Company Name"
                         value={values.ownerName}
@@ -114,7 +121,7 @@ const ServiceProviderRegister1 = () => {
                         <Text style={styles.errorText}>{errors.ownerName}</Text>
                       )}
 
-                      <Text style={styles.label}>Owner's Email</Text>
+                      <Text style={[styles.label, {color: theme.text}]}>Owner's Email</Text>
                       <CustomTextInput
                         placeholder="Company Email"
                         value={values.ownerEmail}
@@ -128,7 +135,7 @@ const ServiceProviderRegister1 = () => {
                         </Text>
                       )}
 
-                      <Text style={styles.label}>Owner's Phone Number</Text>
+                      <Text style={[styles.label, {color: theme.text}]}>Owner's Phone Number</Text>
                       <CustomTextInput
                         placeholder="Company Phone Number"
                         value={values.ownerPhoneNumber}
@@ -142,7 +149,7 @@ const ServiceProviderRegister1 = () => {
                         </Text>
                       )}
 
-                      <Text style={styles.label}>
+                      <Text style={[styles.label, {color: theme.text}]}>
                         Owner's LinkedIn Profile (Optional)
                       </Text>
                       <CustomTextInput
@@ -156,7 +163,7 @@ const ServiceProviderRegister1 = () => {
                         <Text style={styles.errorText}>{errors.linkedIn}</Text>
                       )}
 
-                      <Text style={styles.label}>Password</Text>
+                      <Text style={[styles.label, {color: theme.text}]}>Password</Text>
                       <CustomTextInput
                         placeholder="Password"
                         secureTextEntry
@@ -169,7 +176,7 @@ const ServiceProviderRegister1 = () => {
                         <Text style={styles.errorText}>{errors.password}</Text>
                       )}
 
-                      <Text style={styles.label}>Confirm Password</Text>
+                      <Text style={[styles.label, {color: theme.text}]}>Confirm Password</Text>
                       <CustomTextInput
                         placeholder="Confirm Password"
                         secureTextEntry

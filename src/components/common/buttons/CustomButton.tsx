@@ -1,9 +1,10 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import {TouchableOpacity, Text, StyleSheet, Platform} from 'react-native';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
+import {ThemeContext} from '../../helperUtils/theme/ThemeContext';
 
 interface CustomButtonProps {
   title: string;
@@ -11,9 +12,11 @@ interface CustomButtonProps {
 }
 
 const CustomButton: React.FC<CustomButtonProps> = ({title, onPress}) => {
+  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
+
   return (
     <TouchableOpacity style={styles.button} onPress={onPress}>
-      <Text style={styles.text}>{title}</Text>
+      <Text style={[styles.text, {color: theme.backgroundColor}]}>{title}</Text>
     </TouchableOpacity>
   );
 };

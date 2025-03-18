@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useEffect, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -21,6 +21,7 @@ import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes
 import CustomButton from '../../components/common/buttons/CustomButton';
 import CardPaymentBottomSheet from '../../components/cardPayment/CardPaymentModal';
 import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
 const plans = [
   {
@@ -47,6 +48,7 @@ const Subscription = () => {
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
 
   useEffect(() => {
     if (errorMessage) {
@@ -90,7 +92,7 @@ const Subscription = () => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
       <View style={styles.container}>
         <View style={{flexGrow: 1}}>
           <Header
@@ -105,10 +107,13 @@ const Subscription = () => {
                 style={[
                   styles.card,
                   selectedPlan === plan.id && styles.selectedCard,
+                  {backgroundColor: theme.backgroundColor},
                 ]}
                 onPress={() => setSelectedPlan(plan.id)}>
                 <View style={styles.cardHeader}>
-                  <Text style={styles.planTitle}>{plan.title}</Text>
+                  <Text style={[styles.planTitle, {color: theme.text}]}>
+                    {plan.title}
+                  </Text>
                   <Text style={styles.planPrice}>{plan.price}</Text>
                 </View>
                 {plan.features.map((feature, index) => (
@@ -156,7 +161,6 @@ const Subscription = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F5F7FA',
   },
   container: {
     flex: 1,

@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useState} from 'react';
+import React, {useContext, useState} from 'react';
 import {
   View,
   ImageBackground,
@@ -19,12 +19,20 @@ import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
 import {useDispatch} from 'react-redux';
 import {setOption} from '../../slice/Slice';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 const {width, height} = Dimensions.get('window'); // Get screen dimensions
 
 const Options = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const dispatch = useDispatch();
+  const {theme} = useContext(ThemeContext); // Access theme
+
+  // Determine the background image based on the theme
+  const backgroundImage =
+    theme.backgroundColor === '#ffffff'
+      ? require('../../assets/images/BG.png') // Light theme
+      : require('../../assets/images/dark.png'); // Dark theme
 
   const [selected, setSelected] = useState<string | null>(null);
 
@@ -47,9 +55,7 @@ const Options = () => {
 
   return (
     <View style={{flex: 1, backgroundColor: '#ffffff'}}>
-      <ImageBackground
-        source={require('../../assets/images/BG.png')}
-        style={styles.background}>
+      <ImageBackground source={backgroundImage} style={styles.background}>
         {/* Logo */}
         <View style={styles.logoView}>
           <Image
@@ -65,6 +71,7 @@ const Options = () => {
               style={[
                 styles.optionBox,
                 selected === 'customer' && styles.selectedBox,
+                {backgroundColor: theme.button},
               ]}
               onPress={() => handleSelect('customer')}>
               <Image
@@ -84,6 +91,7 @@ const Options = () => {
               style={[
                 styles.optionBox,
                 selected === 'business' && styles.selectedBox,
+                {backgroundColor: theme.button},
               ]}
               onPress={() => handleSelect('business')}>
               <Image
@@ -103,6 +111,7 @@ const Options = () => {
               style={[
                 styles.optionBox,
                 selected === 'service' && styles.selectedBox,
+                {backgroundColor: theme.button},
               ]}
               onPress={() => handleSelect('service')}>
               <Image

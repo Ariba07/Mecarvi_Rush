@@ -1,6 +1,6 @@
 /* eslint-disable react/no-unstable-nested-components */
 import React from 'react';
-import {Platform, ViewStyle} from 'react-native';
+import {Platform, useColorScheme, ViewStyle} from 'react-native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import OrderIndex from '../../../screens/orders/OrderIndex';
 import Chats from '../../../screens/chat/Chats';
@@ -41,19 +41,21 @@ const TabBarIcon: React.FC<TabBarIconProps> = ({routeName, color, size}) => {
   }
 };
 
-const tabBarStyle: ViewStyle = {
-  backgroundColor: '#FFFFFF',
-  position: 'absolute',
-  height: hp(8),
-  paddingTop: Platform.OS === 'ios' ? hp(1.9) : hp(1),
-  borderRadius: Platform.OS === 'ios' ? 20 : 10,
-  marginHorizontal: wp(5),
-  marginBottom: Platform.OS === 'ios' ? hp(3) : hp(2),
-  alignSelf: 'center',
-  justifyContent: 'center',
-};
-
 const BottomTabs: React.FC = () => {
+  const colorScheme = useColorScheme(); // Detects 'light' or 'dark' mode
+
+  const tabBarStyle: ViewStyle = {
+    backgroundColor: colorScheme === 'dark' ? '#000000' : '#FFFFFF',
+    position: 'absolute',
+    height: hp(8),
+    paddingTop: Platform.OS === 'ios' ? hp(1.9) : hp(1),
+    borderRadius: Platform.OS === 'ios' ? 20 : 10,
+    marginHorizontal: wp(5),
+    marginBottom: Platform.OS === 'ios' ? hp(3) : hp(2),
+    alignSelf: 'center',
+    justifyContent: 'center',
+  };
+
   return (
     <Tab.Navigator
       screenOptions={({route}) => ({

@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React from 'react';
+import React, {useContext} from 'react';
 import {
   View,
   Text,
@@ -26,6 +26,7 @@ import {useDispatch} from 'react-redux';
 import {Formik} from 'formik';
 import {registerCustomerValidationSchema} from '../../components/helperUtils/validations/validationSchema';
 import {updateCustomerField} from '../../slice/Slice';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
 const {width, height} = Dimensions.get('window'); // Get screen dimensions
 
@@ -33,6 +34,13 @@ const Register = () => {
   const dispatch = useDispatch();
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const {theme} = useContext(ThemeContext); // Access theme
+
+  // Determine the background image based on the theme
+  const backgroundImage =
+    theme.backgroundColor === '#ffffff'
+      ? require('../../assets/images/BG.png') // Light theme
+      : require('../../assets/images/dark.png'); // Dark theme
 
   const handleNext = (values: {
     name: string;
@@ -55,9 +63,7 @@ const Register = () => {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={{flex: 1, backgroundColor: '#ffffff'}}>
-        <ImageBackground
-          source={require('../../assets/images/BG.png')}
-          style={styles.background}>
+        <ImageBackground source={backgroundImage} style={styles.background}>
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             style={styles.container}>
@@ -87,7 +93,9 @@ const Register = () => {
                   onSubmit={handleNext}>
                   {({handleChange, handleSubmit, values, errors, touched}) => (
                     <>
-                      <Text style={styles.label}>Full Name</Text>
+                      <Text style={[styles.label, {color: theme.text}]}>
+                        Full Name
+                      </Text>
                       <CustomTextInput
                         placeholder="Full Name"
                         value={values.name}
@@ -99,7 +107,9 @@ const Register = () => {
                         <Text style={styles.errorText}>{errors.name}</Text>
                       )}
 
-                      <Text style={styles.label}>Email</Text>
+                      <Text style={[styles.label, {color: theme.text}]}>
+                        Email
+                      </Text>
                       <CustomTextInput
                         placeholder="Email"
                         value={values.email}
@@ -111,7 +121,9 @@ const Register = () => {
                         <Text style={styles.errorText}>{errors.email}</Text>
                       )}
 
-                      <Text style={styles.label}>Phone Number</Text>
+                      <Text style={[styles.label, {color: theme.text}]}>
+                        Phone Number
+                      </Text>
                       <CustomTextInput
                         placeholder="Phone Number"
                         value={values.phoneNumber}
@@ -125,7 +137,9 @@ const Register = () => {
                         </Text>
                       )}
 
-                      <Text style={styles.label}>Password</Text>
+                      <Text style={[styles.label, {color: theme.text}]}>
+                        Password
+                      </Text>
                       <CustomTextInput
                         placeholder="Password"
                         secureTextEntry
@@ -138,7 +152,9 @@ const Register = () => {
                         <Text style={styles.errorText}>{errors.password}</Text>
                       )}
 
-                      <Text style={styles.label}>Confirm Password</Text>
+                      <Text style={[styles.label, {color: theme.text}]}>
+                        Confirm Password
+                      </Text>
                       <CustomTextInput
                         placeholder="Confirm Password"
                         secureTextEntry

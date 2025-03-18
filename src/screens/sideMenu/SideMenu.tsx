@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React from 'react';
+import React, {useContext} from 'react';
 import {
   View,
   Text,
@@ -27,6 +27,7 @@ import {clearUser} from '../../slice/Slice';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
 const menuItems = [
   {id: 1, name: 'Home', icon: <Main />, navigate: 'Home'},
@@ -46,6 +47,7 @@ const SideMenu = () => {
   const dispatch = useDispatch();
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const {theme} = useContext(ThemeContext); // Access theme
 
   const handleLogout = async () => {
     try {
@@ -57,7 +59,7 @@ const SideMenu = () => {
     }
   };
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
       <View style={styles.container}>
         <View style={styles.profileContainer}>
           <Image
