@@ -10,6 +10,7 @@ interface Theme {
   header: string;
   whole: string;
   input: string;
+  bottom: string;
 }
 
 // Define the context shape
@@ -27,6 +28,7 @@ export const ThemeContext = createContext<ThemeContextType>({
     header: '#333333',
     whole: '#f5f5f5',
     input: '#000000',
+    bottom: '#ffffff',
   },
   toggleTheme: () => {},
 });
@@ -64,6 +66,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({children}) => {
       header: '#333333',
       whole: '#f5f5f5',
       input: '#000000',
+      bottom: '#ffffff',
     },
     dark: {
       backgroundColor: '#000000',
@@ -72,6 +75,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({children}) => {
       header: '#737070',
       whole: '#1a1a1a',
       input: '#ffffff',
+      bottom: '#000000',
     },
   };
 

@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useContext, useState} from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   Modal,
   StyleSheet,
   Alert,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import {
   widthPercentageToDP as wp,
@@ -15,6 +16,7 @@ import CustomTextInput from '../../common/textInput/CustomTextInput';
 import {apiHelper} from '../apiHelper/ApiHelper';
 import {useSelector} from 'react-redux';
 import {selectUserId} from '../../../slice/Slice';
+import {ThemeContext} from '../theme/ThemeContext';
 
 interface AddressCreateProps {
   visible: boolean;
@@ -30,6 +32,7 @@ const AddressCreate: React.FC<AddressCreateProps> = ({visible, onClose}) => {
   const [address, setAddress] = useState('');
   const [loading, setLoading] = useState(false);
   const user_id = useSelector(selectUserId);
+  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
 
   const handleSave = async () => {
     if (!addressType || !country || !state || !city || !zipCode || !address) {
@@ -76,76 +79,81 @@ const AddressCreate: React.FC<AddressCreateProps> = ({visible, onClose}) => {
       transparent={true}
       visible={visible}
       onRequestClose={onClose}>
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <Text style={styles.title}>Add Address</Text>
+      <TouchableWithoutFeedback onPress={onClose}>
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, {backgroundColor: theme.whole}]}>
+            <Text style={[styles.title, {color: theme.text}]}>Add Address</Text>
 
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Address-type</Text>
-            <CustomTextInput
-              placeholder="Address-type"
-              value={addressType}
-              onChangeText={(text: string | string[]) =>
-                setAddressType(Array.isArray(text) ? text.join(', ') : text)
-              }
-            />
+            <View style={styles.inputContainer}>
+              <Text style={[styles.label, {color: theme.text}]}>
+                Address-type
+              </Text>
+              <CustomTextInput
+                placeholder="Address-type"
+                value={addressType}
+                onChangeText={(text: string | string[]) =>
+                  setAddressType(Array.isArray(text) ? text.join(', ') : text)
+                }
+              />
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Text style={[styles.label, {color: theme.text}]}>Country</Text>
+              <CustomTextInput
+                placeholder="Country"
+                value={country}
+                onChangeText={text => setCountry(text as string)}
+              />
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Text style={[styles.label, {color: theme.text}]}>State</Text>
+              <CustomTextInput
+                placeholder="State"
+                value={state}
+                onChangeText={text => setState(text as string)}
+              />
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Text style={[styles.label, {color: theme.text}]}>City</Text>
+              <CustomTextInput
+                placeholder="City"
+                value={city}
+                onChangeText={text => setCity(text as string)}
+              />
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Text style={[styles.label, {color: theme.text}]}>Zip Code</Text>
+              <CustomTextInput
+                placeholder="Zip Code"
+                value={zipCode}
+                onChangeText={text => setZipCode(text as string)}
+              />
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Text style={[styles.label, {color: theme.text}]}>Address</Text>
+              <CustomTextInput
+                placeholder="Address"
+                value={address}
+                onChangeText={text => setAddress(text as string)}
+              />
+            </View>
+
+            <TouchableOpacity
+              style={[styles.doneButton, loading && styles.disabledButton]}
+              onPress={handleSave}
+              disabled={loading}>
+              <Text
+                style={[styles.doneButtonText, {color: theme.backgroundColor}]}>
+                {loading ? 'Adding...' : 'Add'}
+              </Text>
+            </TouchableOpacity>
           </View>
-
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Country</Text>
-            <CustomTextInput
-              placeholder="Country"
-              value={country}
-              onChangeText={text => setCountry(text as string)}
-            />
-          </View>
-
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>State</Text>
-            <CustomTextInput
-              placeholder="State"
-              value={state}
-              onChangeText={text => setState(text as string)}
-            />
-          </View>
-
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>City</Text>
-            <CustomTextInput
-              placeholder="City"
-              value={city}
-              onChangeText={text => setCity(text as string)}
-            />
-          </View>
-
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Zip Code</Text>
-            <CustomTextInput
-              placeholder="Zip Code"
-              value={zipCode}
-              onChangeText={text => setZipCode(text as string)}
-            />
-          </View>
-
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Address</Text>
-            <CustomTextInput
-              placeholder="Address"
-              value={address}
-              onChangeText={text => setAddress(text as string)}
-            />
-          </View>
-
-          <TouchableOpacity
-            style={[styles.doneButton, loading && styles.disabledButton]}
-            onPress={handleSave}
-            disabled={loading}>
-            <Text style={styles.doneButtonText}>
-              {loading ? 'Adding...' : 'Add'}
-            </Text>
-          </TouchableOpacity>
         </View>
-      </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 };

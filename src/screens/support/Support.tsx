@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import {
   View,
   Text,
@@ -18,13 +18,15 @@ import Header from '../../components/common/header/Header';
 import SupportIcon from '../../assets/images/Support.svg';
 import MailIcon from '../../assets/images/Mail.svg';
 import {Icon} from 'react-native-elements';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
 const Support = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
       <View style={styles.container}>
         <Header
           title="Customer Support"
@@ -33,14 +35,17 @@ const Support = () => {
         <View style={styles.iconContainer}>
           <SupportIcon width={wp(35)} height={wp(35)} />
         </View>
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity
+          style={[styles.button, {backgroundColor: theme.backgroundColor}]}>
           <View style={styles.buttonContent}>
             <MailIcon width={wp(5)} height={wp(5)} />
-            <Text style={styles.buttonText}>Sent us a message</Text>
+            <Text style={[styles.buttonText, {color: theme.text}]}>
+              Sent us a message
+            </Text>
           </View>
           <Icon
             name="chevron-forward"
-            color={'#333333'}
+            color={theme.text}
             size={wp(4)}
             type="ionicon"
           />

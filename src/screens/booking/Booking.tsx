@@ -6,8 +6,9 @@ import {
   Text,
   TouchableOpacity,
   FlatList,
+  ScrollView,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -18,6 +19,7 @@ import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes
 import Header from '../../components/common/header/Header';
 import Icon from 'react-native-vector-icons/MaterialIcons'; // For location pin and calendar icons
 import CustomButton from '../../components/common/buttons/CustomButton';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
 // Define interface for date and time slots
 interface DateSlot {
@@ -34,6 +36,7 @@ interface TimeSlot {
 const Booking: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
 
   // State for selected locations, dates, and time slots
   const [pickupLocation, setPickupLocation] = useState<string>('New York, USA');
@@ -122,7 +125,9 @@ const Booking: React.FC = () => {
     <TouchableOpacity
       style={styles.dropdownItem}
       onPress={() => handleSelectLocation(item, isPickupDropdownVisible)}>
-      <Text style={styles.dropdownItemText}>{item}</Text>
+      <Text style={[styles.dropdownItemText, {color: theme.input}]}>
+        {item}
+      </Text>
     </TouchableOpacity>
   );
 
@@ -131,11 +136,12 @@ const Booking: React.FC = () => {
     <TouchableOpacity
       style={[
         styles.dateSlot,
-        (pickupDate === item.date || deliveryDate === item.date) &&
-          styles.selectedDateSlot,
+        pickupDate === item.date || deliveryDate === item.date
+          ? styles.selectedDateSlot
+          : {backgroundColor: theme.backgroundColor},
       ]}
       onPress={() => handleSelectDate(item.date, true)}>
-      <Text style={styles.dateText}>{item.date}</Text>
+      <Text style={[styles.dateText, {color: theme.text}]}>{item.date}</Text>
       <Text style={styles.dayText}>{item.day}</Text>
     </TouchableOpacity>
   );
@@ -145,16 +151,24 @@ const Booking: React.FC = () => {
       style={[
         styles.timeSlot,
         isPickupTime
-          ? pickupTime === item.time && styles.selectedTimeSlot
-          : deliveryTime === item.time && styles.selectedTimeSlot,
+          ? pickupTime === item.time
+            ? styles.selectedTimeSlot
+            : {backgroundColor: theme.backgroundColor}
+          : deliveryTime === item.time
+          ? styles.selectedTimeSlot
+          : {backgroundColor: theme.backgroundColor},
       ]}
       onPress={() => handleSelectTime(item.time, isPickupTime)}>
       <Text
         style={[
           styles.timeText,
           isPickupTime
-            ? pickupTime === item.time && styles.selectedTimeText
-            : deliveryTime === item.time && styles.selectedTimeText,
+            ? pickupTime === item.time
+              ? styles.selectedTimeText
+              : {color: theme.text}
+            : deliveryTime === item.time
+            ? styles.selectedTimeText
+            : {color: theme.text},
         ]}>
         {item.time}
       </Text>
@@ -162,115 +176,146 @@ const Booking: React.FC = () => {
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
       <View style={styles.container}>
         <Header title="Book Schedule" onBackPress={() => navigation.goBack()} />
 
-        {/* Pickup Location */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Pickup Location</Text>
-          <TouchableOpacity
-            style={[styles.locationContainer, styles.timeList]}
-            onPress={() =>
-              setIsPickupDropdownVisible(!isPickupDropdownVisible)
-            }>
-            <Icon name="location-pin" size={20} color="#ff69b4" />
-            <Text style={styles.locationText}>{pickupLocation}</Text>
-            <Icon name="arrow-drop-down" size={20} color="#000" />
-          </TouchableOpacity>
-          {isPickupDropdownVisible && (
-            <View style={styles.dropdownContent}>
-              <FlatList
-                data={locationOptions}
-                renderItem={renderLocationItem}
-                keyExtractor={item => item}
-                style={styles.dropdownList}
-              />
-            </View>
-          )}
-        </View>
-
-        {/* Pickup Date */}
-        <View style={styles.section}>
-          <View style={styles.row}>
-            <Text style={styles.sectionTitle}>Pickup Date</Text>
-            <Icon name="calendar-today" size={20} color="#666" />
+        <ScrollView
+          style={{marginBottom: hp(10)}}
+          showsVerticalScrollIndicator={false}>
+          {/* Pickup Location */}
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, {color: theme.text}]}>
+              Pickup Location
+            </Text>
+            <TouchableOpacity
+              style={[
+                styles.locationContainer,
+                styles.timeList,
+                {backgroundColor: theme.backgroundColor},
+              ]}
+              onPress={() =>
+                setIsPickupDropdownVisible(!isPickupDropdownVisible)
+              }>
+              <Icon name="location-pin" size={20} color="#ff69b4" />
+              <Text style={[styles.locationText, {color: theme.input}]}>
+                {pickupLocation}
+              </Text>
+              <Icon name="arrow-drop-down" size={20} color={theme.input} />
+            </TouchableOpacity>
+            {isPickupDropdownVisible && (
+              <View
+                style={[
+                  styles.dropdownContent,
+                  {backgroundColor: theme.backgroundColor},
+                ]}>
+                <FlatList
+                  data={locationOptions}
+                  renderItem={renderLocationItem}
+                  keyExtractor={item => item}
+                  style={styles.dropdownList}
+                />
+              </View>
+            )}
           </View>
-          <FlatList
-            data={dateSlots}
-            renderItem={renderDateSlot}
-            keyExtractor={item => item.date.toString()}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.dateList}
-          />
-        </View>
-
-        {/* Pickup Time Slot */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Pickup Time Slot</Text>
-          <FlatList
-            data={timeSlots}
-            renderItem={({item}) => renderTimeSlot({item}, true)}
-            keyExtractor={item => item.time}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.timeList}
-          />
-        </View>
-
-        {/* Delivery Location */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Delivery Location</Text>
-          <TouchableOpacity
-            style={[styles.locationContainer, styles.timeList]}
-            onPress={() =>
-              setIsDeliveryDropdownVisible(!isDeliveryDropdownVisible)
-            }>
-            <Icon name="location-pin" size={20} color="#ff69b4" />
-            <Text style={styles.locationText}>{deliveryLocation}</Text>
-            <Icon name="arrow-drop-down" size={20} color="#000" />
-          </TouchableOpacity>
-          {isDeliveryDropdownVisible && (
-            <View style={styles.dropdownContent}>
-              <FlatList
-                data={locationOptions}
-                renderItem={renderLocationItem}
-                keyExtractor={item => item}
-                style={styles.dropdownList}
-              />
+          {/* Pickup Date */}
+          <View style={styles.section}>
+            <View style={styles.row}>
+              <Text style={[styles.sectionTitle, {color: theme.text}]}>
+                Pickup Date
+              </Text>
+              <Icon name="calendar-today" size={20} color="#666" />
             </View>
-          )}
-        </View>
-
-        {/* Delivery Date */}
-        <View style={styles.section}>
-          <View style={styles.row}>
-            <Text style={styles.sectionTitle}>Delivery Date</Text>
-            <Icon name="calendar-today" size={20} color="#666" />
+            <FlatList
+              data={dateSlots}
+              renderItem={renderDateSlot}
+              keyExtractor={item => item.date.toString()}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.dateList}
+            />
           </View>
-          <FlatList
-            data={dateSlots}
-            renderItem={renderDateSlot}
-            keyExtractor={item => item.date.toString()}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.dateList}
-          />
-        </View>
-
-        {/* Delivery Time Slot */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Time Slot</Text>
-          <FlatList
-            data={timeSlots}
-            renderItem={({item}) => renderTimeSlot({item}, false)}
-            keyExtractor={item => item.time}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.timeList}
-          />
-        </View>
+          {/* Pickup Time Slot */}
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, {color: theme.text}]}>
+              Pickup Time Slot
+            </Text>
+            <FlatList
+              data={timeSlots}
+              renderItem={({item}) => renderTimeSlot({item}, true)}
+              keyExtractor={item => item.time}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.timeList}
+            />
+          </View>
+          {/* Delivery Location */}
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, {color: theme.text}]}>
+              Delivery Location
+            </Text>
+            <TouchableOpacity
+              style={[
+                styles.locationContainer,
+                styles.timeList,
+                {backgroundColor: theme.backgroundColor},
+              ]}
+              onPress={() =>
+                setIsDeliveryDropdownVisible(!isDeliveryDropdownVisible)
+              }>
+              <Icon name="location-pin" size={20} color="#ff69b4" />
+              <Text style={[styles.locationText, {color: theme.input}]}>
+                {deliveryLocation}
+              </Text>
+              <Icon name="arrow-drop-down" size={20} color={theme.input} />
+            </TouchableOpacity>
+            {isDeliveryDropdownVisible && (
+              <View
+                style={[
+                  styles.dropdownContent,
+                  {backgroundColor: theme.backgroundColor},
+                ]}>
+                <FlatList
+                  data={locationOptions}
+                  renderItem={renderLocationItem}
+                  keyExtractor={item => item}
+                  style={styles.dropdownList}
+                />
+              </View>
+            )}
+          </View>
+          {/* Delivery Date */}
+          <View style={styles.section}>
+            <View style={styles.row}>
+              <Text style={[styles.sectionTitle, {color: theme.text}]}>
+                Delivery Date
+              </Text>
+              <Icon name="calendar-today" size={20} color="#666" />
+            </View>
+            <FlatList
+              data={dateSlots}
+              renderItem={renderDateSlot}
+              keyExtractor={item => item.date.toString()}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.dateList}
+            />
+          </View>
+          {/* Delivery Time Slot */}
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, {color: theme.text}]}>
+              Time Slot
+            </Text>
+            <FlatList
+              data={timeSlots}
+              renderItem={({item}) => renderTimeSlot({item}, false)}
+              keyExtractor={item => item.time}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.timeList}
+            />
+          </View>
+        </ScrollView>
 
         {/* Proceed to Pay Button */}
         <View style={styles.payButton}>

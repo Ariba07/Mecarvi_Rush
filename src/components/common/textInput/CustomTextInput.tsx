@@ -117,7 +117,10 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
             <View
               style={[
                 styles.dropdownContainer,
-                {width: width ? width : wp(80)},
+                {
+                  width: width ? width : wp(80),
+                  backgroundColor: theme.backgroundColor,
+                },
               ]}>
               <ScrollView nestedScrollEnabled style={styles.dropdownScroll}>
                 {dropdownOptions[placeholder].map(item => (
@@ -130,7 +133,9 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
                       },
                     ]}
                     onPress={() => handleSelectOption(item)}>
-                    <Text style={styles.dropdownText}>{item}</Text>
+                    <Text style={[styles.dropdownText, {color: theme.text}]}>
+                      {item}
+                    </Text>
                   </TouchableOpacity>
                 ))}
               </ScrollView>

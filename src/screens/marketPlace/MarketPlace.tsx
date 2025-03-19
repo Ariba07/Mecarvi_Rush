@@ -7,7 +7,7 @@ import {
   FlatList,
   Image,
 } from 'react-native';
-import React from 'react';
+import React, {useContext} from 'react';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -21,6 +21,7 @@ import {
   BusinessProvider,
   businessProviders,
 } from '../../components/common/list/List';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
 type Prop = RouteProp<RootStackParamList, 'MarketPlace'>;
 
@@ -29,6 +30,7 @@ const MarketPlace: React.FC = () => {
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute<Prop>();
   const {fromProduct} = route.params;
+  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
 
   // Handle "Accept" button press (you can add navigation or API call here)
   const handleAccept = (providerId: string) => {
@@ -41,7 +43,7 @@ const MarketPlace: React.FC = () => {
   // Render each provider item
   const renderProviderItem = ({item}: {item: BusinessProvider}) => (
     <TouchableOpacity
-      style={styles.providerCard}
+      style={[styles.providerCard, {backgroundColor: theme.backgroundColor}]}
       onPress={() => {
         navigation.navigate('ShopProfile', {
           fromBid: fromProduct === true ? false : true,
@@ -53,8 +55,10 @@ const MarketPlace: React.FC = () => {
         resizeMode="cover"
       />
       <View style={styles.providerInfo}>
-        <Text style={styles.providerName}>{item.name}</Text>
-        <Text style={styles.deliveryDate}>
+        <Text style={[styles.providerName, {color: theme.text}]}>
+          {item.name}
+        </Text>
+        <Text style={[styles.deliveryDate, {color: theme.text}]}>
           Delivery Date: {item.deliveryDate}
         </Text>
         <View style={styles.ratingContainer}>
@@ -69,7 +73,7 @@ const MarketPlace: React.FC = () => {
           <Text style={styles.ratingText}>{item.rating.toFixed(1)}</Text>
         </View>
         <View style={styles.row}>
-          <Text style={styles.price}>{item.price}</Text>
+          <Text style={[styles.price, {color: theme.input}]}>{item.price}</Text>
           {!fromProduct && (
             <TouchableOpacity
               style={styles.acceptButton}
@@ -85,7 +89,7 @@ const MarketPlace: React.FC = () => {
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
       <View style={styles.container}>
         <Header
           title={fromProduct ? 'MarketPlace' : 'Bids List'}

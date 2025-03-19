@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useContext, useState} from 'react';
 import {
   View,
   Text,
@@ -19,13 +19,15 @@ import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes
 import Header from '../../components/common/header/Header';
 import CustomButton from '../../components/common/buttons/CustomButton';
 import {TouchableWithoutFeedback} from 'react-native';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
 const Profile = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const [fullName, setFullName] = useState('Chris Adam');
-  const [email, setEmail] = useState('abc@gmail.com');
-  const [phoneNumber, setPhoneNumber] = useState('+92-2323223230');
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
 
   const handleUpdate = () => {
     console.log('Updated Profile:', {fullName, email, phoneNumber});
@@ -34,7 +36,7 @@ const Profile = () => {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
         <View style={styles.container}>
           <Header title="Profile" onBackPress={() => navigation.goBack()} />
 
@@ -44,22 +46,24 @@ const Profile = () => {
               source={require('../../assets/images/Orders.png')} // Replace with your image
               style={styles.profileImage}
             />
-            <Text style={styles.storeName}>Your name</Text>
+            <Text style={[styles.storeName, {color: theme.text}]}>
+              Your name
+            </Text>
           </View>
 
-          <View style={styles.card}>
-            <Text style={styles.label}>Full Name</Text>
+          <View style={[styles.card, {backgroundColor: theme.backgroundColor}]}>
+            <Text style={[styles.label, {color: theme.text}]}>Full Name</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, {color: theme.input}]}
               value={fullName}
               onChangeText={setFullName}
               placeholder="Enter full name"
               placeholderTextColor={'#999'}
             />
 
-            <Text style={styles.label}>Email</Text>
+            <Text style={[styles.label, {color: theme.text}]}>Email</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, {color: theme.input}]}
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -67,9 +71,11 @@ const Profile = () => {
               placeholderTextColor={'#999'}
             />
 
-            <Text style={styles.label}>Phone Number</Text>
+            <Text style={[styles.label, {color: theme.text}]}>
+              Phone Number
+            </Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, {color: theme.input}]}
               value={phoneNumber}
               onChangeText={setPhoneNumber}
               keyboardType="phone-pad"

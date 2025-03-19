@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
 import {
   widthPercentageToDP as wp,
@@ -8,24 +8,31 @@ import Success from '../../assets/images/Success.svg';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
 const Quote = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
+
   return (
-    <View style={styles.container}>
-      <View style={styles.card}>
+    <View style={[styles.container, {backgroundColor: theme.whole}]}>
+      <View style={[styles.card, {backgroundColor: theme.backgroundColor}]}>
         <View style={styles.iconContainer}>
           <Success width={wp(15)} height={wp(15)} />
         </View>
-        <Text style={styles.title}>Request Submitted Successfully</Text>
+        <Text style={[styles.title, {color: theme.text}]}>
+          Request Submitted Successfully
+        </Text>
         <Text style={styles.subtitle}>
           Your request has been sent! We'll contact you soon.
         </Text>
         <TouchableOpacity
           style={styles.button}
           onPress={() => navigation.navigate('Drawer')}>
-          <Text style={styles.buttonText}>Back to home</Text>
+          <Text style={[styles.buttonText, {color: theme.backgroundColor}]}>
+            Back to home
+          </Text>
         </TouchableOpacity>
       </View>
     </View>

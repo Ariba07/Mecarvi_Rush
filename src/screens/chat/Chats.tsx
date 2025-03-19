@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useContext} from 'react';
 import {
   View,
   Text,
@@ -28,6 +28,7 @@ import {
 } from 'firebase/firestore';
 import {db} from '../../../FirebaseConfig';
 import Header from '../../components/common/header/Header';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Message'>;
 
@@ -40,6 +41,7 @@ const Chats: React.FC = () => {
   const [chats, setChats] = useState<Chat[]>([]);
   const [chatName, setChatName] = useState('');
   const navigation = useNavigation<NavigationProp>();
+  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
 
   useEffect(() => {
     const unsubscribe = onSnapshot(
@@ -70,12 +72,12 @@ const Chats: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
       <View style={styles.container}>
         <Header title="Messages" onBackPress={() => navigation.goBack()} />
         <View style={styles.inputContainer}>
           <TextInput
-            style={styles.input}
+            style={[styles.input, {color: theme.input}]}
             value={chatName}
             onChangeText={setChatName}
             placeholder="Enter chat name"
@@ -89,14 +91,19 @@ const Chats: React.FC = () => {
           keyExtractor={item => item.id}
           renderItem={({item}) => (
             <TouchableOpacity
-              style={styles.chatItem}
+              style={[
+                styles.chatItem,
+                {backgroundColor: theme.backgroundColor},
+              ]}
               onPress={() =>
                 navigation.navigate('Message', {
                   chatId: item.id,
                   chatName: item.name,
                 })
               }>
-              <Text style={styles.chatName}>{item.name}</Text>
+              <Text style={[styles.chatName, {color: theme.text}]}>
+                {item.name}
+              </Text>
             </TouchableOpacity>
           )}
         />

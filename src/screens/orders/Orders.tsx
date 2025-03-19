@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useContext, useState} from 'react';
 import {
   SafeAreaView,
   View,
@@ -19,6 +19,7 @@ import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
 import {renderStars} from '../../components/common/review/RenderStars';
 import {order} from '../../components/helperUtils/orderTypes/Types';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
 const tabs = ['All', 'Progress', 'Delivered'];
 
@@ -26,6 +27,7 @@ const Orders = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [selectedTab, setSelectedTab] = useState('All');
+  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
 
   const filteredOrders =
     selectedTab === 'All'
@@ -33,12 +35,16 @@ const Orders = () => {
       : order.filter(ord => ord.status === selectedTab);
 
   const renderProgressItem = ({item}: {item: any}) => (
-    <View style={styles.card}>
+    <View style={[styles.card, {backgroundColor: theme.backgroundColor}]}>
       <Image source={item.image} style={styles.image} />
       <View style={styles.detailsContainer}>
-        <Text style={styles.title}>{item.title}</Text>
-        <Text style={styles.company}>{item.company}</Text>
-        <Text style={styles.location}>{item.location}</Text>
+        <Text style={[styles.title, {color: theme.text}]}>{item.title}</Text>
+        <Text style={[styles.company, {color: theme.text}]}>
+          {item.company}
+        </Text>
+        <Text style={[styles.location, {color: theme.text}]}>
+          {item.location}
+        </Text>
         <Text style={styles.date}>{item.date}</Text>
         <View style={styles.alignment}>
           <TouchableOpacity
@@ -52,23 +58,26 @@ const Orders = () => {
     </View>
   );
   const renderDelieverdItem = ({item}: {item: any}) => (
-    <View style={styles.deliverCard}>
+    <View
+      style={[styles.deliverCard, {backgroundColor: theme.backgroundColor}]}>
       <Image source={item.image} style={styles.image} />
       <View style={styles.detailsContainer}>
-        <Text style={styles.title}>{item.title}</Text>
+        <Text style={[styles.title, {color: theme.text}]}>{item.title}</Text>
         <View style={styles.alignment}>
-          <Text style={styles.company}>Your Review</Text>
+          <Text style={[styles.company, {color: theme.text}]}>Your Review</Text>
           <View style={styles.starContainer}>
             {renderStars(Number(item.review))}
-            <Text style={styles.review}>{item.review}</Text>
+            <Text style={[styles.review, {color: theme.text}]}>
+              {item.review}
+            </Text>
           </View>
         </View>
         <View style={styles.alignment}>
-          <Text style={styles.company}>Date</Text>
-          <Text style={styles.company}>{item.date}</Text>
+          <Text style={[styles.company, {color: theme.text}]}>Date</Text>
+          <Text style={[styles.company, {color: theme.text}]}>{item.date}</Text>
         </View>
         <View style={styles.alignment}>
-          <Text style={styles.company}>Total Price</Text>
+          <Text style={[styles.company, {color: theme.text}]}>Total Price</Text>
           <Text style={styles.price}>{item.price}</Text>
         </View>
         <TouchableOpacity
@@ -81,10 +90,14 @@ const Orders = () => {
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
       <View style={styles.container}>
         <Header title="Orders" onBackPress={() => navigation.goBack()} />
-        <View style={styles.tabContainer}>
+        <View
+          style={[
+            styles.tabContainer,
+            {backgroundColor: theme.backgroundColor},
+          ]}>
           {tabs.map(tab => (
             <TouchableOpacity
               key={tab}
@@ -93,7 +106,9 @@ const Orders = () => {
               <Text
                 style={[
                   styles.tabText,
-                  selectedTab === tab && styles.activeTabText,
+                  selectedTab === tab
+                    ? styles.activeTabText
+                    : {color: theme.text},
                 ]}>
                 {tab}
               </Text>

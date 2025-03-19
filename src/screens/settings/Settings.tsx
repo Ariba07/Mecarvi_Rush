@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {
   Text,
   SafeAreaView,
@@ -30,9 +30,9 @@ import {Icon} from 'react-native-elements';
 import {clearUser, selectRole} from '../../slice/Slice';
 import {useDispatch, useSelector} from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
-const STORAGE_KEY = '@login_credentials'; // Match the key used in your Login component
-
+const STORAGE_KEY = '@login_credentials';
 const menuItems = [
   {
     id: '1',
@@ -140,9 +140,10 @@ const menuItem = [
 const Settings = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const reduxRole = useSelector(selectRole); // Role from Redux store
+  const reduxRole = useSelector(selectRole);
   const dispatch = useDispatch();
-  const [role, setRole] = useState<string | null>(null); // Local state for role
+  const [role, setRole] = useState<string | null>(null);
+  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
 
   useEffect(() => {
     const fetchRoleFromStorage = async () => {
@@ -151,24 +152,24 @@ const Settings = () => {
         if (savedCredentials) {
           const {role: storedRole} = JSON.parse(savedCredentials);
           if (storedRole) {
-            setRole(storedRole); // Use role from AsyncStorage if it exists
+            setRole(storedRole);
           } else {
-            setRole(reduxRole); // Fallback to Redux role if not in AsyncStorage
+            setRole(reduxRole);
           }
         } else {
-          setRole(reduxRole); // Fallback to Redux role if no credentials in AsyncStorage
+          setRole(reduxRole);
         }
       } catch (error) {
         console.log(
           'Error fetching role from AsyncStorage:',
           (error as any)?.message,
         );
-        setRole(reduxRole); // Fallback to Redux role on error
+        setRole(reduxRole);
       }
     };
 
     fetchRoleFromStorage();
-  }, [reduxRole]); // Dependency on reduxRole to update if it changes
+  }, [reduxRole]);
 
   const handleLogout = async () => {
     try {
@@ -186,7 +187,7 @@ const Settings = () => {
 
   const renderItem = ({item}: {item: (typeof menuItems)[0]}) => (
     <TouchableOpacity
-      style={styles.menuItem}
+      style={[styles.menuItem, {backgroundColor: theme.backgroundColor}]}
       onPress={() => {
         item.title === 'Log Out'
           ? handleLogout()
@@ -195,7 +196,7 @@ const Settings = () => {
       <View style={[styles.iconContainer, {backgroundColor: item.bgColor}]}>
         {item.icon}
       </View>
-      <Text style={styles.menuText}>{item.title}</Text>
+      <Text style={[styles.menuText, {color: theme.text}]}>{item.title}</Text>
       <Icon
         name="chevron-forward"
         color={'#333333'}
@@ -206,7 +207,7 @@ const Settings = () => {
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
       <View style={styles.container}>
         <Header title="Settings" onBackPress={() => navigation.goBack()} />
         <FlatList

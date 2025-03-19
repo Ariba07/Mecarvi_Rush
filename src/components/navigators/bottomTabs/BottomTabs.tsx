@@ -1,6 +1,6 @@
 /* eslint-disable react/no-unstable-nested-components */
-import React from 'react';
-import {Platform, useColorScheme, ViewStyle} from 'react-native';
+import React, {useContext} from 'react';
+import {Platform, ViewStyle} from 'react-native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import OrderIndex from '../../../screens/orders/OrderIndex';
 import Chats from '../../../screens/chat/Chats';
@@ -16,6 +16,7 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import Index from '../../../screens/dashboard/Index';
+import {ThemeContext} from '../../helperUtils/theme/ThemeContext';
 
 const Tab = createBottomTabNavigator();
 
@@ -42,13 +43,13 @@ const TabBarIcon: React.FC<TabBarIconProps> = ({routeName, color, size}) => {
 };
 
 const BottomTabs: React.FC = () => {
-  const colorScheme = useColorScheme(); // Detects 'light' or 'dark' mode
+  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
 
   const tabBarStyle: ViewStyle = {
-    backgroundColor: colorScheme === 'dark' ? '#000000' : '#FFFFFF',
+    backgroundColor: theme.bottom,
     position: 'absolute',
-    height: hp(8),
-    paddingTop: Platform.OS === 'ios' ? hp(1.9) : hp(1),
+    height: hp(7),
+    paddingTop: hp(1),
     borderRadius: Platform.OS === 'ios' ? 20 : 10,
     marginHorizontal: wp(5),
     marginBottom: Platform.OS === 'ios' ? hp(3) : hp(2),

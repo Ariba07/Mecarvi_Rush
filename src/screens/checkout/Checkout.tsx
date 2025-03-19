@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   Image, // Added for displaying logo images
 } from 'react-native';
-import React from 'react';
+import React, {useContext} from 'react';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -19,6 +19,7 @@ import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes
 import Header from '../../components/common/header/Header';
 import Icon from 'react-native-vector-icons/MaterialIcons'; // For credit card icon in header
 import CustomButton from '../../components/common/buttons/CustomButton';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
 interface PaymentOption {
   id: string;
@@ -31,6 +32,7 @@ interface PaymentOption {
 const Checkout: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
 
   // State to manage selected payment option
   const [selectedPayment, setSelectedPayment] =
@@ -67,7 +69,7 @@ const Checkout: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
       <View style={styles.container}>
         <Header title="Checkout" onBackPress={() => navigation.goBack()} />
 
@@ -76,8 +78,10 @@ const Checkout: React.FC = () => {
           <View style={styles.sectionHeader}>
             <Icon name="credit-card" size={wp(8)} color="#666" />
             <View>
-              <Text style={styles.sectionTitle}>Payment Option</Text>
-              <Text style={styles.sectionSubtitle}>
+              <Text style={[styles.sectionTitle, {color: theme.text}]}>
+                Payment Option
+              </Text>
+              <Text style={[styles.sectionSubtitle, {color: theme.text}]}>
                 Select Your Preferred Payment mode
               </Text>
             </View>
@@ -90,6 +94,7 @@ const Checkout: React.FC = () => {
               style={[
                 styles.paymentOption,
                 selectedPayment === option.id && styles.selectedPaymentOption,
+                {backgroundColor: theme.backgroundColor},
               ]}
               onPress={() => handleSelectPayment(option.id)}>
               <View
@@ -105,7 +110,9 @@ const Checkout: React.FC = () => {
                   <View style={styles.selectedRadio} />
                 )}
               </View>
-              <Text style={styles.paymentText}>{option.label}</Text>
+              <Text style={[styles.paymentText, {color: theme.input}]}>
+                {option.label}
+              </Text>
               {option.balance ? (
                 <View style={styles.balanceContainer}>
                   <Text style={styles.balanceText}>{option.balance}</Text>

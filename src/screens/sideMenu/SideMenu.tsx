@@ -30,8 +30,8 @@ import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
 const menuItems = [
-  {id: 1, name: 'Home', icon: <Main />, navigate: 'Home'},
-  {id: 2, name: 'My Bookings', icon: <Booking />, navigate: 'Bookings'},
+  {id: 1, name: 'Home', icon: <Main />, navigate: 'Drawer'}, // Assuming 'Home' is within DrawerNavigator
+  {id: 2, name: 'My Bookings', icon: <Booking />, navigate: 'Booking'},
   {id: 3, name: 'Categories', icon: <Category />, navigate: 'Services'},
   {
     id: 4,
@@ -39,15 +39,15 @@ const menuItems = [
     icon: <Subscription />,
     navigate: 'Subscription',
   },
-  {id: 5, name: 'Dark Theme', icon: <Theme />, navigate: 'DarkTheme'},
+  {id: 5, name: 'Dark Theme', icon: <Theme />, navigate: 'DarkTheme'}, // Will toggle theme instead of navigating
   {id: 6, name: 'Log Out', icon: <Logout />, navigate: 'Logout'},
 ];
 
-const SideMenu = () => {
+const SideMenu: React.FC = () => {
   const dispatch = useDispatch();
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const {theme} = useContext(ThemeContext); // Access theme
+  const {theme, toggleTheme} = useContext(ThemeContext); // Access theme and toggleTheme
 
   const handleLogout = async () => {
     try {
@@ -58,16 +58,31 @@ const SideMenu = () => {
       console.log('Error during logout:', error);
     }
   };
+
+  const handleMenuPress = (itemName: string) => {
+    if (itemName === 'Log Out') {
+      handleLogout();
+    } else if (itemName === 'Dark Theme') {
+      toggleTheme(); // Toggle the theme when "Dark Theme" is clicked
+    } else {
+      // Navigate to the specified screen for other items
+      navigation.navigate(itemName === 'Home' ? 'Drawer' : (itemName as any));
+    }
+  };
+
   return (
-    <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
+    <SafeAreaView
+      style={[styles.safeArea, {backgroundColor: theme.backgroundColor}]}>
       <View style={styles.container}>
         <View style={styles.profileContainer}>
           <Image
-            source={require('../../assets/images/s1.png')} // Replace with actual image URL
+            source={require('../../assets/images/s1.png')}
             style={styles.profileImage}
           />
           <View style={styles.profileTextContainer}>
-            <Text style={styles.profileName}>Chris Adam</Text>
+            <Text style={[styles.profileName, {color: theme.text}]}>
+              Chris Adam
+            </Text>
             <View style={{flexDirection: 'row', alignItems: 'center'}}>
               <Points />
               <Text style={styles.loyaltyText}>
@@ -84,26 +99,26 @@ const SideMenu = () => {
           <TouchableOpacity
             key={item.id}
             style={styles.menuItem}
-            onPress={() => {
-              item.name === 'Log Out' ? handleLogout() : undefined;
-            }}>
+            onPress={() => handleMenuPress(item.name)}>
             {item.icon}
-            <Text style={styles.menuText}>{item.name}</Text>
+            <Text style={[styles.menuText, {color: theme.text}]}>
+              {item.name}
+            </Text>
           </TouchableOpacity>
         ))}
       </View>
     </SafeAreaView>
   );
 };
+
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F5F7FA',
   },
   container: {
     flex: 1,
     paddingHorizontal: Platform.select({
-      ios: wp(3), // Slightly more padding on iOS
+      ios: wp(3),
       android: wp(3),
     }),
     paddingTop: Platform.select({
@@ -146,12 +161,11 @@ const styles = StyleSheet.create({
     paddingVertical: hp(2),
     borderBottomWidth: 1,
     borderBottomColor: '#E5E5E5',
-    gap: wp(4), // Ensures equal spacing between icon and text
+    gap: wp(4),
     paddingLeft: wp(1.5),
   },
   menuText: {
     fontSize: wp(4),
-    color: '#333',
   },
 });
 

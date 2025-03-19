@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useContext, useState} from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,7 @@ import Header from '../../components/common/header/Header';
 import GiftBox from '../../assets/images/GiftBox.svg';
 import Container from '../../assets/images/container.svg';
 import * as Progress from 'react-native-progress';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
 const initialRewards = [
   {id: '1', title: 'Free Shipping', points: 100, redeemed: false},
@@ -33,6 +34,7 @@ const Points = () => {
   const totalPoints = 500; // Define the max points required for gold
   const userPoints = 20; // User's current points
   const progress = userPoints / totalPoints; // Calculate progress percentage
+  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
 
   const handleRedeem = (id: string) => {
     setRewards(prevRewards =>
@@ -43,7 +45,7 @@ const Points = () => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
       <View style={styles.container}>
         <Header
           title="Loyalty Points"
@@ -65,7 +67,7 @@ const Points = () => {
               width={wp(80)}
               height={hp(1)}
               color="#FF007A"
-              unfilledColor="#D3D3D3"
+              unfilledColor={theme.backgroundColor}
               borderWidth={0}
               borderRadius={8}
             />
@@ -74,8 +76,14 @@ const Points = () => {
         </View>
 
         {/* Rewards List */}
-        <View style={styles.rewardsContainer}>
-          <Text style={styles.rewardsTitle}>Rewards</Text>
+        <View
+          style={[
+            styles.rewardsContainer,
+            {backgroundColor: theme.backgroundColor},
+          ]}>
+          <Text style={[styles.rewardsTitle, {color: theme.text}]}>
+            Rewards
+          </Text>
           <FlatList
             data={rewards}
             keyExtractor={item => item.id}
@@ -83,13 +91,22 @@ const Points = () => {
               <View style={styles.rewardItem}>
                 <GiftBox width={wp(8)} height={wp(8)} />
                 <View style={styles.rewardTextContainer}>
-                  <Text style={styles.rewardTitle}>{item.title}</Text>
-                  <Text style={styles.rewardPoints}>{item.points} points</Text>
+                  <Text style={[styles.rewardTitle, {color: theme.text}]}>
+                    {item.title}
+                  </Text>
+                  <Text style={[styles.rewardPoints, {color: theme.text}]}>
+                    {item.points} points
+                  </Text>
                 </View>
                 <TouchableOpacity
                   style={[
                     styles.redeemButton,
-                    item.redeemed && styles.redeemedButton,
+                    item.redeemed
+                      ? [
+                          styles.redeemedButton,
+                          {backgroundColor: theme.backgroundColor},
+                        ]
+                      : {backgroundColor: theme.whole},
                   ]}
                   onPress={() => handleRedeem(item.id)}
                   disabled={item.redeemed} // Prevents clicking again

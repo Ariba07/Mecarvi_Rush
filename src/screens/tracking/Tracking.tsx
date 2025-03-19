@@ -1,11 +1,10 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import {
   SafeAreaView,
   StyleSheet,
   View,
   FlatList,
   Text,
-  TouchableOpacity,
   Image,
   Platform,
 } from 'react-native';
@@ -22,6 +21,8 @@ import Successful from '../../assets/images/Successful.svg';
 import Track from '../../assets/images/Track.svg';
 import Courier from '../../assets/images/Courier.svg';
 import Delivery from '../../assets/images/Delivery.svg';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import CustomButton from '../../components/common/buttons/CustomButton';
 
 export const trackingSteps = [
   {
@@ -61,9 +62,10 @@ export const trackingSteps = [
 const Tracking: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
       <View style={styles.container}>
         <Header title="Track Order" onBackPress={() => navigation.goBack()} />
       </View>
@@ -76,8 +78,10 @@ const Tracking: React.FC = () => {
       </View>
 
       {/* Card Section */}
-      <View style={styles.card}>
-        <Text style={styles.title}>Delivery Status</Text>
+      <View style={[styles.card, {backgroundColor: theme.whole}]}>
+        <Text style={[styles.title, {color: theme.input}]}>
+          Delivery Status
+        </Text>
         <FlatList
           data={trackingSteps}
           keyExtractor={item => item.id}
@@ -90,8 +94,12 @@ const Tracking: React.FC = () => {
               </View>
 
               <View style={styles.stepTextContainer}>
-                <Text style={styles.stepTitle}>{item.status}</Text>
-                <Text style={styles.stepTime}>{item.time}</Text>
+                <Text style={[styles.stepTitle, {color: theme.input}]}>
+                  {item.status}
+                </Text>
+                <Text style={[styles.stepTime, {color: theme.text}]}>
+                  {item.time}
+                </Text>
               </View>
 
               {item.completed ? (
@@ -106,13 +114,12 @@ const Tracking: React.FC = () => {
           )}
         />
 
-        <TouchableOpacity
-          style={styles.button}
+        <CustomButton
+          title="View Order"
           onPress={() => {
             navigation.navigate('OrderDetails');
-          }}>
-          <Text style={styles.buttonText}>View Order</Text>
-        </TouchableOpacity>
+          }}
+        />
       </View>
     </SafeAreaView>
   );

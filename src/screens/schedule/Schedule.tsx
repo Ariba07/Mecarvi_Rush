@@ -7,7 +7,7 @@ import {
   Text,
   TouchableOpacity,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useContext, useState} from 'react';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -19,6 +19,7 @@ import Header from '../../components/common/header/Header';
 import Icon from 'react-native-vector-icons/MaterialIcons'; // For location pin icon
 import CustomButton from '../../components/common/buttons/CustomButton';
 import getFormattedDateTime from '../../components/helperUtils/dateTimeUtils/DateTime';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
 // Define interface for the formatted date and time
 interface FormattedDateTime {
@@ -29,6 +30,7 @@ interface FormattedDateTime {
 const Schedule: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
 
   const [isAsap, setIsAsap] = useState<boolean>(true); // State to toggle between ASAP and Schedule
 
@@ -36,25 +38,35 @@ const Schedule: React.FC = () => {
   const {date, time}: FormattedDateTime = getFormattedDateTime();
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
       <View style={styles.container}>
         <Header title="Schedule" onBackPress={() => navigation.goBack()} />
 
         {/* Location Section with Custom Dropdown */}
         {isAsap && (
-          <TouchableOpacity style={styles.locationContainer}>
+          <TouchableOpacity
+            style={[
+              styles.locationContainer,
+              {backgroundColor: theme.backgroundColor},
+            ]}>
             <Icon name="location-pin" size={20} color="#FF00A7" />
-            <TouchableOpacity style={styles.selectedCityContainer}>
-              <Text style={styles.locationText}>{'Select a city'}</Text>
-            </TouchableOpacity>
-            <Icon name="arrow-drop-down" size={20} color="#000" />
+            <View style={styles.selectedCityContainer}>
+              <Text style={[styles.locationText, {color: theme.input}]}>
+                {'Select a city'}
+              </Text>
+            </View>
+            <Icon name="arrow-drop-down" size={20} color={theme.input} />
           </TouchableOpacity>
         )}
 
         {/* ASAP or Schedule Toggle */}
         <View style={styles.toggleContainer}>
           <TouchableOpacity
-            style={[styles.toggleOption, isAsap ? styles.selectedOption : {}]}
+            style={[
+              styles.toggleOption,
+              isAsap ? styles.selectedOption : {},
+              {backgroundColor: theme.backgroundColor},
+            ]}
             onPress={() => setIsAsap(true)}>
             <View
               style={[
@@ -63,11 +75,17 @@ const Schedule: React.FC = () => {
               ]}>
               {isAsap && <View style={styles.selectedRadio} />}
             </View>
-            <Text style={styles.toggleText}>As Soon as Possible</Text>
+            <Text style={[styles.toggleText, {color: theme.input}]}>
+              As Soon as Possible
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.toggleOption, !isAsap ? styles.selectedOption : {}]}
+            style={[
+              styles.toggleOption,
+              !isAsap ? styles.selectedOption : {},
+              {backgroundColor: theme.backgroundColor},
+            ]}
             onPress={() => setIsAsap(false)}>
             <View
               style={[
@@ -76,15 +94,19 @@ const Schedule: React.FC = () => {
               ]}>
               {!isAsap && <View style={styles.selectedRadio} />}
             </View>
-            <Text style={styles.toggleText}>Schedule an Order</Text>
+            <Text style={[styles.toggleText, {color: theme.input}]}>
+              Schedule an Order
+            </Text>
           </TouchableOpacity>
         </View>
 
         {/* Date and Time Display */}
         <View style={styles.dateTimeContainer}>
-          <Text style={styles.requestText}>Request Service On</Text>
-          <Text style={styles.dateText}>{date}</Text>
-          <Text style={styles.timeText}>{time}</Text>
+          <Text style={[styles.requestText, {color: theme.input}]}>
+            Request Service On
+          </Text>
+          <Text style={[styles.dateText, {color: theme.input}]}>{date}</Text>
+          <Text style={[styles.timeText, {color: theme.input}]}>{time}</Text>
         </View>
 
         <View style={styles.payButton}>

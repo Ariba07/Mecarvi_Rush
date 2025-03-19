@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
@@ -18,11 +18,13 @@ import {
 } from 'react-native-responsive-screen';
 import Header from '../../components/common/header/Header';
 import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
 const Service: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [categories, setCategories] = useState<any[]>([]);
+  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -40,7 +42,7 @@ const Service: React.FC = () => {
   }, [categories]); // Runs once when the component mounts
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
       <View style={styles.container}>
         <Header title="Services" onBackPress={() => navigation.goBack()} />
         <FlatList
@@ -49,14 +51,19 @@ const Service: React.FC = () => {
           keyExtractor={item => item.id}
           renderItem={({item}) => (
             <TouchableOpacity
-              style={styles.serviceCard}
+              style={[
+                styles.serviceCard,
+                {backgroundColor: theme.backgroundColor},
+              ]}
               onPress={() => navigation.navigate('Products')}>
               <Image
                 source={{uri: item.icon}}
                 style={styles.serviceImage}
                 resizeMode="contain"
               />
-              <Text style={styles.serviceName}>{item.name}</Text>
+              <Text style={[styles.serviceName, {color: theme.text}]}>
+                {item.name}
+              </Text>
             </TouchableOpacity>
           )}
           showsVerticalScrollIndicator={false}

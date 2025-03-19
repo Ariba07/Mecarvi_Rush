@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import {View, Text, StyleSheet, Platform} from 'react-native';
 import {
   widthPercentageToDP as wp,
@@ -9,10 +9,12 @@ import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
 import CustomButton from '../../components/common/buttons/CustomButton';
 import Success from '../../assets/images/Success.svg';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
 const Receipt: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
 
   // Static booking details (you can pass these as props or fetch from state/context)
   const bookingDetails = {
@@ -24,36 +26,42 @@ const Receipt: React.FC = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.card}>
+    <View style={[styles.container, {backgroundColor: theme.whole}]}>
+      <View style={[styles.card, {backgroundColor: theme.backgroundColor}]}>
         <View style={styles.iconContainer}>
           <Success width={wp(20)} height={wp(20)} />
         </View>
-        <Text style={styles.title}>Thank You!</Text>
+        <Text style={[styles.title, {color: theme.input}]}>Thank You!</Text>
 
         {/* Booking Details */}
         <View style={styles.detailsContainer}>
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Date</Text>
-            <Text style={styles.detailValue}>{bookingDetails.pickupDate}</Text>
+            <Text style={[styles.detailLabel, {color: theme.text}]}>Date</Text>
+            <Text style={[styles.detailValue, {color: theme.input}]}>
+              {bookingDetails.pickupDate}
+            </Text>
           </View>
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Time</Text>
-            <Text style={styles.detailValue}>{bookingDetails.pickupTime}</Text>
+            <Text style={[styles.detailLabel, {color: theme.text}]}>Time</Text>
+            <Text style={[styles.detailValue, {color: theme.input}]}>
+              {bookingDetails.pickupTime}
+            </Text>
           </View>
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>To</Text>
-            <Text style={styles.detailValue}>{bookingDetails.to}</Text>
+            <Text style={[styles.detailLabel, {color: theme.text}]}>To</Text>
+            <Text style={[styles.detailValue, {color: theme.input}]}>
+              {bookingDetails.to}
+            </Text>
           </View>
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Date</Text>
-            <Text style={styles.detailValue}>
+            <Text style={[styles.detailLabel, {color: theme.text}]}>Date</Text>
+            <Text style={[styles.detailValue, {color: theme.input}]}>
               {bookingDetails.deliveryDate}
             </Text>
           </View>
           <View style={styles.divider} />
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>TOTAL</Text>
+            <Text style={[styles.detailLabel, {color: theme.text}]}>TOTAL</Text>
             <Text style={styles.totalValue}>{bookingDetails.total}</Text>
           </View>
         </View>

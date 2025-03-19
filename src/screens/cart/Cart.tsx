@@ -9,7 +9,7 @@ import {
   Image,
   TouchableOpacity,
 } from 'react-native';
-import React from 'react';
+import React, {useContext} from 'react';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -19,6 +19,7 @@ import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
 import Header from '../../components/common/header/Header';
 import CustomButton from '../../components/common/buttons/CustomButton';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
 // Sample cart data (you can replace this with actual data from an API or state)
 const cartItems = [
@@ -59,6 +60,7 @@ const cartItems = [
 const Cart = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
 
   // State to manage quantities (you can use a state management library like Redux if needed)
   const [items, setItems] = React.useState(cartItems);
@@ -93,10 +95,10 @@ const Cart = () => {
 
   // Render each cart item
   const renderItem = ({item}: {item: (typeof cartItems)[0]}) => (
-    <View style={styles.itemCard}>
+    <View style={[styles.itemCard, {backgroundColor: theme.backgroundColor}]}>
       <Image source={{uri: item.image}} style={styles.itemImage} />
       <View style={styles.itemDetails}>
-        <Text style={styles.itemName}>{item.name}</Text>
+        <Text style={[styles.itemName, {color: theme.text}]}>{item.name}</Text>
         <Text style={styles.itemPrice}>$ {item.price.toFixed(2)}</Text>
       </View>
       <View style={styles.quantityContainer}>
@@ -105,7 +107,9 @@ const Cart = () => {
           style={[styles.quantityButton, {backgroundColor: '#D3D3D380'}]}>
           <Text style={[styles.quantityText, {color: '#30a7a7'}]}>-</Text>
         </TouchableOpacity>
-        <Text style={styles.quantity}>{item.quantity}</Text>
+        <Text style={[styles.quantity, {color: theme.text}]}>
+          {item.quantity}
+        </Text>
         <TouchableOpacity
           onPress={() => increaseQuantity(item.id)}
           style={[styles.quantityButton, {backgroundColor: '#30a7a7'}]}>
@@ -116,7 +120,7 @@ const Cart = () => {
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
       <View style={styles.container}>
         <Header title="Cart" onBackPress={() => navigation.goBack()} />
         <FlatList
@@ -125,7 +129,11 @@ const Cart = () => {
           keyExtractor={item => item.id}
           contentContainerStyle={styles.list}
         />
-        <View style={styles.summaryContainer}>
+        <View
+          style={[
+            styles.summaryContainer,
+            {backgroundColor: theme.backgroundColor},
+          ]}>
           <View
             style={{
               borderBottomColor: '#5c5c5c',
@@ -134,22 +142,26 @@ const Cart = () => {
             }}>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryText}>SUB TOTAL</Text>
-              <Text style={styles.summaryValue}>${subtotal.toFixed(2)}</Text>
+              <Text style={[styles.summaryValue, {color: theme.text}]}>
+                ${subtotal.toFixed(2)}
+              </Text>
             </View>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryText}>LOYALTY POINTS</Text>
-              <Text style={styles.summaryValue}>
+              <Text style={[styles.summaryValue, {color: theme.text}]}>
                 ${loyaltyPoints.toFixed(2)}
               </Text>
             </View>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryText}>DELIVERY</Text>
-              <Text style={styles.summaryValue}>${delivery.toFixed(2)}</Text>
+              <Text style={[styles.summaryValue, {color: theme.text}]}>
+                ${delivery.toFixed(2)}
+              </Text>
             </View>
           </View>
 
           <View style={styles.summaryRow}>
-            <Text style={styles.totalText}>TOTAL</Text>
+            <Text style={[styles.totalText, {color: theme.text}]}>TOTAL</Text>
             <Text style={styles.totalValue}>${total.toFixed(2)}</Text>
           </View>
           <CustomButton

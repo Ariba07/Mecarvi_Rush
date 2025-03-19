@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useContext, useState} from 'react';
 import {
   View,
   Text,
@@ -21,12 +21,14 @@ import Header from '../../components/common/header/Header';
 import {Svg, Path} from 'react-native-svg';
 import CustomButton from '../../components/common/buttons/CustomButton';
 import {TouchableWithoutFeedback} from 'react-native';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
 const Review = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [rating, setRating] = useState<number>(0);
   const [reviewText, setReviewText] = useState<string>('');
+  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
 
   const handleStarPress = (index: number) => {
     setRating(index);
@@ -40,7 +42,7 @@ const Review = () => {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
         <View style={styles.container}>
           <Header title="Review" onBackPress={() => navigation.goBack()} />
 
@@ -50,13 +52,21 @@ const Review = () => {
               source={require('../../assets/images/Orders.png')} // Replace with your image
               style={styles.profileImage}
             />
-            <Text style={styles.storeName}>Creative Ink Solutions</Text>
-            <Text style={styles.date}>Date: 02 March 2025</Text>
+            <Text style={[styles.storeName, {color: theme.input}]}>
+              Creative Ink Solutions
+            </Text>
+            <Text style={[styles.date, {color: theme.text}]}>
+              Date: 02 March 2025
+            </Text>
           </View>
 
           {/* Review Card */}
-          <View style={styles.reviewCard}>
-            <Text style={styles.ratingText}>
+          <View
+            style={[
+              styles.reviewCard,
+              {backgroundColor: theme.backgroundColor},
+            ]}>
+            <Text style={[styles.ratingText, {color: theme.input}]}>
               {rating === 5
                 ? 'Excellent'
                 : rating === 4
@@ -88,9 +98,14 @@ const Review = () => {
             </View>
 
             {/* Review Input */}
-            <Text style={styles.inputLabel}>Write a Review</Text>
+            <Text style={[styles.inputLabel, {color: theme.input}]}>
+              Write a Review
+            </Text>
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                {color: theme.input, backgroundColor: theme.backgroundColor},
+              ]}
               placeholder="Write a thank you note"
               multiline
               value={reviewText}

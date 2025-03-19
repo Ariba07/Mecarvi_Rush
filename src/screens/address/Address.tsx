@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useEffect, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {
   SafeAreaView,
   StyleSheet,
@@ -22,6 +22,7 @@ import {
 import {Svg, Circle} from 'react-native-svg';
 import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 import AddressCreate from '../../components/helperUtils/address/AddressCreate';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
 const Address = () => {
   const navigation =
@@ -30,6 +31,7 @@ const Address = () => {
   const [addresses, setAddresses] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
 
   // Function to fetch addresses
   const fetchAddress = async () => {
@@ -143,14 +145,20 @@ const Address = () => {
 
     return (
       <TouchableOpacity
-        style={[styles.card, isSelected && styles.selectedCard]}
+        style={[
+          styles.card,
+          isSelected && styles.selectedCard,
+          {backgroundColor: theme.backgroundColor},
+        ]}
         onPress={() => handleSelectAddress(item.user_address_uuid)}>
         <View style={styles.cardContent}>
           <View>
-            <Text style={styles.title}>
+            <Text style={[styles.title, {color: theme.text}]}>
               {item.city}, {item.country}
             </Text>
-            <Text style={styles.address}>{fullAddress}</Text>
+            <Text style={[styles.address, {color: theme.text}]}>
+              {fullAddress}
+            </Text>
           </View>
           <View
             style={{
@@ -178,7 +186,7 @@ const Address = () => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
       <View style={styles.container}>
         <Header
           title={'Delivery Address'}
@@ -190,7 +198,7 @@ const Address = () => {
           keyExtractor={item => item.id.toString()}
           contentContainerStyle={{paddingBottom: hp(5)}}
           ListEmptyComponent={
-            <Text style={styles.emptyText}>No addresses found</Text>
+            <Text style={styles.emptyText}>No Address found</Text>
           }
           refreshControl={
             <RefreshControl
@@ -204,7 +212,9 @@ const Address = () => {
         <TouchableOpacity
           style={styles.addButton}
           onPress={() => setModalVisible(true)}>
-          <Text style={styles.addButtonText}>Add New Location</Text>
+          <Text style={[styles.addButtonText, {color: theme.text}]}>
+            Add New Location
+          </Text>
         </TouchableOpacity>
         <AddressCreate
           visible={modalVisible}

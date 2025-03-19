@@ -7,7 +7,7 @@ import {
   Image,
   Platform,
 } from 'react-native';
-import React from 'react';
+import React, {useContext} from 'react';
 import Header from '../../components/common/header/Header';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
@@ -17,6 +17,7 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import {TouchableOpacity} from 'react-native';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
 const notifications = [
   {
@@ -52,9 +53,10 @@ const notifications = [
 const Notification: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
       <View style={styles.container}>
         <Header title="Notification" onBackPress={() => navigation.goBack()} />
         <FlatList
@@ -62,7 +64,10 @@ const Notification: React.FC = () => {
           keyExtractor={item => item.id}
           renderItem={({item}) => (
             <TouchableOpacity
-              style={styles.notificationCard}
+              style={[
+                styles.notificationCard,
+                {backgroundColor: theme.backgroundColor},
+              ]}
               onPress={() => {
                 navigation.navigate('MarketPlace', {fromProduct: false});
               }}>
@@ -71,10 +76,14 @@ const Notification: React.FC = () => {
                 <Image source={item.icon} style={styles.icon} />
               </View>
               <View style={styles.textContainer}>
-                <Text style={styles.title} numberOfLines={1}>
+                <Text
+                  style={[styles.title, {color: theme.text}]}
+                  numberOfLines={1}>
                   {item.title}
                 </Text>
-                <Text style={styles.date}>{item.date}</Text>
+                <Text style={[styles.date, {color: theme.text}]}>
+                  {item.date}
+                </Text>
               </View>
             </TouchableOpacity>
           )}

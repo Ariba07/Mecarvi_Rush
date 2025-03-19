@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useRef, useState} from 'react';
+import React, {useContext, useRef, useState} from 'react';
 import {
   View,
   SafeAreaView,
@@ -28,6 +28,7 @@ import CustomTextInput from '../../components/common/textInput/CustomTextInput';
 import File from '../../assets/images/File.svg';
 import {styles} from '../../assets/styles/product/Product';
 import DocumentPicker from 'react-native-document-picker';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
 const images = [
   require('../../assets/images/product.png'),
@@ -101,6 +102,7 @@ const Product = () => {
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [frontFile, setFrontFile] = useState<any | null>(null);
   const [backFile, setBackFile] = useState<any | null>(null);
+  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
 
   const colors = ['grey', '#cccccc'];
 
@@ -155,7 +157,7 @@ const Product = () => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.headerContainer}>
@@ -199,16 +201,22 @@ const Product = () => {
             {/* Best Seller Tag */}
             <View style={styles.bestSellerBadge}>
               <BestSeller width={wp(3)} height={hp(3)} />
-              <Text style={styles.bestSellerText}>Best Seller</Text>
+              <Text style={[styles.bestSellerText, {color: theme.bottom}]}>
+                Best Seller
+              </Text>
             </View>
 
             {/* Product Title & Rating */}
             <View style={styles.productInfoContainer}>
               <View>
-                <Text style={styles.productTitle}>Signage</Text>
+                <Text style={[styles.productTitle, {color: theme.input}]}>
+                  Signage
+                </Text>
                 <View style={styles.ratingContainer}>
                   {renderStars(Number('4.5'))}
-                  <Text style={styles.ratingText}>4.5</Text>
+                  <Text style={[styles.ratingText, {color: theme.input}]}>
+                    4.5
+                  </Text>
                 </View>
               </View>
               {/* Price */}
@@ -226,7 +234,10 @@ const Product = () => {
                 <Text
                   style={[
                     styles.tabText,
-                    activeTab === index && styles.activeTabText,
+                    activeTab === index && [
+                      styles.activeTabText,
+                      {color: theme.input},
+                    ],
                   ]}>
                   {tab}
                 </Text>
@@ -244,7 +255,9 @@ const Product = () => {
               <View>
                 {specifications.map((item, index) => (
                   <View key={index} style={styles.specRow}>
-                    <Text style={styles.specLabel}>{item.label}:</Text>
+                    <Text style={[styles.specLabel, {color: theme.text}]}>
+                      {item.label}:
+                    </Text>
                     <Text style={styles.specValue}>{item.value}</Text>
                   </View>
                 ))}
@@ -281,7 +294,9 @@ const Product = () => {
           <View style={styles.attributeContainer}>
             {attributes.map(attr => (
               <View key={attr.key} style={{marginBottom: hp(2)}}>
-                <Text style={styles.label}>{attr.label}</Text>
+                <Text style={[styles.label, {color: theme.text}]}>
+                  {attr.label}
+                </Text>
                 <CustomTextInput
                   placeholder={attr.placeholder}
                   value={attributeValues[attr.key] || ''}
@@ -292,7 +307,7 @@ const Product = () => {
             ))}
 
             {/* Color Options */}
-            <Text style={styles.label}>Color</Text>
+            <Text style={[styles.label, {color: theme.text}]}>Color</Text>
             <View style={styles.colorOptionsContainer}>
               {colors.map((color, index) => (
                 <TouchableOpacity
@@ -308,7 +323,9 @@ const Product = () => {
             </View>
 
             {/* Upload Logo/Artwork */}
-            <Text style={styles.label}>Upload Logo/Artwork</Text>
+            <Text style={[styles.label, {color: theme.text}]}>
+              Upload Logo/Artwork
+            </Text>
             <View style={styles.uploadContainer}>
               <TouchableOpacity
                 style={styles.uploadBox}
@@ -325,7 +342,9 @@ const Product = () => {
                       height={wp(10)}
                       style={styles.fileIcon}
                     />
-                    <Text style={styles.uploadText}>Front Image</Text>
+                    <Text style={[styles.uploadText, {color: theme.text}]}>
+                      Front Image
+                    </Text>
                   </>
                 )}
               </TouchableOpacity>
@@ -345,15 +364,20 @@ const Product = () => {
                       height={wp(10)}
                       style={styles.fileIcon}
                     />
-                    <Text style={styles.uploadText}>Back Image</Text>
+                    <Text style={[styles.uploadText, {color: theme.text}]}>
+                      Back Image
+                    </Text>
                   </>
                 )}
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.label}>Order Notes</Text>
+            <Text style={[styles.label, {color: theme.text}]}>Order Notes</Text>
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                {color: theme.input, backgroundColor: theme.backgroundColor},
+              ]}
               placeholder="Write description"
               multiline
               value={reviewText}
@@ -365,18 +389,29 @@ const Product = () => {
                 <TouchableOpacity
                   style={styles.button}
                   onPress={() => navigation.navigate('Cart')}>
-                  <Text style={styles.buttonText}>Choose for me</Text>
+                  <Text
+                    style={[styles.buttonText, {color: theme.backgroundColor}]}>
+                    Choose for me
+                  </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.button}
                   onPress={() => navigation.navigate('Quote')}>
-                  <Text style={styles.buttonText}>Request a Quote</Text>
+                  <Text
+                    style={[styles.buttonText, {color: theme.backgroundColor}]}>
+                    Request a Quote
+                  </Text>
                 </TouchableOpacity>
               </View>
               <TouchableOpacity
                 style={[styles.button, styles.fullWidthButton]}
-                onPress={() => navigation.navigate('MarketPlace', {fromProduct: true})}>
-                <Text style={styles.buttonText}>Add Marketplace</Text>
+                onPress={() =>
+                  navigation.navigate('MarketPlace', {fromProduct: true})
+                }>
+                <Text
+                  style={[styles.buttonText, {color: theme.backgroundColor}]}>
+                  Add Marketplace
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
