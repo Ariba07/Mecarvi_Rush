@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React from 'react';
+import React, {useContext} from 'react';
 import {
   View,
   Text,
@@ -19,6 +19,7 @@ import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes
 import Header from '../../components/common/header/Header';
 import PieChart from 'react-native-pie-chart'; // Updated library
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
 // Mock data for transaction history
 const transactions = [
@@ -67,6 +68,7 @@ const transactions = [
 const Wallet = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
 
   // Data for the pie chart
   const totalEarnings = 830.03 + 755.75; // Ongoing + Completed
@@ -87,13 +89,17 @@ const Wallet = () => {
     },
   ];
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
       <View style={styles.container}>
         {/* Header */}
         <Header title="Your Wallet" onBackPress={() => navigation.goBack()} />
 
         {/* Personal Balance Section */}
-        <View style={styles.balanceContainer}>
+        <View
+          style={[
+            styles.balanceContainer,
+            {backgroundColor: theme.backgroundColor},
+          ]}>
           <View>
             <Text style={styles.balanceAmount}>+ $560.00</Text>
             <Text style={styles.balanceLabel}>Your Personal Balance</Text>
@@ -101,13 +107,23 @@ const Wallet = () => {
           <TouchableOpacity
             style={styles.withdrawButton}
             onPress={() => navigation.navigate('Withdraw')}>
-            <Text style={styles.withdrawButtonText}>Withdraw</Text>
+            <Text
+              style={[
+                styles.withdrawButtonText,
+                {color: theme.backgroundColor},
+              ]}>
+              Withdraw
+            </Text>
           </TouchableOpacity>
         </View>
 
         {/* Earnings Summary Section */}
         <View style={styles.earningsSummary}>
-          <View style={styles.earningsCard}>
+          <View
+            style={[
+              styles.earningsCard,
+              {backgroundColor: theme.backgroundColor},
+            ]}>
             <View
               style={{flexDirection: 'row', alignItems: 'center', gap: wp(2)}}>
               <View
@@ -128,7 +144,11 @@ const Wallet = () => {
               <Text style={styles.earningsAmount}>$1400.00</Text>
             </View>
           </View>
-          <View style={styles.earningsCard}>
+          <View
+            style={[
+              styles.earningsCard,
+              {backgroundColor: theme.backgroundColor},
+            ]}>
             <View
               style={{flexDirection: 'row', alignItems: 'center', gap: wp(2)}}>
               <View
@@ -152,7 +172,9 @@ const Wallet = () => {
         </View>
 
         {/* Pie Chart Section */}
-        <Text style={styles.sectionTitle}>Earnings Summary</Text>
+        <Text style={[styles.sectionTitle, {color: theme.input}]}>
+          Earnings Summary
+        </Text>
         <View style={styles.pieChartContainer}>
           <PieChart
             widthAndHeight={wp(50)}
@@ -163,32 +185,40 @@ const Wallet = () => {
             cover={0.7}
           />
           <View style={styles.pieChartCenter}>
-            <Text style={styles.pieChartAmount}>${totalEarnings}</Text>
+            <Text style={[styles.pieChartAmount, {color: theme.input}]}>
+              ${totalEarnings}
+            </Text>
             <Text style={styles.pieChartLabel}>September</Text>
           </View>
         </View>
         <View style={styles.pieChartLegend}>
           <View style={styles.legendItem}>
             <View style={[styles.legendDot, {backgroundColor: '#03A7A7'}]} />
-            <Text style={styles.legendText}>
+            <Text style={[styles.legendText, {color: theme.text}]}>
               Pending <Text style={{color: '#03a7a7'}}>$830.03</Text>
             </Text>
           </View>
           <View style={styles.legendItem}>
             <View style={[styles.legendDot, {backgroundColor: '#FF00A7'}]} />
-            <Text style={styles.legendText}>
+            <Text style={[styles.legendText, {color: theme.text}]}>
               Completed <Text style={{color: '#ff00a7'}}>$755.75</Text>
             </Text>
           </View>
         </View>
 
         {/* Transaction History Section */}
-        <Text style={styles.sectionTitle}>Transaction History</Text>
+        <Text style={[styles.sectionTitle, {color: theme.input}]}>
+          Transaction History
+        </Text>
         <FlatList
           data={transactions}
           keyExtractor={item => item.id}
           renderItem={({item}) => (
-            <View style={styles.transactionCard}>
+            <View
+              style={[
+                styles.transactionCard,
+                {backgroundColor: theme.backgroundColor},
+              ]}>
               <View
                 style={{
                   backgroundColor: '#30a7a7',
@@ -201,11 +231,13 @@ const Wallet = () => {
               </View>
 
               <View style={styles.transactionDetails}>
-                <Text style={styles.transactionType}>{item.type}</Text>
+                <Text style={[styles.transactionType, {color: theme.text}]}>
+                  {item.type}
+                </Text>
                 <Text style={styles.transactionDate}>{item.date}</Text>
               </View>
               <View style={styles.transactionAmountContainer}>
-                <Text style={styles.transactionAmount}>
+                <Text style={[styles.transactionAmount, {color: theme.text}]}>
                   + ${item.amount.toFixed(2)}
                 </Text>
                 <View

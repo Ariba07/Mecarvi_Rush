@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React from 'react';
+import React, {useContext} from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import {
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../types/screenTypes/ScreenTypes';
+import {ThemeContext} from '../../helperUtils/theme/ThemeContext';
 
 interface ProductCardProps {
   name: string;
@@ -35,10 +36,12 @@ const OrderCard: React.FC<ProductCardProps> = ({
 }) => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
+
   return (
     <TouchableOpacity
       disabled={status === 'Add Your Price' || status === 'Add to cart'}
-      style={styles.card}
+      style={[styles.card, {backgroundColor: theme.backgroundColor}]}
       onPress={() => {
         navigation.navigate('ServiceProviderOrderDetail');
       }}>
@@ -49,12 +52,14 @@ const OrderCard: React.FC<ProductCardProps> = ({
 
       {/* Product Info */}
       <View style={styles.info}>
-        <Text style={styles.name}>{name}</Text>
+        <Text style={[styles.name, {color: theme.text}]}>{name}</Text>
 
         {/* Ratings */}
         {status !== 'Add Your Price' && status !== 'Add to cart' && (
           <View style={styles.ratingContainer}>
-            <Text style={styles.rating}>New York,USA .2m ago</Text>
+            <Text style={[styles.rating, {color: theme.text}]}>
+              New York,USA .2m ago
+            </Text>
           </View>
         )}
 
@@ -67,7 +72,8 @@ const OrderCard: React.FC<ProductCardProps> = ({
           style={[
             styles.cartButton,
             {
-              backgroundColor: color,
+              backgroundColor:
+                status === 'Add Your Price' ? theme.whole : color,
               borderColor: borderColor,
               borderWidth: borderColor ? 1 : 0,
             },
@@ -83,7 +89,7 @@ const OrderCard: React.FC<ProductCardProps> = ({
       </View>
 
       {/* Price */}
-      <Text style={styles.price}>{price}</Text>
+      <Text style={[styles.price, {color: theme.text}]}>{price}</Text>
     </TouchableOpacity>
   );
 };

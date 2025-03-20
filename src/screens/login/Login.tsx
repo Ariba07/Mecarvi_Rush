@@ -34,13 +34,14 @@ import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
 const {width, height} = Dimensions.get('window');
 
-// **Validation Schema**
+// Validation Schema
 const loginValidationSchema = Yup.object().shape({
   email: Yup.string().email('Invalid email').required('Email is required'),
   password: Yup.string().required('Password is required'),
 });
 
 const STORAGE_KEY = '@login_credentials';
+const TOKEN_KEY = 'userToken'; // Consistent with apiHelper expectation
 
 const Login: React.FC = () => {
   const [isChecked, setIsChecked] = useState(false);
@@ -48,14 +49,13 @@ const Login: React.FC = () => {
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const dispatch = useDispatch();
   const [initialValues, setInitialValues] = useState({email: '', password: ''});
-  const {theme} = useContext(ThemeContext); // Access theme
+  const {theme} = useContext(ThemeContext);
 
   useEffect(() => {
     const checkCredentials = async () => {
       try {
         const savedCredentials = await AsyncStorage.getItem(STORAGE_KEY);
         if (savedCredentials) {
-          // If credentials exist, assume user is authenticated and navigate
           navigation.replace('Subscription');
         }
       } catch (error) {
@@ -63,7 +63,7 @@ const Login: React.FC = () => {
       }
     };
     checkCredentials();
-  }, [navigation]); // Empty dependency array
+  }, [navigation]);
 
   const handleLogin = async (values: {email: string; password: string}) => {
     try {
@@ -73,12 +73,22 @@ const Login: React.FC = () => {
         data: values,
       });
 
-      navigation.replace('Subscription');
-      const data = response as {data: {user: {id: number; roles: string[]}}};
+      // Type the response based on your API structure
+      const {data, meta} = response as {
+        data: {user: {id: number; roles: string[]}};
+        meta: {token: string};
+      };
+
+      // Store the token in AsyncStorage
+      await AsyncStorage.setItem(TOKEN_KEY, meta.token);
+      console.log('Token stored:', meta.token);
+
+      // Dispatch user data to Redux
       dispatch(
         setUser({
-          role: data.data.user.roles[0],
-          userId: data.data.user.id,
+          role: data.user.roles[0],
+          userId: data.user.id,
+          token: meta.token,
         }),
       );
 
@@ -89,24 +99,26 @@ const Login: React.FC = () => {
           JSON.stringify({
             email: values.email,
             password: values.password,
-            userId: data.data.user.id, // Add userId
-            role: data.data.user.roles[0], // Add role
+            userId: data.user.id,
+            role: data.user.roles[0],
           }),
         );
       } else {
         await AsyncStorage.removeItem(STORAGE_KEY);
       }
-    } catch (error) {
-      console.log((error as any)?.message);
+
+      // Navigate to Subscription screen
+      navigation.replace('Subscription');
+    } catch (error: any) {
+      console.error('Login error:', error.response?.data || error.message);
       Alert.alert('Error', 'Login failed. Please check your credentials.');
     }
   };
 
-  // Determine the background image based on the theme
   const backgroundImage =
     theme.backgroundColor === '#ffffff'
-      ? require('../../assets/images/BG.png') // Light theme
-      : require('../../assets/images/dark.png'); // Dark theme
+      ? require('../../assets/images/BG.png')
+      : require('../../assets/images/dark.png');
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -200,6 +212,7 @@ const Login: React.FC = () => {
   );
 };
 
+// Styles remain unchanged
 const styles = StyleSheet.create({
   background: {
     width: width,

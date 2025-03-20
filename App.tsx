@@ -52,6 +52,7 @@ import Receipt from './src/screens/popups/SuccessPayment';
 import MarketPlace from './src/screens/marketPlace/MarketPlace';
 import ShopProfile from './src/screens/shop/ShopProfile';
 import {ThemeProvider} from './src/components/helperUtils/theme/ThemeContext';
+import OrderIndex from './src/screens/orders/OrderIndex';
 
 // Define the Stack Navigator
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -148,6 +149,7 @@ const App: React.FC = () => {
               <Stack.Screen name="Receipt" component={Receipt} />
               <Stack.Screen name="MarketPlace" component={MarketPlace} />
               <Stack.Screen name="ShopProfile" component={ShopProfile} />
+              <Stack.Screen name="Orders" component={OrderIndex} />
             </Stack.Navigator>
           </NavigationContainer>
         </ThemeProvider>

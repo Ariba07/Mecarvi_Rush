@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useContext, useState} from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
 const tabs = [
   {label: 'All Orders', filter: 'All'},
@@ -33,6 +34,7 @@ const ServiceProviderOrders = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [selectedTab, setSelectedTab] = useState('All');
+  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
 
   // Filter orders based on selected tab
   const filteredOrders =
@@ -41,7 +43,7 @@ const ServiceProviderOrders = () => {
       : orders.filter(order => order.status === selectedTab);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
       <View style={styles.container}>
         {/* Header */}
         <Header

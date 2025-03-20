@@ -22,6 +22,8 @@ import CustomButton from '../../components/common/buttons/CustomButton';
 import CardPaymentBottomSheet from '../../components/cardPayment/CardPaymentModal';
 import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {useSelector} from 'react-redux';
+import {selectToken} from '../../slice/Slice';
 
 const plans = [
   {
@@ -49,7 +51,7 @@ const Subscription = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
-
+  const token = useSelector(selectToken);
   useEffect(() => {
     if (errorMessage) {
       const timer = setTimeout(() => setErrorMessage(null), 2000);
@@ -70,10 +72,11 @@ const Subscription = () => {
         method: 'POST',
         endpoint: 'subscribe',
         data: {plan: selectedPlan, payment_method: paymentMethodId},
+        token: token,
       });
 
       // Assuming apiHelper returns a JSON response or an object
-      const result = await (response as any).json(); // Adjust based on apiHelper return type
+      const result = (await response) as any; // Adjust based on apiHelper return type
       if (result.error) {
         throw new Error(result.error.message || 'Subscription creation failed');
       }

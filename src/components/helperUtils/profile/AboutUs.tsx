@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import {View, Text, StyleSheet, Platform} from 'react-native';
 import {
   widthPercentageToDP as wp,
@@ -6,14 +6,18 @@ import {
 } from 'react-native-responsive-screen';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Watch from '../../../assets/images/Watch.svg';
+import {ThemeContext} from '../theme/ThemeContext';
 
 const AboutUs = () => {
+  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
+
   return (
     <View style={styles.container}>
       {/* About Us Section */}
-      <View style={styles.aboutCard}>
-        <Text style={styles.heading}>About Us</Text>
-        <Text style={styles.description}>
+      <View
+        style={[styles.aboutCard, {backgroundColor: theme.backgroundColor}]}>
+        <Text style={[styles.heading, {color: theme.input}]}>About Us</Text>
+        <Text style={[styles.description, {color: theme.text}]}>
           Creative Ink Solutions is a leading printing service provider
           specializing in business cards, flyers, T-shirts, and signages. We
           ensure top-quality designs and printing solutions to help businesses
@@ -25,13 +29,16 @@ const AboutUs = () => {
       <View style={styles.workingHours}>
         <View style={styles.sectionTitle}>
           <Watch />
-          <Text style={styles.workingHoursHeading}> Working Hours</Text>
+          <Text style={[styles.workingHoursHeading, {color: theme.text}]}>
+            {' '}
+            Working Hours
+          </Text>
         </View>
 
         <View style={styles.timeRow}>
           <FontAwesome name="circle" size={wp(2)} color="green" />
           <Text style={styles.openText}> Open:</Text>
-          <Text style={styles.timeText}>
+          <Text style={[styles.timeText, {color: theme.text}]}>
             {' '}
             Monday - Friday: 9:00 AM - 6:00 PM
           </Text>
@@ -40,7 +47,9 @@ const AboutUs = () => {
         <View style={styles.timeRow}>
           <FontAwesome name="circle" size={wp(2)} color="red" />
           <Text style={styles.closedText}> Closed:</Text>
-          <Text style={styles.timeText}> Saturday - Sunday</Text>
+          <Text style={[styles.timeText, {color: theme.text}]}>
+            Saturday - Sunday
+          </Text>
         </View>
       </View>
     </View>

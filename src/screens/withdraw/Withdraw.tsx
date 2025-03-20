@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useState} from 'react';
+import React, {useContext, useState} from 'react';
 import {
   View,
   Text,
@@ -19,6 +19,7 @@ import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes
 import Header from '../../components/common/header/Header';
 import FontAwesome from 'react-native-vector-icons/FontAwesome'; // For the credit card icon
 import CustomButton from '../../components/common/buttons/CustomButton';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
 // Mock payment options with internet URIs for logos
 const paymentOptions = [
@@ -40,18 +41,21 @@ const Withdraw = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [selectedOption, setSelectedOption] = useState('1'); // Default to Paypal
+  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
       <View style={styles.container}>
         {/* Header */}
         <Header title="Withdraw" onBackPress={() => navigation.goBack()} />
 
         {/* Title and Subtitle */}
         <View style={styles.headerTextContainer}>
-          <FontAwesome name="credit-card" size={wp(6)} color="#333" />
+          <FontAwesome name="credit-card" size={wp(6)} color={theme.text} />
           <View>
-            <Text style={styles.title}>Payment Option</Text>
+            <Text style={[styles.title, {color: theme.text}]}>
+              Payment Option
+            </Text>
             <Text style={styles.subtitle}>
               Select Your Preferred Payment mode
             </Text>
@@ -68,6 +72,7 @@ const Withdraw = () => {
                 borderColor:
                   selectedOption === option.id ? '#FF00A7' : undefined,
                 borderWidth: selectedOption === option.id ? 1 : undefined,
+                backgroundColor: theme.backgroundColor,
               },
             ]}
             onPress={() => setSelectedOption(option.id)}>
@@ -83,7 +88,9 @@ const Withdraw = () => {
                 <View style={styles.radioSelected} />
               )}
             </View>
-            <Text style={styles.optionText}>{option.name}</Text>
+            <Text style={[styles.optionText, {color: theme.text}]}>
+              {option.name}
+            </Text>
             <Image
               source={{uri: option.logoUri}}
               style={styles.optionLogo}

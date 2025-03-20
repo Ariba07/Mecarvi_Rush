@@ -49,6 +49,7 @@ export interface AuthState {
   option: string;
   role: string;
   user_id: number;
+  token: string;
 }
 
 export const initialState: AuthState = {
@@ -61,6 +62,7 @@ export const initialState: AuthState = {
   option: '',
   role: '',
   user_id: 0,
+  token: '',
 };
 
 const authSlice = createSlice({
@@ -130,14 +132,19 @@ const authSlice = createSlice({
     setOption: (state, action: PayloadAction<string>) => {
       state.option = action.payload;
     },
-    setUser: (state, action: PayloadAction<{role: string; userId: number}>) => {
+    setUser: (
+      state,
+      action: PayloadAction<{role: string; userId: number; token: string}>,
+    ) => {
       state.role = action.payload.role;
       state.user_id = action.payload.userId;
+      state.token = action.payload.token;
     },
     clearUser: state => {
       state.role = '';
       state.user_id = 0;
       state.option = '';
+      state.token = '';
     },
   },
 });
@@ -187,6 +194,7 @@ export const selectOption = (state: {auth: AuthState}) => state.auth.option;
 
 export const selectRole = (state: {auth: AuthState}) => state.auth.role;
 export const selectUserId = (state: {auth: AuthState}) => state.auth.user_id;
+export const selectToken = (state: {auth: AuthState}) => state.auth.token;
 
 export const {
   updateCustomerField,

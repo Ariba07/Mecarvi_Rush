@@ -1,5 +1,5 @@
 import {View, Platform, StyleSheet, SafeAreaView, FlatList} from 'react-native';
-import React from 'react';
+import React, {useContext} from 'react';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -10,12 +10,15 @@ import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
 import {products} from '../../components/helperUtils/orderTypes/Types';
 import OrderCard from '../../components/common/orderCard/OrderCard';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
 const ServicesProducts = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
+
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
       <View style={styles.container}>
         <Header title="My Products" onBackPress={() => navigation.goBack()} />
         <FlatList

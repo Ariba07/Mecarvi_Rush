@@ -7,7 +7,7 @@ import {
   Text,
   TextInput,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useContext, useState} from 'react';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -18,13 +18,16 @@ import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes
 import Header from '../../components/common/header/Header';
 import {renderStars} from '../../components/common/review/RenderStars';
 import CustomButton from '../../components/common/buttons/CustomButton';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
 const ProductPrice = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [price, setPrice] = useState<string>('');
+  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
+
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
       <View style={styles.container}>
         <Header
           title="Product Pricing"
@@ -39,10 +42,12 @@ const ProductPrice = () => {
         {/* Product Title & Rating */}
         <View style={styles.productInfoContainer}>
           <View>
-            <Text style={styles.productTitle}>Signage Sign Board</Text>
+            <Text style={[styles.productTitle, {color: theme.input}]}>
+              Signage Sign Board
+            </Text>
             <View style={styles.ratingContainer}>
               {renderStars(Number('4.5'))}
-              <Text style={styles.ratingText}>4.5</Text>
+              <Text style={[styles.ratingText, {color: theme.input}]}>4.5</Text>
             </View>
           </View>
           {/* Price */}
@@ -50,9 +55,11 @@ const ProductPrice = () => {
         </View>
 
         <View style={{marginVertical: wp(3)}}>
-          <Text style={styles.label}>Add Your Price</Text>
+          <Text style={[styles.label, {color: theme.text}]}>
+            Add Your Price
+          </Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, {color: theme.input}]}
             value={price}
             onChangeText={setPrice}
             keyboardType="numeric"

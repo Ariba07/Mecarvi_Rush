@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useContext, useState} from 'react';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -20,6 +20,7 @@ import Header from '../../components/common/header/Header';
 import {CheckCircle, Circle} from 'react-native-feather';
 import {trackingSteps} from '../tracking/Tracking';
 import ChatIcon from '../../assets/images/Chat.svg';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
 const customerDetail = [
   {label: 'Customer Name', value: 'Chris'},
@@ -34,9 +35,10 @@ const ServiceProviderOrderDetail = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [selectedStatus, setSelectedStatus] = useState('Processing');
+  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
       <View style={styles.container}>
         <View style={styles.space}>
           <Header
@@ -48,8 +50,11 @@ const ServiceProviderOrderDetail = () => {
         <ScrollView showsVerticalScrollIndicator={false}>
           {/**Order Overview */}
           <View style={styles.space}>
-            <Text style={styles.title}>Orders Overview</Text>
-            <View style={styles.cards}>
+            <Text style={[styles.title, {color: theme.input}]}>
+              Orders Overview
+            </Text>
+            <View
+              style={[styles.cards, {backgroundColor: theme.backgroundColor}]}>
               <View style={styles.imageContainer}>
                 <Image
                   source={require('../../assets/images/Orders.png')}
@@ -59,17 +64,21 @@ const ServiceProviderOrderDetail = () => {
               </View>
 
               <View style={styles.info}>
-                <Text style={styles.name}>Aluminium Signage</Text>
+                <Text style={[styles.name, {color: theme.text}]}>
+                  Aluminium Signage
+                </Text>
 
                 <View style={styles.ratingContainer}>
-                  <Text style={styles.rating}>Yesterday at 8:00 PM</Text>
+                  <Text style={[styles.rating, {color: theme.text}]}>
+                    Yesterday at 8:00 PM
+                  </Text>
                 </View>
 
                 <View style={styles.row}>
                   <TouchableOpacity style={[styles.cartButton]}>
                     <Text style={styles.cartText}>Processing </Text>
                   </TouchableOpacity>
-                  <Text style={styles.price}>$ 250</Text>
+                  <Text style={[styles.price, {color: theme.text}]}>$ 250</Text>
                 </View>
               </View>
             </View>
@@ -77,13 +86,20 @@ const ServiceProviderOrderDetail = () => {
 
           {/**Customer Detail */}
           <View style={styles.space}>
-            <Text style={styles.title}>Customer Detail</Text>
-            <View style={styles.cards}>
+            <Text style={[styles.title, {color: theme.input}]}>
+              Customer Detail
+            </Text>
+            <View
+              style={[styles.cards, {backgroundColor: theme.backgroundColor}]}>
               <View>
                 {customerDetail.map((item, index) => (
                   <View key={index} style={styles.specRow}>
-                    <Text style={styles.specLabel}>{item.label}</Text>
-                    <Text style={styles.specValue}>{item.value}</Text>
+                    <Text style={[styles.specLabel, {color: theme.text}]}>
+                      {item.label}
+                    </Text>
+                    <Text style={[styles.specValue, {color: theme.input}]}>
+                      {item.value}
+                    </Text>
                   </View>
                 ))}
                 <TouchableOpacity
@@ -103,20 +119,27 @@ const ServiceProviderOrderDetail = () => {
 
           {/**Status */}
           <View style={styles.space}>
-            <Text style={styles.title}>Order Type</Text>
+            <Text style={[styles.title, {color: theme.input}]}>Order Type</Text>
             <View style={styles.buttonContainer}>
               {statuses.map(status => (
                 <TouchableOpacity
                   key={status}
                   style={[
                     styles.button,
-                    selectedStatus === status && styles.selectedButton,
+                    selectedStatus === status
+                      ? styles.selectedButton
+                      : {
+                          backgroundColor: theme.backgroundColor,
+                          borderColor: theme.text,
+                        },
                   ]}
                   onPress={() => setSelectedStatus(status)}>
                   <Text
                     style={[
                       styles.buttonText,
-                      selectedStatus === status && styles.selectedText,
+                      selectedStatus === status
+                        ? styles.selectedText
+                        : {color: theme.text},
                     ]}>
                     {status}
                   </Text>
@@ -126,8 +149,10 @@ const ServiceProviderOrderDetail = () => {
           </View>
 
           {/* Card Section */}
-          <View style={styles.card}>
-            <Text style={styles.title}>Order Status</Text>
+          <View style={[styles.card, {backgroundColor: theme.backgroundColor}]}>
+            <Text style={[styles.title, {color: theme.input}]}>
+              Order Status
+            </Text>
             <View>
               {trackingSteps.map((item, index) => (
                 <View key={item.id} style={styles.stepContainer}>
@@ -141,8 +166,12 @@ const ServiceProviderOrderDetail = () => {
                   </View>
 
                   <View style={styles.stepTextContainer}>
-                    <Text style={styles.stepTitle}>{item.status}</Text>
-                    <Text style={styles.stepTime}>{item.time}</Text>
+                    <Text style={[styles.stepTitle, {color: theme.input}]}>
+                      {item.status}
+                    </Text>
+                    <Text style={[styles.stepTime, {color: theme.text}]}>
+                      {item.time}
+                    </Text>
                   </View>
 
                   {item.completed ? (

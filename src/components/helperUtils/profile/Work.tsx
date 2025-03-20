@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
+import {ThemeContext} from '../theme/ThemeContext';
 
 type WorkItem = {
   id: string;
@@ -27,11 +28,17 @@ const previousWorks: WorkItem[] = [
 ];
 
 const Work = () => {
+  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
+
   return (
     <View>
-      <Text style={styles.title}>Previous Work</Text>
+      <Text style={[styles.title, {color: theme.text}]}>Previous Work</Text>
 
-      <View style={styles.workListContainer}>
+      <View
+        style={[
+          styles.workListContainer,
+          {backgroundColor: theme.backgroundColor},
+        ]}>
         <FlatList
           data={[...previousWorks, {id: 'add'}]} // Adding a plus button
           keyExtractor={item => item.id}

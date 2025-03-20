@@ -29,20 +29,6 @@ import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
-const menuItems = [
-  {id: 1, name: 'Home', icon: <Main />, navigate: 'Drawer'}, // Assuming 'Home' is within DrawerNavigator
-  {id: 2, name: 'My Bookings', icon: <Booking />, navigate: 'Booking'},
-  {id: 3, name: 'Categories', icon: <Category />, navigate: 'Services'},
-  {
-    id: 4,
-    name: 'Subscription',
-    icon: <Subscription />,
-    navigate: 'Subscription',
-  },
-  {id: 5, name: 'Dark Theme', icon: <Theme />, navigate: 'DarkTheme'}, // Will toggle theme instead of navigating
-  {id: 6, name: 'Log Out', icon: <Logout />, navigate: 'Logout'},
-];
-
 const SideMenu: React.FC = () => {
   const dispatch = useDispatch();
   const navigation =
@@ -62,13 +48,38 @@ const SideMenu: React.FC = () => {
   const handleMenuPress = (itemName: string) => {
     if (itemName === 'Log Out') {
       handleLogout();
-    } else if (itemName === 'Dark Theme') {
-      toggleTheme(); // Toggle the theme when "Dark Theme" is clicked
-    } else {
-      // Navigate to the specified screen for other items
-      navigation.navigate(itemName === 'Home' ? 'Drawer' : (itemName as any));
+    } else if (itemName === 'Dark Theme' || itemName === 'Light Theme') {
+      toggleTheme(); // Toggle the theme
+    } else if (itemName === 'Subscription') {
+      navigation.navigate('Subscription');
+    } else if (itemName === 'Categories') {
+      navigation.navigate('Services');
+    } else if (itemName === 'Home') {
+      navigation.navigate('Drawer');
+    } else if (itemName === 'My Bookings') {
+      navigation.navigate('Orders');
     }
   };
+
+  // Define menu items, dynamically setting the theme option name
+  const menuItems = [
+    {id: 1, name: 'Home', icon: <Main />, navigate: 'Drawer'},
+    {id: 2, name: 'My Bookings', icon: <Booking />, navigate: 'Booking'},
+    {id: 3, name: 'Categories', icon: <Category />, navigate: 'Services'},
+    {
+      id: 4,
+      name: 'Subscription',
+      icon: <Subscription />,
+      navigate: 'Subscription',
+    },
+    {
+      id: 5,
+      name: theme.backgroundColor === '#000000' ? 'Light Theme' : 'Dark Theme', // Adjust based on your theme logic
+      icon: <Theme />,
+      navigate: 'DarkTheme',
+    },
+    {id: 6, name: 'Log Out', icon: <Logout />, navigate: 'Logout'},
+  ];
 
   return (
     <SafeAreaView

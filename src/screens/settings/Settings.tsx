@@ -211,7 +211,7 @@ const Settings = () => {
       <View style={styles.container}>
         <Header title="Settings" onBackPress={() => navigation.goBack()} />
         <FlatList
-          data={role === 'admin' ? menuItems : menuItem}
+          data={role !== 'admin' ? menuItems : menuItem}
           keyExtractor={item => item.id}
           renderItem={renderItem}
           contentContainerStyle={styles.listContainer}

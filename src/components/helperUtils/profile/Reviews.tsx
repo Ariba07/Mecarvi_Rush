@@ -1,11 +1,12 @@
 /* eslint-disable react-native/no-inline-styles */
-import React from 'react';
+import React, {useContext} from 'react';
 import {View, Text, StyleSheet, FlatList, Image} from 'react-native';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import {ThemeContext} from '../theme/ThemeContext';
 
 type Review = {
   id: string;
@@ -47,8 +48,10 @@ const reviews: Review[] = [
 ];
 
 const Reviews = () => {
+  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, {backgroundColor: theme.backgroundColor}]}>
       <FlatList
         data={reviews}
         keyExtractor={item => item.id}
@@ -59,7 +62,9 @@ const Reviews = () => {
                 <View style={{flexDirection: 'row', alignItems: 'center'}}>
                   <Image source={item.image} style={styles.profileImage} />
                   <View>
-                    <Text style={styles.name}>{item.name}</Text>
+                    <Text style={[styles.name, {color: theme.input}]}>
+                      {item.name}
+                    </Text>
                     <Text style={styles.date}>{item.date}</Text>
                   </View>
                 </View>
@@ -68,7 +73,9 @@ const Reviews = () => {
                   <Text style={styles.ratingText}>{item.rating}</Text>
                 </View>
               </View>
-              <Text style={styles.reviewText}>{item.reviewText}</Text>
+              <Text style={[styles.reviewText, {color: theme.text}]}>
+                {item.reviewText}
+              </Text>
             </View>
           </View>
         )}

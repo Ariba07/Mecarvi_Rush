@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React from 'react';
+import React, {useContext} from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import CustomButton from '../../common/buttons/CustomButton';
+import {ThemeContext} from '../theme/ThemeContext';
 
 const services = [
   {id: '1', title: 'Business Cards', price: 220},
@@ -27,6 +28,8 @@ const services = [
 ];
 
 const ServiceList = () => {
+  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
+
   return (
     <SafeAreaView style={styles.container}>
       <FlatList
@@ -34,13 +37,15 @@ const ServiceList = () => {
         keyExtractor={item => item.id}
         showsVerticalScrollIndicator={false}
         renderItem={({item}) => (
-          <View style={styles.card}>
+          <View style={[styles.card, {backgroundColor: theme.backgroundColor}]}>
             <Image
               source={require('../../../assets/images/Orders.png')}
               style={styles.image}
             />
             <View style={styles.details}>
-              <Text style={styles.title}>{item.title}</Text>
+              <Text style={[styles.title, {color: theme.input}]}>
+                {item.title}
+              </Text>
               <Text style={styles.price}>$ {item.price.toFixed(2)}</Text>
             </View>
             <View style={styles.actions}>

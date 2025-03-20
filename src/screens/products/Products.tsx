@@ -7,7 +7,7 @@ import {
   TextInput,
   Text,
 } from 'react-native';
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useContext} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
@@ -18,6 +18,7 @@ import {
 import Header from '../../components/common/header/Header';
 import ProductCard from '../../components/common/productCard/ProductCard';
 import {Icon} from 'react-native-elements';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
 const products = [
   {
@@ -51,6 +52,7 @@ const Products: React.FC = () => {
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredProducts, setFilteredProducts] = useState(products);
+  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
 
   useEffect(() => {
     const filteredData = products.filter(item =>
@@ -60,16 +62,20 @@ const Products: React.FC = () => {
   }, [searchQuery]);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
       <View style={styles.container}>
         <Header title="Search" onBackPress={() => navigation.goBack()} />
 
         {/* Search Bar */}
         <View style={styles.searchContainer}>
-          <View style={styles.inputWrapper}>
-            <Icon name="search" size={20} color={'#333333'} />
+          <View
+            style={[
+              styles.inputWrapper,
+              {backgroundColor: theme.backgroundColor},
+            ]}>
+            <Icon name="search" size={20} color={theme.text} />
             <TextInput
-              style={styles.searchInput}
+              style={[styles.searchInput, {color: theme.input}]}
               placeholder="Search products..."
               placeholderTextColor="#888"
               value={searchQuery}

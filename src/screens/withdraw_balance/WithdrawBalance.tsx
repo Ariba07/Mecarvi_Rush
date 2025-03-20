@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import {View, Text, StyleSheet, Platform, SafeAreaView} from 'react-native';
 import {
   widthPercentageToDP as wp,
@@ -9,10 +9,12 @@ import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
 import Header from '../../components/common/header/Header';
 import CustomButton from '../../components/common/buttons/CustomButton'; // Assuming this exists
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
 const WithdrawBalance = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
 
   const handleWithdraw = () => {
     // Add your withdraw logic here (e.g., API call or navigation)
@@ -21,7 +23,7 @@ const WithdrawBalance = () => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
       <View style={styles.container}>
         {/* Header */}
         <Header
@@ -30,19 +32,27 @@ const WithdrawBalance = () => {
         />
 
         {/* Review Message */}
-        <Text style={styles.reviewMessage}>
+        <Text style={[styles.reviewMessage, {color: theme.text}]}>
           Please review your withdrawal details.
         </Text>
 
         {/* Payment Details Card */}
-        <View style={styles.detailsCard}>
+        <View
+          style={[
+            styles.detailsCard,
+            {backgroundColor: theme.backgroundColor},
+          ]}>
           <View style={styles.detailRow}>
-            <Text style={styles.label}>PayPal account</Text>
-            <Text style={styles.value}>s***********4@gmail.com</Text>
+            <Text style={[styles.label, {color: theme.text}]}>
+              PayPal account
+            </Text>
+            <Text style={[styles.value, {color: theme.input}]}>
+              s***********4@gmail.com
+            </Text>
           </View>
           <View style={styles.detailRow}>
-            <Text style={styles.label}>Amount</Text>
-            <Text style={styles.value}>$25.00</Text>
+            <Text style={[styles.label, {color: theme.text}]}>Amount</Text>
+            <Text style={[styles.value, {color: theme.input}]}>$25.00</Text>
           </View>
         </View>
 

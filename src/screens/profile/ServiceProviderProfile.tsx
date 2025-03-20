@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useContext, useState} from 'react';
 import {
   View,
   Text,
@@ -22,6 +22,7 @@ import ServiceList from '../../components/helperUtils/profile/ServiceList';
 import AboutUs from '../../components/helperUtils/profile/AboutUs';
 import Work from '../../components/helperUtils/profile/Work';
 import Reviews from '../../components/helperUtils/profile/Reviews';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
 const tabs = [
   {label: 'Services'},
@@ -34,9 +35,10 @@ const ServiceProviderProfile = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [selectedTab, setSelectedTab] = useState('Services');
+  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
       <View style={styles.container}>
         <Header title="Profile" onBackPress={() => navigation.goBack()} />
 
@@ -47,13 +49,19 @@ const ServiceProviderProfile = () => {
             style={styles.profileImage}
             resizeMode="cover"
           />
-          <Text style={styles.storeName}>Your name</Text>
-          <Text style={styles.label}>New York, USA</Text>
+          <Text style={[styles.storeName, {color: theme.input}]}>
+            Your name
+          </Text>
+          <Text style={[styles.label, {color: theme.text}]}>New York, USA</Text>
           <View style={styles.ratings}>
             <Rate width={wp(3)} height={wp(3)} />
-            <Text style={styles.ratingText}> 4.9 (12 Reviews)</Text>
+            <Text style={[styles.ratingText, {color: theme.backgroundColor}]}>
+              {' '}
+              4.9 (12 Reviews)
+            </Text>
           </View>
         </View>
+
         <View>
           <FlatList
             data={tabs}
@@ -68,7 +76,9 @@ const ServiceProviderProfile = () => {
                 <Text
                   style={[
                     styles.tabText,
-                    selectedTab === item.label && styles.activeTab,
+                    selectedTab === item.label
+                      ? styles.activeTab
+                      : {color: theme.text},
                   ]}>
                   {item.label}
                 </Text>

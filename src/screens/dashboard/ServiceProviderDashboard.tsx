@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React from 'react';
+import React, {useContext} from 'react';
 import {
   View,
   Text,
@@ -21,9 +21,11 @@ import SideMenu from '../../assets/images/SideMenu.svg';
 import PieChart from 'react-native-pie-chart';
 import OrderCard from '../../components/common/orderCard/OrderCard';
 import {orders} from '../../components/helperUtils/orderTypes/Types';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
 const ServiceProviderDashboard = () => {
   const navigation = useNavigation<DrawerNavigationProp<RootStackParamList>>();
+  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
 
   const summaryData = [
     {title: 'Total Orders', value: '1,250 Orders', icon: 'cart-outline'},
@@ -57,7 +59,7 @@ const ServiceProviderDashboard = () => {
   ];
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
@@ -66,14 +68,18 @@ const ServiceProviderDashboard = () => {
               <SideMenu />
             </TouchableOpacity>
             <View>
-              <Text style={styles.userName}>Hi Chris,</Text>
-              <Text style={styles.welcomeText}>Welcome Back</Text>
+              <Text style={[styles.userName, {color: theme.text}]}>
+                Hi Chris,
+              </Text>
+              <Text style={[styles.welcomeText, {color: theme.text}]}>
+                Welcome Back
+              </Text>
             </View>
           </View>
           <TouchableOpacity
-            style={styles.iconBox}
+            style={[styles.iconBox, {backgroundColor: theme.backgroundColor}]}
             onPress={() => navigation.navigate('Notification')}>
-            <Icon name="notifications-outline" size={20} color={'#333333'} />
+            <Icon name="notifications-outline" size={20} color={theme.input} />
           </TouchableOpacity>
         </View>
         <ScrollView
@@ -88,17 +94,26 @@ const ServiceProviderDashboard = () => {
                   styles.card,
                   (index + 1) % 2 === 0 && styles.cardLastInRow, // Remove right border for second card in each row
                   index >= 2 && styles.cardLastRow, // Remove bottom border for last two cards
+                  {backgroundColor: theme.backgroundColor},
                 ]}>
                 <Icon name={item.icon} size={24} color={'#03A7A7'} />
-                <Text style={styles.cardTitle}>{item.title}</Text>
+                <Text style={[styles.cardTitle, {color: theme.text}]}>
+                  {item.title}
+                </Text>
                 <Text style={styles.cardValue}>{item.value}</Text>
               </View>
             ))}
           </View>
 
           {/* Orders Overview */}
-          <Text style={styles.sectionTitle}>Orders Overview</Text>
-          <View style={styles.chartContainer}>
+          <Text style={[styles.sectionTitle, {color: theme.text}]}>
+            Orders Overview
+          </Text>
+          <View
+            style={[
+              styles.chartContainer,
+              {backgroundColor: theme.backgroundColor},
+            ]}>
             <PieChart
               widthAndHeight={wp(35)}
               series={chartData.map(item => ({
@@ -116,7 +131,7 @@ const ServiceProviderDashboard = () => {
                   />
                   <Text style={styles.legendText}>
                     {item.name}{' '}
-                    <Text style={{color: '#333333', fontWeight: 'bold'}}>
+                    <Text style={{color: theme.input, fontWeight: 'bold'}}>
                       ${item.price}
                     </Text>
                     {'   '}
@@ -128,7 +143,9 @@ const ServiceProviderDashboard = () => {
           </View>
           {/* Recent Orders */}
           <View style={styles.recentOrdersHeader}>
-            <Text style={styles.sectionTitle}>Recent Orders</Text>
+            <Text style={[styles.sectionTitle, {color: theme.text}]}>
+              Recent Orders
+            </Text>
             <TouchableOpacity onPress={() => navigation.navigate('Orders')}>
               <Text style={styles.seeAllText}>See All</Text>
             </TouchableOpacity>

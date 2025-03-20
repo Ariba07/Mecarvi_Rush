@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import {View, Text, StyleSheet, SafeAreaView, Platform} from 'react-native';
 import {
   widthPercentageToDP as wp,
@@ -9,10 +9,12 @@ import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
 import CustomButton from '../../components/common/buttons/CustomButton'; // Assuming this exists
 import Success from '../../assets/images/Success.svg';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
 const WithdrawConfirm = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
 
   const handleGotIt = () => {
     // Add your logic here (e.g., navigate back or to another screen)
@@ -21,15 +23,19 @@ const WithdrawConfirm = () => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
       <View style={styles.container}>
-        {/* Success Card */}
-
-        <View style={styles.successCard}>
+        <View
+          style={[
+            styles.successCard,
+            {backgroundColor: theme.backgroundColor},
+          ]}>
           <View style={styles.iconContainer}>
             <Success width={wp(20)} height={wp(20)} />
           </View>
-          <Text style={styles.successTitle}>Wooohoo, money!</Text>
+          <Text style={[styles.successTitle, {color: theme.input}]}>
+            Wooohoo, money!
+          </Text>
           <Text style={styles.successMessage}>
             Your funds should arrive within 1 business day.
           </Text>

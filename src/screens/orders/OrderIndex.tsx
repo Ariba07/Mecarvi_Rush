@@ -41,7 +41,7 @@ const OrderIndex = () => {
     return null;
   }
 
-  return role === 'admin' ? <Orders /> : <ServiceProviderOrders />;
+  return role !== 'admin' ? <Orders /> : <ServiceProviderOrders />;
 };
 
 export default OrderIndex;

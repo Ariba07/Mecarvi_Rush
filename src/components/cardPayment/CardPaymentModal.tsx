@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useState} from 'react';
+import React, {useContext, useState} from 'react';
 import {
   StyleSheet,
   TouchableWithoutFeedback,
@@ -17,6 +17,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
+import {ThemeContext} from '../helperUtils/theme/ThemeContext';
 
 interface CardPaymentBottomSheetProps {
   isVisible: boolean;
@@ -42,6 +43,7 @@ const CardPaymentBottomSheet: React.FC<CardPaymentBottomSheetProps> = ({
   const stripe = useStripe();
   const [loading, setLoading] = useState(false);
   const [cardDetails, setCardDetails] = useState<any>(null);
+  const {theme} = useContext(ThemeContext);
 
   const handlePayment = async () => {
     if (!stripe) {
@@ -92,7 +94,11 @@ const CardPaymentBottomSheet: React.FC<CardPaymentBottomSheetProps> = ({
       onRequestClose={onClose}>
       <View style={styles.modalOverlay}>
         <TouchableWithoutFeedback>
-          <View style={styles.modalContent}>
+          <View
+            style={[
+              styles.modalContent,
+              {backgroundColor: theme.backgroundColor},
+            ]}>
             <ScrollView
               contentContainerStyle={styles.scrollViewContent}
               keyboardShouldPersistTaps="handled">
@@ -107,11 +113,15 @@ const CardPaymentBottomSheet: React.FC<CardPaymentBottomSheetProps> = ({
                 </View>
                 <View style={styles.divider} />
                 <View style={{paddingHorizontal: wp(3)}}>
-                  <View style={styles.subscriptionDetails}>
-                    <Text style={styles.detailText}>
+                  <View
+                    style={[
+                      styles.subscriptionDetails,
+                      {backgroundColor: theme.text},
+                    ]}>
+                    <Text style={[styles.detailText, {color: theme.input}]}>
                       Plan: {subscriptionDetails.planName}
                     </Text>
-                    <Text style={styles.detailText}>
+                    <Text style={[styles.detailText, {color: theme.input}]}>
                       Price: ${subscriptionDetails.price.toFixed(2)} /{' '}
                       {subscriptionDetails.billingFrequency}
                     </Text>
@@ -122,8 +132,8 @@ const CardPaymentBottomSheet: React.FC<CardPaymentBottomSheetProps> = ({
                       number: 'Card Number',
                     }}
                     cardStyle={{
-                      backgroundColor: '#FFFFFF',
-                      textColor: '#000000',
+                      backgroundColor: theme.whole,
+                      textColor: theme.input,
                       placeholderColor: '#A9A9A9',
                       borderWidth: 1,
                       borderColor: '#CCCCCC',
@@ -188,7 +198,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   stripeLogo: {
-    width: wp(15),
+    width: wp(17),
     height: hp(3),
   },
   title: {
