@@ -9,22 +9,34 @@ import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../types/screenTypes/ScreenTypes';
 import {ThemeContext} from '../../helperUtils/theme/ThemeContext';
+import {useDispatch} from 'react-redux';
+import {setProductUuid} from '../../../slice/Slice';
 
 interface ProductCardProps {
+  productUuid: string; // Explicitly pass product_uuid as a prop
   name: string;
-  price: string;
+  price: number;
   image: any;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({name, price, image}) => {
+const ProductCard: React.FC<ProductCardProps> = ({
+  productUuid,
+  name,
+  price,
+  image,
+}) => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const {theme} = useContext(ThemeContext); // Access theme
+  const {theme} = useContext(ThemeContext);
+  const dispatch = useDispatch();
 
   return (
     <TouchableOpacity
       style={[styles.card, {backgroundColor: theme.backgroundColor}]}
-      onPress={() => navigation.navigate('Product')}>
+      onPress={() => {
+        navigation.navigate('Product');
+        dispatch(setProductUuid(productUuid)); // Use productUuid instead of key
+      }}>
       {/* Image Container */}
       <View style={styles.imageContainer}>
         <Image source={image} style={styles.image} resizeMode="cover" />
@@ -56,7 +68,7 @@ const ProductCard: React.FC<ProductCardProps> = ({name, price, image}) => {
       </View>
 
       {/* Price */}
-      <Text style={[styles.price, {color: theme.text}]}>{price}</Text>
+      <Text style={[styles.price, {color: theme.text}]}>$ {price}</Text>
     </TouchableOpacity>
   );
 };

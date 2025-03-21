@@ -60,7 +60,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({children}) => {
   // Define themes object with explicit types
   const themes: Record<'light' | 'dark', Theme> = {
     light: {
-      backgroundColor: '#f5f5f5',
+      backgroundColor: '#ffffff',
       button: '#E9EEF2',
       text: '#000000',
       header: '#333333',

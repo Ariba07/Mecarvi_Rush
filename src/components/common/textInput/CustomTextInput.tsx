@@ -23,24 +23,8 @@ interface CustomTextInputProps {
   onChangeText?: (text: string | string[]) => void;
   isMultiSelect?: boolean;
   width?: number;
+  options?: string[]; // Add dynamic options prop
 }
-
-const dropdownOptions: {[key: string]: string[]} = {
-  'State Registration': ['Registered', 'Unregistered', 'Pending'],
-  'Legal Structure of Business': ['Sole Proprietorship', 'Partnership', 'LLC'],
-  'Select Capacity': ['Small', 'Medium', 'Large'],
-  'Select Your Target Market': ['Local', 'National', 'International'],
-  'Select Services': ['Consulting', 'Development', 'Marketing'],
-  'Sidewalk Sign Size': ['Small', 'Medium', 'Large'],
-  'Sidewalk Sign Material': ['Aluminum', 'Plastic', 'Wood'],
-  'Sidewalk Sign Hardware': ['A-Frame', 'H-Frame', 'No Frame'],
-  'Sidewalk Sign Artwork': [
-    'Printed Graphic',
-    'Vinyl Lettering',
-    'Custom Design',
-  ],
-  'Address-type': ['shipping', 'billing'], // Added for AddressCreate
-};
 
 const CustomTextInput: React.FC<CustomTextInputProps> = ({
   placeholder,
@@ -49,15 +33,16 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
   onChangeText,
   isMultiSelect = false,
   width,
+  options = [], // Default to empty array if no options provided
 }) => {
   const [isPasswordVisible, setPasswordVisible] = useState(!secureTextEntry);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [selectedServices, setSelectedServices] = useState<string[]>(
     Array.isArray(value) ? value : [],
   );
-  const {theme} = useContext(ThemeContext); // Access theme
+  const {theme} = useContext(ThemeContext);
 
-  const isDropdownField = placeholder in dropdownOptions;
+  const isDropdownField = options.length > 0; // Use options prop to determine if it's a dropdown
 
   const handleDropdownPress = () => {
     setActiveDropdown(activeDropdown === placeholder ? null : placeholder);
@@ -66,12 +51,11 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
   const handleSelectOption = (option: string) => {
     if (isMultiSelect) {
       const updatedSelections = selectedServices.includes(option)
-        ? selectedServices.filter(item => item !== option) // Remove if already selected
-        : [...selectedServices, option]; // Add new selection
-
+        ? selectedServices.filter(item => item !== option)
+        : [...selectedServices, option];
       setSelectedServices(updatedSelections);
       if (onChangeText) {
-        onChangeText(updatedSelections); // Pass array back
+        onChangeText(updatedSelections);
       }
     } else {
       if (onChangeText) {
@@ -98,9 +82,7 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
               style={[styles.input, {color: theme.input}]}
               placeholder={placeholder}
               value={
-                isMultiSelect
-                  ? selectedServices.join(', ') // Display selected items
-                  : (value as string)
+                isMultiSelect ? selectedServices.join(', ') : (value as string)
               }
               editable={false}
               placeholderTextColor={'#999'}
@@ -123,13 +105,13 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
                 },
               ]}>
               <ScrollView nestedScrollEnabled style={styles.dropdownScroll}>
-                {dropdownOptions[placeholder].map(item => (
+                {options.map(item => (
                   <TouchableOpacity
                     key={item}
                     style={[
                       styles.dropdownItem,
                       selectedServices.includes(item) && {
-                        backgroundColor: '#f0f8ff', // Highlight selected items
+                        backgroundColor: '#f0f8ff',
                       },
                     ]}
                     onPress={() => handleSelectOption(item)}>
@@ -209,12 +191,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 2,
     elevation: 2,
-    maxHeight: hp(20), // Fixed height
+    maxHeight: hp(20),
     top: hp(6),
     padding: wp(2),
   },
   dropdownScroll: {
-    maxHeight: hp(20), // Ensure scrolling within dropdown
+    maxHeight: hp(20),
   },
   dropdownItem: {
     paddingVertical: hp(1),

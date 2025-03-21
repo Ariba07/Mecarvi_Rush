@@ -50,6 +50,8 @@ export interface AuthState {
   role: string;
   user_id: number;
   token: string;
+  service_uuid: string;
+  product_uuid: string;
 }
 
 export const initialState: AuthState = {
@@ -63,6 +65,8 @@ export const initialState: AuthState = {
   role: '',
   user_id: 0,
   token: '',
+  service_uuid: '',
+  product_uuid: '',
 };
 
 const authSlice = createSlice({
@@ -132,6 +136,12 @@ const authSlice = createSlice({
     setOption: (state, action: PayloadAction<string>) => {
       state.option = action.payload;
     },
+    setServiceUuid: (state, action: PayloadAction<string>) => {
+      state.service_uuid = action.payload;
+    },
+    setProductUuid: (state, action: PayloadAction<string>) => {
+      state.product_uuid = action.payload;
+    },
     setUser: (
       state,
       action: PayloadAction<{role: string; userId: number; token: string}>,
@@ -195,6 +205,10 @@ export const selectOption = (state: {auth: AuthState}) => state.auth.option;
 export const selectRole = (state: {auth: AuthState}) => state.auth.role;
 export const selectUserId = (state: {auth: AuthState}) => state.auth.user_id;
 export const selectToken = (state: {auth: AuthState}) => state.auth.token;
+export const selectServiceUuid = (state: {auth: AuthState}) =>
+  state.auth.service_uuid;
+export const selectProductUuid = (state: {auth: AuthState}) =>
+  state.auth.product_uuid;
 
 export const {
   updateCustomerField,
@@ -205,5 +219,7 @@ export const {
   updatePhoto,
   setUser,
   clearUser,
+  setServiceUuid,
+  setProductUuid,
 } = authSlice.actions;
 export default authSlice.reducer;

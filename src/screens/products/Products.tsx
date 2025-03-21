@@ -10,7 +10,7 @@ import {
 import React, {useState, useEffect, useContext} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
+import {Productss, RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -19,47 +19,49 @@ import Header from '../../components/common/header/Header';
 import ProductCard from '../../components/common/productCard/ProductCard';
 import {Icon} from 'react-native-elements';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import { selectServiceUuid} from '../../slice/Slice';
+import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
+import {useSelector} from 'react-redux';
 
-const products = [
-  {
-    id: '1',
-    name: 'Aluminium Sign',
-    price: '$220',
-    image: require('../../assets/images/s1.png'),
-  },
-  {
-    id: '2',
-    name: 'SideWalk Sign Board',
-    price: '$220',
-    image: require('../../assets/images/s1.png'),
-  },
-  {
-    id: '3',
-    name: 'Custom Banner',
-    price: '$180',
-    image: require('../../assets/images/s1.png'),
-  },
-  {
-    id: '4',
-    name: 'Vinyl Sticker',
-    price: '$150',
-    image: require('../../assets/images/s1.png'),
-  },
-];
+// Define the API response type
+interface ApiResponse {
+  data: Productss[];
+}
 
 const Products: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredProducts, setFilteredProducts] = useState(products);
-  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
+  const [fetchedProducts, setFetchedProducts] = useState<Productss[]>([]); // Source data
+  const [filteredProducts, setFilteredProducts] = useState<Productss[]>([]); // Filtered data
+  const {theme} = useContext(ThemeContext);
+  const serviceId = useSelector(selectServiceUuid);
 
+  // Fetch products when serviceId changes
   useEffect(() => {
-    const filteredData = products.filter(item =>
+    const fetchProducts = async () => {
+      try {
+        const response: ApiResponse = await apiHelper({
+          method: 'GET',
+          endpoint: `products?category_id=${serviceId}`,
+        });
+        const products = response?.data || [];
+        setFetchedProducts(products); // Set source data
+        setFilteredProducts(products); // Initialize filtered data
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      }
+    };
+    fetchProducts();
+  }, [serviceId]);
+
+  // Filter products when searchQuery changes
+  useEffect(() => {
+    const filteredData = fetchedProducts.filter(item =>
       item.name.toLowerCase().includes(searchQuery.toLowerCase()),
     );
     setFilteredProducts(filteredData);
-  }, [searchQuery]);
+  }, [searchQuery, fetchedProducts]); // Depend on searchQuery and fetchedProducts
 
   return (
     <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
@@ -87,13 +89,14 @@ const Products: React.FC = () => {
         {/* Product List */}
         <FlatList
           data={filteredProducts}
-          keyExtractor={item => item.id}
+          keyExtractor={item => item.product_uuid}
           renderItem={({item}) => (
             <ProductCard
               key={item.id}
               name={item.name}
               price={item.price}
-              image={item.image}
+              image={require('../../assets/images/Orders.png')}
+              productUuid={item.product_uuid}
             />
           )}
           showsVerticalScrollIndicator={false}

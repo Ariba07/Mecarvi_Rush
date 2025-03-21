@@ -13,7 +13,10 @@ import {
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {DrawerNavigationProp} from '@react-navigation/drawer';
-import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
+import {
+  Productss,
+  RootStackParamList,
+} from '../../components/types/screenTypes/ScreenTypes';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -24,6 +27,8 @@ import SideMenu from '../../assets/images/SideMenu.svg';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {useDispatch} from 'react-redux';
+import {setServiceUuid} from '../../slice/Slice';
 
 const banners = [
   {id: '1', image: require('../../assets/images/Banner.png')},
@@ -31,43 +36,34 @@ const banners = [
   {id: '3', image: require('../../assets/images/Banner.png')},
 ];
 
-const recommended = [
-  {
-    id: '1',
-    name: 'Aluminium Sign',
-    price: '$220',
-    image: require('../../assets/images/s1.png'),
-  },
-  {
-    id: '2',
-    name: 'SideWalk Sign Board',
-    price: '$220',
-    image: require('../../assets/images/s1.png'),
-  },
-  {
-    id: '3',
-    name: 'SideWalk Sign Board',
-    price: '$220',
-    image: require('../../assets/images/s1.png'),
-  },
-  {
-    id: '4',
-    name: 'SideWalk Sign Board',
-    price: '$220',
-    image: require('../../assets/images/s1.png'),
-  },
-];
-
 const Dashboard: React.FC = () => {
   const navigation = useNavigation<DrawerNavigationProp<RootStackParamList>>();
   const move = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [categories, setCategories] = useState<any[]>([]);
   const {theme} = useContext(ThemeContext); // Access theme
+  const dispatch = useDispatch();
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [selectedTab, setSelectedTab] = useState<'prints' | 'rentals'>(
     'prints',
   ); // Track selected tab
+
+  const [products, setProducts] = useState<Productss[]>([]); // Type state with Product
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response: {data: Productss[]} = await apiHelper({
+          method: 'GET',
+          endpoint: 'products',
+        });
+        const fetchedProduct = response?.data || [];
+        setProducts(fetchedProduct);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      }
+    };
+    fetchProducts();
+  }, [dispatch, products]); // Runs once when the component mounts
 
   const renderBanner = ({item}: any) => (
     <Image source={item.image} style={styles.banner} resizeMode="cover" />
@@ -76,7 +72,7 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response: { data: { data: any[] } } = await apiHelper({
+        const response: {data: {data: any[]}} = await apiHelper({
           method: 'GET',
           endpoint: 'categories/?parent_only=1',
         });
@@ -239,7 +235,10 @@ const Dashboard: React.FC = () => {
                     styles.serviceCard,
                     {backgroundColor: theme.backgroundColor},
                   ]}
-                  onPress={() => move.navigate('Products')}>
+                  onPress={() => {
+                    move.navigate('Products');
+                    dispatch(setServiceUuid(item.id));
+                  }}>
                   <Image
                     source={{uri: item.icon}} // Ensure correct format
                     style={styles.serviceImage}
@@ -260,12 +259,13 @@ const Dashboard: React.FC = () => {
             <Text style={[styles.sectionTitle, {color: theme.text}]}>
               Recommended
             </Text>
-            {recommended.map(item => (
+            {products.slice(0, 5).map(item => (
               <ProductCard
-                key={item.id}
+                key={item.id} // React key
+                productUuid={item.product_uuid} // Explicit prop for ProductCard
                 name={item.name}
                 price={item.price}
-                image={item.image}
+                image={require('../../assets/images/Orders.png')}
               />
             ))}
           </View>

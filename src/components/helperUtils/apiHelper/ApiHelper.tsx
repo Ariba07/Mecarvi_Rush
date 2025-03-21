@@ -25,12 +25,12 @@ export const apiHelper = async <T,>({
   // Use provided token, or fall back to AsyncStorage if no token is passed
   const authToken = token || (await AsyncStorage.getItem('userToken'));
 
-  // Log the token for debugging
-  if (!authToken) {
-    console.warn(`No token found for request to ${endpoint}`);
-  } else {
-    console.log(`Using token for ${endpoint}: ${authToken}`);
-  }
+  // // Log the token for debugging
+  // if (!authToken) {
+  //   console.warn(`No token found for request to ${endpoint}`);
+  // } else {
+  //   console.log(`Using token for ${endpoint}: ${authToken}`);
+  // }
 
   const config: AxiosRequestConfig = {
     method,
@@ -50,7 +50,6 @@ export const apiHelper = async <T,>({
 
   try {
     const response: AxiosResponse<T> = await axios(config);
-    console.log(`API Success [${method} ${endpoint}]:`, response.data);
     return response.data;
   } catch (error: any) {
     if (error.response) {

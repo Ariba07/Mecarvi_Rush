@@ -39,7 +39,7 @@ const Service: React.FC = () => {
       }
     };
     fetchCategories();
-  }, [categories]); // Runs once when the component mounts
+  }, []); // Runs once when the component mounts
 
   return (
     <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
