@@ -11,7 +11,11 @@ import {
 import React, {useState, useEffect, useContext} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
+import {
+  ApiResponse,
+  Productss,
+  RootStackParamList,
+} from '../../components/types/screenTypes/ScreenTypes';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -21,48 +25,58 @@ import ProductCard from '../../components/common/productCard/ProductCard';
 import FilterIcon from '../../assets/images/FilterIcon.svg';
 import {Icon} from 'react-native-elements';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
-
-const products = [
-  {
-    id: '1',
-    name: 'Aluminium Sign',
-    price: '$220',
-    image: require('../../assets/images/s1.png'),
-  },
-  {
-    id: '2',
-    name: 'SideWalk Sign Board',
-    price: '$220',
-    image: require('../../assets/images/s1.png'),
-  },
-  {
-    id: '3',
-    name: 'Custom Banner',
-    price: '$180',
-    image: require('../../assets/images/s1.png'),
-  },
-  {
-    id: '4',
-    name: 'Vinyl Sticker',
-    price: '$150',
-    image: require('../../assets/images/s1.png'),
-  },
-];
+import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 
 const Search: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredProducts, setFilteredProducts] = useState(products);
-  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
+  const [fetchedProducts, setFetchedProducts] = useState<Productss[]>([]); // Source data
+  const [filteredProducts, setFilteredProducts] = useState<Productss[]>([]); // Filtered data
+  const {theme} = useContext(ThemeContext);
 
+  // Fetch products when component mounts
   useEffect(() => {
-    // Filter products based on search query
-    const filteredData = products.filter(item =>
-      item.name.toLowerCase().includes(searchQuery.toLowerCase()),
-    );
-    setFilteredProducts(filteredData);
-  }, [searchQuery]);
+    const fetchProducts = async () => {
+      try {
+        const response: ApiResponse = await apiHelper({
+          method: 'GET',
+          endpoint: 'products',
+        });
+        const product = Array.isArray(response?.data) ? response.data : [];
+        setFetchedProducts(product); // Set source data
+        setFilteredProducts(product); // Initialize filtered data
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  // Filter products when searchQuery changes
+  useEffect(() => {
+    if (searchQuery.trim() === '') {
+      // If search is empty, show all products (will be sliced later)
+      setFilteredProducts(fetchedProducts);
+    } else {
+      // Filter based on search query
+      const filteredData = fetchedProducts.filter(item =>
+        item.name.toLowerCase().includes(searchQuery.toLowerCase()),
+      );
+      setFilteredProducts(filteredData);
+    }
+  }, [searchQuery, fetchedProducts]);
+
+  // Determine displayed products: prioritize search matches, limit to 7
+  const displayedProducts = React.useMemo(() => {
+    if (searchQuery.trim() === '') {
+      // No search query: show first 7 products
+      return fetchedProducts.slice(0, 7);
+    } else {
+      // With search query: show up to 7 matching products
+      return filteredProducts.slice(0, 7);
+    }
+  }, [filteredProducts, fetchedProducts, searchQuery]);
 
   return (
     <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
@@ -92,14 +106,15 @@ const Search: React.FC = () => {
 
         {/* Product List */}
         <FlatList
-          data={filteredProducts}
-          keyExtractor={item => item.id}
+          data={displayedProducts} // Use prioritized displayed products
+          keyExtractor={item => item.id.toString()}
           renderItem={({item}) => (
             <ProductCard
               key={item.id}
+              productUuid={item.product_uuid}
               name={item.name}
               price={item.price}
-              image={item.image}
+              image={require('../../assets/images/Orders.png')}
             />
           )}
           showsVerticalScrollIndicator={false}

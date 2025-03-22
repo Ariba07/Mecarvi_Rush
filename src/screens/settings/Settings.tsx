@@ -1,7 +1,6 @@
 import React, {useContext, useEffect, useState} from 'react';
 import {
   Text,
-  SafeAreaView,
   View,
   TouchableOpacity,
   StyleSheet,
@@ -12,7 +11,6 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
-import Header from '../../components/common/header/Header';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
@@ -31,111 +29,9 @@ import {clearUser, selectRole} from '../../slice/Slice';
 import {useDispatch, useSelector} from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import Theme from '../../assets/images/Theme.svg';
 
 const STORAGE_KEY = '@login_credentials';
-const menuItems = [
-  {
-    id: '1',
-    title: 'My Profile',
-    icon: <Profile width={wp(5)} height={wp(5)} />,
-    bgColor: '#F4C542',
-    route: 'Profile',
-  },
-  {
-    id: '2',
-    title: 'Loyalty Points',
-    icon: <Stars width={wp(5)} height={wp(5)} />,
-    bgColor: '#FF4081',
-    route: 'Points',
-  },
-  {
-    id: '3',
-    title: 'My Orders',
-    icon: <List width={wp(5)} height={wp(5)} />,
-    bgColor: '#26C6DA',
-    route: 'Orders',
-  },
-  {
-    id: '4',
-    title: 'Subscription',
-    icon: <Money width={wp(5)} height={wp(5)} />,
-    bgColor: '#FFA726',
-    route: 'Subscription',
-  },
-  {
-    id: '5',
-    title: 'Shipping Address',
-    icon: <Truck width={wp(5)} height={wp(5)} />,
-    bgColor: '#66BB6A',
-    route: 'Address',
-  },
-  {
-    id: '6',
-    title: 'Customer Support',
-    icon: <Service width={wp(5)} height={wp(5)} />,
-    bgColor: '#42A5F5',
-    route: 'Support',
-  },
-  {
-    id: '7',
-    title: 'Log Out',
-    icon: <Log width={wp(5)} height={wp(5)} />,
-    bgColor: '#5C6BC0',
-    route: '',
-  },
-];
-
-const menuItem = [
-  {
-    id: '1',
-    title: 'My Profile',
-    icon: <Profile width={wp(5)} height={wp(5)} />,
-    bgColor: '#F4C542',
-    route: 'ServiceProviderProfile',
-  },
-  {
-    id: '2',
-    title: 'My Products',
-    icon: <Products width={wp(5)} height={wp(5)} />,
-    bgColor: '#FF4081',
-    route: 'Services',
-  },
-  {
-    id: '3',
-    title: 'My Orders',
-    icon: <List width={wp(5)} height={wp(5)} />,
-    bgColor: '#26C6DA',
-    route: 'Orders',
-  },
-  {
-    id: '4',
-    title: 'Wallet',
-    icon: <Money width={wp(5)} height={wp(5)} />,
-    bgColor: '#FFA726',
-    route: 'Wallet',
-  },
-  {
-    id: '5',
-    title: 'Notification',
-    icon: <Notify width={wp(5)} height={wp(5)} />,
-    bgColor: '#66BB6A',
-    route: 'Notification',
-  },
-  {
-    id: '6',
-    title: 'Subscription',
-    icon: <Dollar width={wp(5)} height={wp(5)} />,
-    bgColor: '#42A5F5',
-    route: 'Subscription',
-  },
-  {
-    id: '7',
-    title: 'Log Out',
-    icon: <Log width={wp(5)} height={wp(5)} />,
-    bgColor: '#5C6BC0',
-    route: 'Login',
-  },
-];
 
 const Settings = () => {
   const navigation =
@@ -143,7 +39,125 @@ const Settings = () => {
   const reduxRole = useSelector(selectRole);
   const dispatch = useDispatch();
   const [role, setRole] = useState<string | null>(null);
-  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
+  const {theme, toggleTheme} = useContext(ThemeContext);
+
+  const menuItems = [
+    {
+      id: '1',
+      title: 'My Profile',
+      icon: <Profile width={wp(5)} height={wp(5)} />,
+      bgColor: '#F4C542',
+      route: 'Profile',
+    },
+    {
+      id: '2',
+      title: 'Loyalty Points',
+      icon: <Stars width={wp(5)} height={wp(5)} />,
+      bgColor: '#FF4081',
+      route: 'Points',
+    },
+    {
+      id: '3',
+      title: 'My Orders',
+      icon: <List width={wp(5)} height={wp(5)} />,
+      bgColor: '#26C6DA',
+      route: 'Orders',
+    },
+    {
+      id: '4',
+      title: 'Subscription',
+      icon: <Money width={wp(5)} height={wp(5)} />,
+      bgColor: '#FFA726',
+      route: 'Subscription',
+    },
+    {
+      id: '5',
+      title: 'Shipping Address',
+      icon: <Truck width={wp(5)} height={wp(5)} />,
+      bgColor: '#66BB6A',
+      route: 'Address',
+    },
+    {
+      id: '6',
+      title: 'Customer Support',
+      icon: <Service width={wp(5)} height={wp(5)} />,
+      bgColor: '#42A5F5',
+      route: 'Support',
+    },
+    {
+      id: '7',
+      title: theme.backgroundColor === '#000000' ? 'Light Theme' : 'Dark Theme',
+      icon: <Theme width={wp(5)} height={wp(5)} />,
+      bgColor: '#5C6BC0',
+      // No route here, we'll handle it separately
+    },
+    {
+      id: '8',
+      title: 'Log Out',
+      icon: <Log width={wp(5)} height={wp(5)} />,
+      bgColor: '#5C6BC0',
+      route: 'Login',
+    },
+  ];
+
+  const menuItem = [
+    {
+      id: '1',
+      title: 'My Profile',
+      icon: <Profile width={wp(5)} height={wp(5)} />,
+      bgColor: '#F4C542',
+      route: 'ServiceProviderProfile',
+    },
+    {
+      id: '2',
+      title: 'My Products',
+      icon: <Products width={wp(5)} height={wp(5)} />,
+      bgColor: '#FF4081',
+      route: 'Services',
+    },
+    {
+      id: '3',
+      title: 'My Orders',
+      icon: <List width={wp(5)} height={wp(5)} />,
+      bgColor: '#26C6DA',
+      route: 'Orders',
+    },
+    {
+      id: '4',
+      title: 'Wallet',
+      icon: <Money width={wp(5)} height={wp(5)} />,
+      bgColor: '#FFA726',
+      route: 'Wallet',
+    },
+    {
+      id: '5',
+      title: 'Notification',
+      icon: <Notify width={wp(5)} height={wp(5)} />,
+      bgColor: '#66BB6A',
+      route: 'Notification',
+    },
+    {
+      id: '6',
+      title: 'Subscription',
+      icon: <Dollar width={wp(5)} height={wp(5)} />,
+      bgColor: '#42A5F5',
+      route: 'Subscription',
+    },
+    {
+      id: '7',
+      title: theme.backgroundColor === '#000000' ? 'Light Theme' : 'Dark Theme',
+      icon: <Theme width={wp(5)} height={wp(5)} />,
+      bgColor: '#5C6BC0',
+      // No route here, we'll handle it separately
+    },
+    {
+      id: '8',
+      title: 'Log Out',
+      icon: <Log width={wp(5)} height={wp(5)} />,
+      bgColor: '#5C6BC0',
+      route: 'Login',
+    },
+  ];
 
   useEffect(() => {
     const fetchRoleFromStorage = async () => {
@@ -187,11 +201,18 @@ const Settings = () => {
 
   const renderItem = ({item}: {item: (typeof menuItems)[0]}) => (
     <TouchableOpacity
-      style={[styles.menuItem, {backgroundColor: theme.backgroundColor}]}
+      style={[styles.menuItem, {backgroundColor: theme.whole}]}
       onPress={() => {
-        item.title === 'Log Out'
-          ? handleLogout()
-          : navigation.navigate(item.route as any);
+        if (item.title === 'Log Out') {
+          handleLogout();
+        } else if (
+          item.title === 'Dark Theme' ||
+          item.title === 'Light Theme'
+        ) {
+          toggleTheme(); // Just toggle the theme, no navigation
+        } else if (item.route) {
+          navigation.navigate(item.route as any);
+        }
       }}>
       <View style={[styles.iconContainer, {backgroundColor: item.bgColor}]}>
         {item.icon}
@@ -207,18 +228,15 @@ const Settings = () => {
   );
 
   return (
-    <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
-      <View style={styles.container}>
-        <Header title="Settings" onBackPress={() => navigation.goBack()} />
-        <FlatList
-          data={role === 'admin' ? menuItems : menuItem}
-          keyExtractor={item => item.id}
-          renderItem={renderItem}
-          contentContainerStyle={styles.listContainer}
-          showsVerticalScrollIndicator={false}
-        />
-      </View>
-    </SafeAreaView>
+    <View>
+      <FlatList
+        data={role === 'customer' ? menuItems : menuItem}
+        keyExtractor={item => item.id}
+        renderItem={renderItem}
+        contentContainerStyle={styles.listContainer}
+        showsVerticalScrollIndicator={false}
+      />
+    </View>
   );
 };
 
@@ -245,21 +263,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
-    padding: wp(4),
+    padding: wp(2),
     borderRadius: 10,
     marginBottom: hp(2.5),
+    gap: wp(3),
   },
   iconContainer: {
-    width: wp(12),
-    height: wp(12),
+    width: wp(8),
+    height: wp(8),
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: wp(4),
     borderRadius: wp(10),
   },
   menuText: {
     flex: 1,
-    fontSize: wp(4.5),
+    fontSize: wp(4),
     fontWeight: '500',
     color: '#333',
   },

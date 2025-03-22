@@ -14,72 +14,12 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import Edit from '../../assets/images/Edit.svg';
-import Main from '../../assets/images/Main.svg';
-import Subscription from '../../assets/images/Subscription.svg';
-import Booking from '../../assets/images/Booking.svg';
-import Theme from '../../assets/images/Theme.svg';
-import Category from '../../assets/images/Category.svg';
-import Logout from '../../assets/images/Logout.svg';
 import Points from '../../assets/images/Points.svg';
-import {useDispatch} from 'react-redux';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {clearUser} from '../../slice/Slice';
-import {useNavigation} from '@react-navigation/native';
-import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import Settings from '../settings/Settings';
 
 const SideMenu: React.FC = () => {
-  const dispatch = useDispatch();
-  const navigation =
-    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const {theme, toggleTheme} = useContext(ThemeContext); // Access theme and toggleTheme
-
-  const handleLogout = async () => {
-    try {
-      await AsyncStorage.removeItem('@login_credentials');
-      dispatch(clearUser());
-      navigation.replace('Login');
-    } catch (error) {
-      console.log('Error during logout:', error);
-    }
-  };
-
-  const handleMenuPress = (itemName: string) => {
-    if (itemName === 'Log Out') {
-      handleLogout();
-    } else if (itemName === 'Dark Theme' || itemName === 'Light Theme') {
-      toggleTheme(); // Toggle the theme
-    } else if (itemName === 'Subscription') {
-      navigation.navigate('Subscription');
-    } else if (itemName === 'Categories') {
-      navigation.navigate('Services');
-    } else if (itemName === 'Home') {
-      navigation.navigate('Drawer');
-    } else if (itemName === 'My Bookings') {
-      navigation.navigate('Orders');
-    }
-  };
-
-  // Define menu items, dynamically setting the theme option name
-  const menuItems = [
-    {id: 1, name: 'Home', icon: <Main />, navigate: 'Drawer'},
-    {id: 2, name: 'My Bookings', icon: <Booking />, navigate: 'Booking'},
-    {id: 3, name: 'Categories', icon: <Category />, navigate: 'Services'},
-    {
-      id: 4,
-      name: 'Subscription',
-      icon: <Subscription />,
-      navigate: 'Subscription',
-    },
-    {
-      id: 5,
-      name: theme.backgroundColor === '#000000' ? 'Light Theme' : 'Dark Theme', // Adjust based on your theme logic
-      icon: <Theme />,
-      navigate: 'DarkTheme',
-    },
-    {id: 6, name: 'Log Out', icon: <Logout />, navigate: 'Logout'},
-  ];
+  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
 
   return (
     <SafeAreaView
@@ -106,17 +46,7 @@ const SideMenu: React.FC = () => {
             <Edit />
           </TouchableOpacity>
         </View>
-        {menuItems.map(item => (
-          <TouchableOpacity
-            key={item.id}
-            style={styles.menuItem}
-            onPress={() => handleMenuPress(item.name)}>
-            {item.icon}
-            <Text style={[styles.menuText, {color: theme.text}]}>
-              {item.name}
-            </Text>
-          </TouchableOpacity>
-        ))}
+        <Settings />
       </View>
     </SafeAreaView>
   );

@@ -19,12 +19,15 @@ import {
 import Header from '../../components/common/header/Header';
 import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {setServiceUuid} from '../../slice/Slice';
+import {useDispatch} from 'react-redux';
 
 const Service: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [categories, setCategories] = useState<any[]>([]);
   const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
+  const dispatch = useDispatch();
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -55,7 +58,10 @@ const Service: React.FC = () => {
                 styles.serviceCard,
                 {backgroundColor: theme.backgroundColor},
               ]}
-              onPress={() => navigation.navigate('Products')}>
+              onPress={() => {
+                navigation.navigate('Products');
+                dispatch(setServiceUuid(item.id));
+              }}>
               <Image
                 source={{uri: item.icon}}
                 style={styles.serviceImage}

@@ -41,7 +41,7 @@ const Index = () => {
     return null;
   }
 
-  return role === 'admin' ? <Dashboard /> : <ServiceProviderDashboard />;
+  return role === 'customer' ? <Dashboard /> : <ServiceProviderDashboard />;
 };
 
 export default Index;

@@ -49,6 +49,7 @@ const Dashboard: React.FC = () => {
   ); // Track selected tab
 
   const [products, setProducts] = useState<Productss[]>([]); // Type state with Product
+
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -63,7 +64,7 @@ const Dashboard: React.FC = () => {
       }
     };
     fetchProducts();
-  }, [dispatch, products]); // Runs once when the component mounts
+  }, []); // Empty
 
   const renderBanner = ({item}: any) => (
     <Image source={item.image} style={styles.banner} resizeMode="cover" />

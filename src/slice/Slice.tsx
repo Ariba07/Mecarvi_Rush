@@ -1,4 +1,5 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
+import {CartItem} from '../components/types/screenTypes/ScreenTypes';
 
 export interface ImageData {
   uri: string;
@@ -45,13 +46,15 @@ export interface AuthState {
   onboardingAvailability?: string;
   website?: string;
 
-  //others
+  // Others
   option: string;
   role: string;
   user_id: number;
+  user_uuid: string;
   token: string;
   service_uuid: string;
   product_uuid: string;
+  cart: CartItem[]; // Cart items with quantity
 }
 
 export const initialState: AuthState = {
@@ -67,6 +70,8 @@ export const initialState: AuthState = {
   token: '',
   service_uuid: '',
   product_uuid: '',
+  cart: [],
+  user_uuid: '',
 };
 
 const authSlice = createSlice({
@@ -132,7 +137,6 @@ const authSlice = createSlice({
     updateCard: (state, action: PayloadAction<ImageData | null>) => {
       state.card = action.payload;
     },
-
     setOption: (state, action: PayloadAction<string>) => {
       state.option = action.payload;
     },
@@ -144,17 +148,63 @@ const authSlice = createSlice({
     },
     setUser: (
       state,
-      action: PayloadAction<{role: string; userId: number; token: string}>,
+      action: PayloadAction<{
+        role: string;
+        userId: number;
+        token: string;
+        user_uuid: string;
+      }>,
     ) => {
       state.role = action.payload.role;
       state.user_id = action.payload.userId;
       state.token = action.payload.token;
+      state.user_uuid = action.payload.user_uuid;
     },
     clearUser: state => {
       state.role = '';
       state.user_id = 0;
       state.option = '';
       state.token = '';
+      state.cart = [];
+      state.user_uuid = '';
+    },
+    addToCart: (state, action: PayloadAction<CartItem>) => {
+      const existingItemIndex = state.cart.findIndex(
+        item => item.productUuid === action.payload.productUuid,
+      );
+      if (existingItemIndex !== -1) {
+        // Item exists, update quantity
+        state.cart[existingItemIndex].quantity =
+          (state.cart[existingItemIndex].quantity || 1) + 1;
+      } else {
+        // Item doesn't exist, add it with quantity 1
+        state.cart.push({...action.payload, quantity: 1});
+      }
+    },
+    incrementQuantity: (state, action: PayloadAction<string>) => {
+      const productUuid = action.payload;
+      const item = state.cart.find(i => i.productUuid === productUuid);
+      if (item) {
+        item.quantity = (item.quantity || 1) + 1;
+      }
+    },
+    decrementQuantity: (state, action: PayloadAction<string>) => {
+      const productUuid = action.payload;
+      const item = state.cart.find(i => i.productUuid === productUuid);
+      if (item) {
+        if ((item.quantity || 1) > 1) {
+          item.quantity = (item.quantity || 1) - 1;
+        } else {
+          state.cart = state.cart.filter(i => i.productUuid !== productUuid); // Remove if quantity reaches 0
+        }
+      }
+    },
+    removeFromCart: (state, action: PayloadAction<string>) => {
+      const productUuid = action.payload;
+      state.cart = state.cart.filter(i => i.productUuid !== productUuid);
+    },
+    clearCart: state => {
+      state.cart = []; // Clear cart manually
     },
   },
 });
@@ -201,14 +251,17 @@ export const selectPhotoImage = (state: {auth: AuthState}) => state.auth.photo;
 export const selectCardImage = (state: {auth: AuthState}) => state.auth.card;
 
 export const selectOption = (state: {auth: AuthState}) => state.auth.option;
-
 export const selectRole = (state: {auth: AuthState}) => state.auth.role;
 export const selectUserId = (state: {auth: AuthState}) => state.auth.user_id;
+export const selectUserUuidId = (state: {auth: AuthState}) =>
+  state.auth.user_uuid;
+
 export const selectToken = (state: {auth: AuthState}) => state.auth.token;
 export const selectServiceUuid = (state: {auth: AuthState}) =>
   state.auth.service_uuid;
 export const selectProductUuid = (state: {auth: AuthState}) =>
   state.auth.product_uuid;
+export const selectCart = (state: {auth: AuthState}) => state.auth.cart;
 
 export const {
   updateCustomerField,
@@ -221,5 +274,11 @@ export const {
   clearUser,
   setServiceUuid,
   setProductUuid,
+  addToCart,
+  incrementQuantity,
+  decrementQuantity,
+  removeFromCart,
+  clearCart,
 } = authSlice.actions;
+
 export default authSlice.reducer;

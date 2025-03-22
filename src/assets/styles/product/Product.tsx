@@ -27,6 +27,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
+    marginBottom: wp(5),
   },
   productImage: {
     width: wp(70),

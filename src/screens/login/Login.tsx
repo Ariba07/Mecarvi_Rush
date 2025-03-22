@@ -75,7 +75,9 @@ const Login: React.FC = () => {
 
       // Type the response based on your API structure
       const {data, meta} = response as {
-        data: {user: {id: number; roles: string[]}};
+        data: {
+          user: {id: number; roles: string[]; user_uuid: string};
+        };
         meta: {token: string};
       };
 
@@ -89,6 +91,7 @@ const Login: React.FC = () => {
           role: data.user.roles[0],
           userId: data.user.id,
           token: meta.token,
+          user_uuid: data.user.user_uuid,
         }),
       );
 
@@ -101,6 +104,7 @@ const Login: React.FC = () => {
             password: values.password,
             userId: data.user.id,
             role: data.user.roles[0],
+            user_uuid: data.user.user_uuid,
           }),
         );
       } else {

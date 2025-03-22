@@ -1,4 +1,4 @@
-import React, {useContext, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -20,19 +20,78 @@ import Header from '../../components/common/header/Header';
 import CustomButton from '../../components/common/buttons/CustomButton';
 import {TouchableWithoutFeedback} from 'react-native';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
+import {useSelector} from 'react-redux';
+import {selectUserUuidId} from '../../slice/Slice';
 
 const Profile = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const {theme} = useContext(ThemeContext);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
-  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
+  const [loading, setLoading] = useState(true);
 
-  const handleUpdate = () => {
-    console.log('Updated Profile:', {fullName, email, phoneNumber});
-    // Implement API call for updating the profile
+  const user_uuid = useSelector(selectUserUuidId);
+
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      try {
+        setLoading(true); // Show loading while fetching
+        const response = await apiHelper({
+          method: 'GET',
+          endpoint: `customers/${user_uuid}`,
+        });
+        const profile = (
+          response as {
+            data: {full_name?: string; email?: string; phone_number?: string};
+          }
+        ).data; // Assuming response.data is a single user object
+
+        if (profile) {
+          setFullName(profile.full_name || '');
+          setEmail(profile.email || '');
+          setPhoneNumber(profile.phone_number || '');
+        }
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfileData();
+  }, [user_uuid]);
+
+  const handleUpdate = async () => {
+    try {
+      const updatedProfile = {
+        full_name: fullName,
+        email: email,
+        phone_number: phoneNumber,
+      };
+
+      const response = await apiHelper({
+        method: 'POST',
+        endpoint: `customers/${user_uuid}?_method=patch`,
+        data: updatedProfile,
+      });
+
+      console.log('Profile updated successfully:', response);
+
+      // Refetch the profile data after a successful update
+    } catch (error) {
+      console.error('Error updating profile:', error);
+    }
   };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
+        <Text>Loading...</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -43,11 +102,11 @@ const Profile = () => {
           {/* Profile Image & Name */}
           <View style={styles.profileContainer}>
             <Image
-              source={require('../../assets/images/Orders.png')} // Replace with your image
+              source={require('../../assets/images/Orders.png')}
               style={styles.profileImage}
             />
             <Text style={[styles.storeName, {color: theme.text}]}>
-              Your name
+              {fullName || 'Your name'}
             </Text>
           </View>
 
@@ -97,7 +156,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F7FA',
   },
   container: {
-    flex: 1, // Ensures full screen usage
+    flex: 1,
     alignItems: 'center',
     paddingHorizontal: Platform.select({
       ios: wp(6),

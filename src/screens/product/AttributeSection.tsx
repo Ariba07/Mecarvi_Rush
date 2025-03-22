@@ -9,6 +9,9 @@ import DocumentPicker from 'react-native-document-picker';
 import File from '../../assets/images/File.svg';
 import {styles} from '../../assets/styles/product/Product';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {useDispatch} from 'react-redux';
+import {addToCart} from '../../slice/Slice'; // Import the action
+import {CartItem} from '../../components/types/screenTypes/ScreenTypes';
 
 interface AttributesSectionProps {
   attributes: any[];
@@ -24,6 +27,8 @@ interface AttributesSectionProps {
   setReviewText: (text: string) => void;
   theme: any;
   navigation: NativeStackNavigationProp<any>;
+  productData: any; // Add productData
+  productUuid: string | null; // Add productUuid
 }
 
 const AttributesSection: React.FC<AttributesSectionProps> = ({
@@ -40,7 +45,11 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
   setReviewText,
   theme,
   navigation,
+  productData,
+  productUuid,
 }) => {
+  const dispatch = useDispatch();
+
   const handleChange = (key: string, value: string | string[]) => {
     setAttributeValues({
       ...attributeValues,
@@ -64,7 +73,6 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
     }
   };
 
-  // Define color map
   const colorMap: {[key: string]: string} = {
     red: '#FF0000',
     grey: '#808080',
@@ -78,18 +86,36 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
     orange: '#FFA500',
   };
 
-  // Get all options from attributes and filter out duplicates
   const colorOptions = attributes
-    .flatMap(attr => attr.options) // e.g., ["red", "indigo", "large"]
+    .flatMap(attr => attr.options)
     .filter(
       (color: string, index: number, self: string[]) =>
         self.indexOf(color) === index,
-    ); // Remove duplicates
+    );
 
   const getHexColor = (colorName: string) =>
     /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(colorName)
       ? colorName
-      : colorMap[colorName.toLowerCase()] || '#808080'; // Default to grey if not found
+      : colorMap[colorName.toLowerCase()] || '#808080';
+
+  const handleChooseForMe = () => {
+    if (!productUuid || !productData) {
+      return;
+    }
+
+    const cartItem: CartItem = {
+      productUuid,
+      name: productData.name || 'Unnamed Product',
+      price: productData.price || 0,
+      selectedColor: selectedColor || undefined,
+      frontFile: frontFile ? {uri: frontFile.uri} : undefined,
+      backFile: backFile ? {uri: backFile.uri} : undefined,
+      orderNotes: reviewText || undefined,
+    };
+
+    dispatch(addToCart(cartItem));
+    // navigation.navigate('Cart'); // Navigate to Cart screen after adding
+  };
 
   return (
     <View style={styles.attributeContainer}>
@@ -116,10 +142,8 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
               {backgroundColor: getHexColor(color)},
               selectedColor === color && styles.selectedBorder,
             ]}
-            onPress={() => setSelectedColor(color)}>
-            {/* Optional: Uncomment to debug color names */}
-            {/* <Text style={{ color: '#fff', fontSize: wp(3) }}>{color}</Text> */}
-          </TouchableOpacity>
+            onPress={() => setSelectedColor(color)}
+          />
         ))}
       </View>
       <Text style={[styles.label, {color: theme.text}]}>
@@ -169,9 +193,7 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
       />
       <View style={styles.buttonContainer}>
         <View style={styles.row}>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => navigation.navigate('Cart')}>
+          <TouchableOpacity style={styles.button} onPress={handleChooseForMe}>
             <Text style={[styles.buttonText, {color: theme.backgroundColor}]}>
               Choose for me
             </Text>

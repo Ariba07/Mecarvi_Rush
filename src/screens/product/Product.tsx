@@ -157,6 +157,8 @@ const Product = () => {
               setReviewText={setReviewText}
               theme={theme}
               navigation={navigation}
+              productData={productData} // Pass productData
+              productUuid={productUuid} // Pass productUuid
             />
           </ScrollView>
         )}

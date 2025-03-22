@@ -184,3 +184,14 @@ export interface Attribute {
   isMultiSelect?: boolean;
   options: string[];
 }
+
+export interface CartItem {
+  productUuid: string;
+  name: string;
+  price: number;
+  selectedColor?: string | null;
+  frontFile?: {uri: string} | null;
+  backFile?: {uri: string} | null;
+  orderNotes?: string;
+  quantity?: number;
+}
