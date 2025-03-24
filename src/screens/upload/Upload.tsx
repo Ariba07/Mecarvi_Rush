@@ -65,7 +65,6 @@ const VerifyScreen: React.FC<VerifyScreenProps> = ({
   const card = useSelector(selectCardImage);
   const dispatch = useDispatch();
   const option = useSelector(selectOption);
-  console.log(serviceData.portfolio);
   const {theme} = useContext(ThemeContext); // Access theme
 
   // Determine the background image based on the theme
@@ -317,7 +316,7 @@ const VerifyScreen: React.FC<VerifyScreenProps> = ({
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View style={{flex: 1, backgroundColor: '#ffffff'}}>
+      <View style={{flex: 1, backgroundColor: theme.backgroundColor}}>
         <ImageBackground source={backgroundImage} style={styles.background}>
           <View style={styles.logoView}>
             <Image

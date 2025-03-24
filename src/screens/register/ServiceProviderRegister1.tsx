@@ -74,7 +74,7 @@ const ServiceProviderRegister1 = () => {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View style={{flex: 1, backgroundColor: '#ffffff'}}>
+      <View style={{flex: 1, backgroundColor: theme.backgroundColor}}>
         <ImageBackground source={backgroundImage} style={styles.background}>
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}

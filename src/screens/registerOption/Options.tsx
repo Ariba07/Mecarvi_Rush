@@ -54,7 +54,7 @@ const Options = () => {
   };
 
   return (
-    <View style={{flex: 1, backgroundColor: '#ffffff'}}>
+    <View style={{flex: 1, backgroundColor: theme.backgroundColor}}>
       <ImageBackground source={backgroundImage} style={styles.background}>
         {/* Logo */}
         <View style={styles.logoView}>

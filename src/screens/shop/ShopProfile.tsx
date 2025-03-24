@@ -8,8 +8,9 @@ import {
   Image,
   Platform,
   ScrollView,
+  Alert,
 } from 'react-native';
-import React from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -18,34 +19,180 @@ import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
 import Header from '../../components/common/header/Header';
-import Icon from 'react-native-vector-icons/MaterialIcons'; // For star icons and chat
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import CustomButton from '../../components/common/buttons/CustomButton';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
+import {selectServiceProviderUuid, selectUserUuidId} from '../../slice/Slice';
+import {useSelector} from 'react-redux';
 import {
-  PreviousWorkItem,
-  ServiceItem,
-  profileData,
-  previousWork,
-  offeredServices,
-} from '../../components/common/list/List';
+  collection,
+  query,
+  where,
+  getDocs,
+  addDoc,
+  serverTimestamp,
+} from 'firebase/firestore';
+import {db} from '../../../FirebaseConfig';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type Prop = RouteProp<RootStackParamList, 'ShopProfile'>;
+
+interface ProfileData {
+  name: string;
+  location: string;
+  profileImageUrl: string;
+}
+
+interface PreviousWorkItem {
+  id: string;
+  imageUrl: string;
+}
+
+interface ServiceItem {
+  id: string;
+  name: string;
+  imageUrl: string;
+  price: string;
+  rating: number;
+}
+
+const STORAGE_KEY = 'your_storage_key_here'; // Replace with your actual STORAGE_KEY constant
 
 const ShopProfile: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute<Prop>();
   const {fromBid} = route.params;
-  // Handle chat button press
-  const handleChat = () => {
-    navigation.navigate('Message', {chatId: '0', chatName: 'ALI'});
+  const {theme} = useContext(ThemeContext);
+  const serviceProviderUuid = useSelector(selectServiceProviderUuid);
+  const reduxUserUuid = useSelector(selectUserUuidId);
+  const [currentUserUuid, setCurrentUserUuid] = useState<string | null>(null);
+
+  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [previousWork, setPreviousWork] = useState<PreviousWorkItem[]>([]);
+  const [offeredServices, setOfferedServices] = useState<ServiceItem[]>([]);
+
+  useEffect(() => {
+    const fetchRoleFromStorage = async () => {
+      try {
+        const savedCredentials = await AsyncStorage.getItem(STORAGE_KEY);
+        if (savedCredentials) {
+          const {user_uuid: storedId} = JSON.parse(savedCredentials);
+          if (storedId) {
+            setCurrentUserUuid(storedId);
+          } else {
+            setCurrentUserUuid(reduxUserUuid);
+          }
+        } else {
+          setCurrentUserUuid(reduxUserUuid);
+        }
+      } catch (error) {
+        console.log(
+          'Error fetching role from AsyncStorage:',
+          (error as any)?.message,
+        );
+        setCurrentUserUuid(reduxUserUuid); // Fallback to Redux role on error
+      }
+    };
+
+    fetchRoleFromStorage();
+  }, [reduxUserUuid]);
+
+  useEffect(() => {
+    console.log('Current User UUID:', currentUserUuid);
+    console.log('Service Provider UUID:', serviceProviderUuid);
+
+    const fetchProfile = async () => {
+      try {
+        const response = await apiHelper({
+          method: 'GET',
+          endpoint: `service-provider/${serviceProviderUuid}`,
+        });
+
+        const apiData = (response as {data: any}).data;
+
+        setProfile({
+          name: apiData.service_provider_name,
+          location: apiData.address,
+          profileImageUrl: apiData.logo,
+        });
+
+        setPreviousWork([
+          {
+            id: '1',
+            imageUrl: apiData.portfolio,
+          },
+        ]);
+
+        setOfferedServices(
+          apiData.services_offered.map((serviceId: string, index: number) => ({
+            id: `${index}`,
+            name: `Service ${serviceId.slice(-4)}`,
+            imageUrl: apiData.logo,
+            price: '$150',
+            rating: 4.5,
+          })),
+        );
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+      }
+    };
+
+    if (serviceProviderUuid) {
+      fetchProfile();
+    } else {
+      console.warn('No serviceProviderUuid available yet');
+    }
+  }, [currentUserUuid, serviceProviderUuid]);
+
+  const handleChat = async () => {
+    console.log('Handling chat - Current User UUID:', currentUserUuid);
+    console.log('Handling chat - Service Provider UUID:', serviceProviderUuid);
+
+    if (!currentUserUuid || !serviceProviderUuid) {
+      console.error(
+        'Missing UUIDs for chat - User:',
+        currentUserUuid,
+        'Provider:',
+        serviceProviderUuid,
+      );
+      Alert.alert(
+        'Unable to start chat: User or provider information is missing.',
+      );
+      return;
+    }
+
+    const participants = [currentUserUuid, serviceProviderUuid].sort();
+    const chatId = `${participants[0]}_${participants[1]}`;
+
+    const chatsRef = collection(db, 'chats');
+    const q = query(chatsRef, where('chatId', '==', chatId));
+    const querySnapshot = await getDocs(q);
+
+    let existingChatId = null;
+    if (!querySnapshot.empty) {
+      existingChatId = querySnapshot.docs[0].id;
+    } else {
+      const newChat = await addDoc(chatsRef, {
+        chatId,
+        name: `${profile?.name || 'Chat'} with User`,
+        participants: [currentUserUuid, serviceProviderUuid],
+        createdAt: serverTimestamp(),
+      });
+      existingChatId = newChat.id;
+    }
+
+    navigation.navigate('Message', {
+      chatId: existingChatId,
+      chatName: profile?.name || 'Chat',
+    });
   };
 
-  // Handle book service button press
   const handleBookService = () => {
-    navigation.navigate('Booking'); // Navigate to Booking screen
+    navigation.navigate('Booking');
   };
 
-  // Render previous work item
   const renderPreviousWorkItem = ({item}: {item: PreviousWorkItem}) => (
     <Image
       source={{uri: item.imageUrl}}
@@ -54,16 +201,18 @@ const ShopProfile: React.FC = () => {
     />
   );
 
-  // Render offered service item
   const renderServiceItem = ({item}: {item: ServiceItem}) => (
-    <View style={styles.serviceCard}>
+    <View
+      style={[styles.serviceCard, {backgroundColor: theme.backgroundColor}]}>
       <Image
         source={{uri: item.imageUrl}}
         style={styles.serviceImage}
         resizeMode="cover"
       />
       <View style={styles.serviceInfo}>
-        <Text style={styles.serviceName}>{item.name}</Text>
+        <Text style={[styles.serviceName, {color: theme.text}]}>
+          {item.name}
+        </Text>
         <Text style={styles.servicePrice}>{item.price}</Text>
         <View style={styles.ratingContainer}>
           {[...Array(5)].map((_, index) => (
@@ -80,32 +229,49 @@ const ShopProfile: React.FC = () => {
     </View>
   );
 
+  if (!profile) {
+    return (
+      <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
+        <Text>Loading profile...</Text>
+      </SafeAreaView>
+    );
+  }
+
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
       <View style={styles.container}>
         <Header
           title="Business Profile"
           onBackPress={() => navigation.goBack()}
         />
         <ScrollView contentContainerStyle={{paddingBottom: wp(16)}}>
-          {/* Profile Section */}
           <View style={styles.profileSection}>
             <Image
-              source={{uri: profileData.profileImageUrl}}
+              source={{uri: profile.profileImageUrl}}
               style={styles.profileImage}
               resizeMode="cover"
             />
-            <Text style={styles.profileName}>{profileData.name}</Text>
-            <Text style={styles.profileLocation}>{profileData.location}</Text>
-            <TouchableOpacity style={styles.chatButton} onPress={handleChat}>
+            <Text style={[styles.profileName, {color: theme.text}]}>
+              {profile.name}
+            </Text>
+            <Text style={styles.profileLocation}>{profile.location}</Text>
+            <TouchableOpacity
+              style={[
+                styles.chatButton,
+                (!currentUserUuid || !serviceProviderUuid) &&
+                  styles.disabledChatButton,
+              ]}
+              onPress={handleChat}
+              disabled={!currentUserUuid || !serviceProviderUuid}>
               <Icon name="chat" size={wp(4)} color="#fff" />
               <Text style={styles.chatButtonText}>Chat</Text>
             </TouchableOpacity>
           </View>
 
-          {/* Previous Work Section */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Previous Work</Text>
+            <Text style={[styles.sectionTitle, {color: theme.text}]}>
+              Previous Work
+            </Text>
             <FlatList
               data={previousWork}
               renderItem={renderPreviousWorkItem}
@@ -117,9 +283,10 @@ const ShopProfile: React.FC = () => {
             />
           </View>
 
-          {/* Other Offered Services Section */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Other Offered Services</Text>
+            <Text style={[styles.sectionTitle, {color: theme.text}]}>
+              Other Offered Services
+            </Text>
             <FlatList
               data={offeredServices}
               renderItem={renderServiceItem}
@@ -131,18 +298,14 @@ const ShopProfile: React.FC = () => {
             />
           </View>
 
-          {/* Review & Rating Section */}
           <View style={styles.reviewSection}>
-            <Text style={styles.sectionTitle}>Review & Rating</Text>
+            <Text style={[styles.sectionTitle, {color: theme.text}]}>
+              Review & Rating
+            </Text>
             <View style={styles.ratingContainer}>
-              <Text style={styles.ratingValue}>4.9</Text>
+              <Text style={[styles.ratingValue, {color: theme.text}]}>4.9</Text>
               {[...Array(5)].map((_, index) => (
-                <Icon
-                  key={index}
-                  name="star"
-                  size={wp(5)}
-                  color="#03A7A7" // Teal color as per image
-                />
+                <Icon key={index} name="star" size={wp(5)} color="#03A7A7" />
               ))}
             </View>
             <Text style={styles.reviewsText}>Reviews(88)</Text>
@@ -164,7 +327,7 @@ const ShopProfile: React.FC = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f0f4f8', // Light background as per image
+    backgroundColor: '#f0f4f8',
   },
   container: {
     flex: 1,
@@ -193,11 +356,15 @@ const styles = StyleSheet.create({
   },
   chatButton: {
     flexDirection: 'row',
-    backgroundColor: '#00cec9', // Teal color as per image
+    backgroundColor: '#00cec9',
     paddingVertical: hp(1),
     paddingHorizontal: wp(3),
     borderRadius: 8,
     alignItems: 'center',
+  },
+  disabledChatButton: {
+    backgroundColor: '#cccccc',
+    opacity: 0.6,
   },
   chatButtonText: {
     fontSize: wp(4),
@@ -287,7 +454,7 @@ const styles = StyleSheet.create({
     bottom: Platform.select({ios: hp(2), android: hp(2)}),
     left: Platform.select({ios: wp(6), android: wp(5)}),
     right: Platform.select({ios: wp(6), android: wp(5)}),
-    marginBottom: hp(2), // Ensure button is not too close to the bottom
+    marginBottom: hp(2),
   },
 });
 

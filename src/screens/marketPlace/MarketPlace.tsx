@@ -7,7 +7,7 @@ import {
   FlatList,
   Image,
 } from 'react-native';
-import React, {useContext} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -16,31 +16,71 @@ import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
 import Header from '../../components/common/header/Header';
-import Icon from 'react-native-vector-icons/MaterialIcons'; // For star icons
-import {
-  BusinessProvider,
-  businessProviders,
-} from '../../components/common/list/List';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
+import {useDispatch} from 'react-redux';
+import {setServiceProviderUuid} from '../../slice/Slice';
 
 type Prop = RouteProp<RootStackParamList, 'MarketPlace'>;
+
+// Define the type for our provider based on API response
+interface BusinessProvider {
+  service_provider_uuid: string;
+  id: number;
+  service_provider_name: string;
+  logo: string;
+  average_turnaround_time: string;
+  // Adding some default fields since rating and price aren't in API response
+  rating: number;
+  price: string;
+}
 
 const MarketPlace: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute<Prop>();
   const {fromProduct} = route.params;
-  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
+  const {theme} = useContext(ThemeContext);
+  const [providers, setProviders] = useState<BusinessProvider[]>([]);
+  const dispatch = useDispatch();
 
-  // Handle "Accept" button press (you can add navigation or API call here)
-  const handleAccept = (providerId: string) => {
-    // Example: Navigate to a confirmation screen or make an API call
+  // Fetch products when component mounts
+  useEffect(() => {
+    const fetchProviders = async () => {
+      try {
+        const response = await apiHelper({
+          method: 'GET',
+          endpoint: 'service-provider/',
+        });
+
+        // Map API response to our required format
+        const mappedProviders = (response as {data: any[]}).data.map(
+          (item: any) => ({
+            service_provider_uuid: item.service_provider_uuid,
+            id: item.id,
+            service_provider_name: item.service_provider_name,
+            logo: item.logo,
+            average_turnaround_time: item.average_turnaround_time,
+            // Since rating and price aren't in API response, adding default values
+            rating: 4.0, // Default rating, modify as needed
+            price: '$100', // Default price, modify as needed or fetch from another endpoint
+          }),
+        );
+
+        setProviders(mappedProviders);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      }
+    };
+    fetchProviders();
+  }, []);
+
+  const handleAccept = (providerId: number) => {
     console.log(`Accepted provider with ID: ${providerId}`);
-    // You can navigate to another screen or update state here
     navigation.navigate('Checkout');
   };
 
-  // Render each provider item
   const renderProviderItem = ({item}: {item: BusinessProvider}) => (
     <TouchableOpacity
       style={[styles.providerCard, {backgroundColor: theme.backgroundColor}]}
@@ -48,18 +88,19 @@ const MarketPlace: React.FC = () => {
         navigation.navigate('ShopProfile', {
           fromBid: fromProduct === true ? false : true,
         });
+        dispatch(setServiceProviderUuid(item.service_provider_uuid));
       }}>
       <Image
-        source={{uri: item.imageUrl}}
+        source={{uri: item.logo}}
         style={styles.providerImage}
         resizeMode="cover"
       />
       <View style={styles.providerInfo}>
         <Text style={[styles.providerName, {color: theme.text}]}>
-          {item.name}
+          {item.service_provider_name}
         </Text>
         <Text style={[styles.deliveryDate, {color: theme.text}]}>
-          Delivery Date: {item.deliveryDate}
+          Delivery Date: {item.average_turnaround_time}
         </Text>
         <View style={styles.ratingContainer}>
           {[...Array(5)].map((_, index) => (
@@ -96,7 +137,6 @@ const MarketPlace: React.FC = () => {
           onBackPress={() => navigation.goBack()}
         />
 
-        {/* Subtitle */}
         <View style={styles.subtitleContainer}>
           <Icon name="store" size={wp(5)} color="#666" />
           <Text style={styles.subtitle}>
@@ -104,11 +144,10 @@ const MarketPlace: React.FC = () => {
           </Text>
         </View>
 
-        {/* List of Providers */}
         <FlatList
-          data={businessProviders}
+          data={providers}
           renderItem={renderProviderItem}
-          keyExtractor={item => item.id}
+          keyExtractor={item => item.id.toString()}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContainer}
         />
@@ -120,7 +159,7 @@ const MarketPlace: React.FC = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f0f4f8', // Light background as per image
+    backgroundColor: '#f0f4f8',
   },
   container: {
     flex: 1,
@@ -182,7 +221,7 @@ const styles = StyleSheet.create({
     marginTop: hp(0.5),
   },
   acceptButton: {
-    backgroundColor: '#00cec9', // Teal color as per image
+    backgroundColor: '#00cec9',
     paddingVertical: hp(0.5),
     paddingHorizontal: wp(4),
     borderRadius: wp(2),

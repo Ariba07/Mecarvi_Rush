@@ -22,6 +22,8 @@ import {
 import {RouteProp, useRoute} from '@react-navigation/native';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
 import {db} from '../../../FirebaseConfig';
+import {useSelector} from 'react-redux';
+import {selectUserUuidId} from '../../slice/Slice'; // Updated to match your selector
 
 type MessagesRouteProp = RouteProp<RootStackParamList, 'Message'>;
 
@@ -29,40 +31,19 @@ interface Message {
   id: string;
   text: string;
   createdAt: any;
-  sender: string; // Added sender field
+  sender: string;
 }
-
-const currentUser = 'user123'; // TEMP: Replace this when adding authentication
 
 const MessageScreen: React.FC = () => {
   const route = useRoute<MessagesRouteProp>();
   const {chatId, chatName} = route.params;
   const [messages, setMessages] = useState<Message[]>([]);
   const [text, setText] = useState('');
+  const currentUserUuid = useSelector(selectUserUuidId);
 
   useEffect(() => {
-    const messagesRef = collection(
-      doc(collection(db, 'chats'), chatId),
-      'messages',
-    );
-    const q = query(messagesRef, orderBy('createdAt', 'desc'));
-
-    const unsubscribe = onSnapshot(q, snapshot => {
-      const fetchedMessages: Message[] = snapshot.docs.map(messageDoc => ({
-        id: messageDoc.id,
-        text: messageDoc.data().text,
-        sender: messageDoc.data().sender || 'unknown',
-        createdAt: messageDoc.data().createdAt || serverTimestamp(),
-      }));
-
-      setMessages(fetchedMessages);
-    });
-
-    return () => unsubscribe();
-  }, [chatId]);
-
-  const sendMessage = async () => {
-    if (!text.trim()) {
+    if (!chatId) {
+      console.error('No chatId provided');
       return;
     }
 
@@ -70,13 +51,49 @@ const MessageScreen: React.FC = () => {
       doc(collection(db, 'chats'), chatId),
       'messages',
     );
-    await addDoc(messagesRef, {
-      text,
-      sender: currentUser, // TEMP: Replace with authenticated user ID
-      createdAt: serverTimestamp(),
-    });
+    const q = query(messagesRef, orderBy('createdAt', 'desc'));
 
-    setText('');
+    const unsubscribe = onSnapshot(
+      q,
+      snapshot => {
+        const fetchedMessages: Message[] = snapshot.docs.map(messageDoc => ({
+          id: messageDoc.id,
+          text: messageDoc.data().text,
+          sender: messageDoc.data().sender || 'unknown',
+          createdAt: messageDoc.data().createdAt || serverTimestamp(),
+        }));
+        setMessages(fetchedMessages);
+        console.log('Messages fetched for chatId:', chatId, fetchedMessages);
+      },
+      error => {
+        console.error('Error in onSnapshot:', error);
+      },
+    );
+
+    return () => unsubscribe();
+  }, [chatId]);
+
+  const sendMessage = async () => {
+    if (!text.trim() || !currentUserUuid) {
+      console.warn('No text or currentUserUuid to send message');
+      return;
+    }
+
+    const messagesRef = collection(
+      doc(collection(db, 'chats'), chatId),
+      'messages',
+    );
+    try {
+      await addDoc(messagesRef, {
+        text,
+        sender: currentUserUuid,
+        createdAt: serverTimestamp(),
+      });
+      console.log('Message sent by:', currentUserUuid);
+      setText('');
+    } catch (error) {
+      console.error('Error sending message:', error);
+    }
   };
 
   return (
@@ -88,7 +105,7 @@ const MessageScreen: React.FC = () => {
         inverted
         keyExtractor={item => item.id}
         renderItem={({item}) => {
-          const isSent = item.sender === currentUser;
+          const isSent = item.sender === currentUserUuid;
           return (
             <View
               style={[
@@ -106,7 +123,6 @@ const MessageScreen: React.FC = () => {
           );
         }}
       />
-
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
@@ -122,7 +138,6 @@ const MessageScreen: React.FC = () => {
   );
 };
 
-// Styles
 const styles = StyleSheet.create({
   container: {flex: 1, backgroundColor: '#f0f0f0', paddingHorizontal: 10},
   message: {

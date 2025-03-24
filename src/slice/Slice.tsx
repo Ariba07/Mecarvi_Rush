@@ -55,6 +55,7 @@ export interface AuthState {
   service_uuid: string;
   product_uuid: string;
   cart: CartItem[]; // Cart items with quantity
+  service_provider_uuid: string;
 }
 
 export const initialState: AuthState = {
@@ -72,6 +73,7 @@ export const initialState: AuthState = {
   product_uuid: '',
   cart: [],
   user_uuid: '',
+  service_provider_uuid: '',
 };
 
 const authSlice = createSlice({
@@ -145,6 +147,9 @@ const authSlice = createSlice({
     },
     setProductUuid: (state, action: PayloadAction<string>) => {
       state.product_uuid = action.payload;
+    },
+    setServiceProviderUuid: (state, action: PayloadAction<string>) => {
+      state.service_provider_uuid = action.payload;
     },
     setUser: (
       state,
@@ -261,6 +266,8 @@ export const selectServiceUuid = (state: {auth: AuthState}) =>
   state.auth.service_uuid;
 export const selectProductUuid = (state: {auth: AuthState}) =>
   state.auth.product_uuid;
+export const selectServiceProviderUuid = (state: {auth: AuthState}) =>
+  state.auth.service_provider_uuid;
 export const selectCart = (state: {auth: AuthState}) => state.auth.cart;
 
 export const {
@@ -279,6 +286,7 @@ export const {
   decrementQuantity,
   removeFromCart,
   clearCart,
+  setServiceProviderUuid,
 } = authSlice.actions;
 
 export default authSlice.reducer;

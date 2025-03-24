@@ -32,14 +32,14 @@ const persistor = persistStore(store, null, () => {
   console.log('State rehydrated:', store.getState());
 });
 
-// Debug: Log state changes and AsyncStorage content
-store.subscribe(() => {
-  const state = store.getState();
-  console.log('State updated:', state);
-  AsyncStorage.getItem('persist:auth')
-    .then(data => console.log('Persisted state in AsyncStorage:', data))
-    .catch(err => console.error('Error reading AsyncStorage:', err));
-});
+// // Debug: Log state changes and AsyncStorage content
+// store.subscribe(() => {
+//   const state = store.getState();
+//   console.log('State updated:', state);
+//   AsyncStorage.getItem('persist:auth')
+//     .then(data => console.log('Persisted state in AsyncStorage:', data))
+//     .catch(err => console.error('Error reading AsyncStorage:', err));
+// });
 
 export {store, persistor};
 

@@ -88,7 +88,7 @@ const Settings = () => {
       id: '7',
       title: theme.backgroundColor === '#000000' ? 'Light Theme' : 'Dark Theme',
       icon: <Theme width={wp(5)} height={wp(5)} />,
-      bgColor: '#5C6BC0',
+      bgColor: '#5C6B96',
       // No route here, we'll handle it separately
     },
     {
@@ -147,7 +147,7 @@ const Settings = () => {
       id: '7',
       title: theme.backgroundColor === '#000000' ? 'Light Theme' : 'Dark Theme',
       icon: <Theme width={wp(5)} height={wp(5)} />,
-      bgColor: '#5C6BC0',
+      bgColor: '#5C6B96',
       // No route here, we'll handle it separately
     },
     {

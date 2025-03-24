@@ -85,7 +85,7 @@ const ServiceProviderRegister = () => {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View style={{flex: 1, backgroundColor: '#ffffff'}}>
+      <View style={{flex: 1, backgroundColor: theme.backgroundColor}}>
         <ImageBackground source={backgroundImage} style={styles.background}>
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -124,7 +124,9 @@ const ServiceProviderRegister = () => {
                   onSubmit={handleNext}>
                   {({handleChange, handleSubmit, values, errors, touched}) => (
                     <>
-                      <Text style={[styles.label, {color: theme.text}]}>Company Name</Text>
+                      <Text style={[styles.label, {color: theme.text}]}>
+                        Company Name
+                      </Text>
                       <CustomTextInput
                         placeholder="Company Name"
                         value={values.name}
@@ -153,7 +155,9 @@ const ServiceProviderRegister = () => {
                           </Text>
                         )}
 
-                      <Text style={[styles.label, {color: theme.text}]}>State Registration</Text>
+                      <Text style={[styles.label, {color: theme.text}]}>
+                        State Registration
+                      </Text>
                       <CustomTextInput
                         placeholder="State Registration"
                         value={values.stateRegistration}
@@ -199,7 +203,9 @@ const ServiceProviderRegister = () => {
                           </Text>
                         )}
 
-                      <Text style={[styles.label, {color: theme.text}]}>Year Established</Text>
+                      <Text style={[styles.label, {color: theme.text}]}>
+                        Year Established
+                      </Text>
                       <CustomTextInput
                         placeholder="Year Established"
                         value={values.yearEstablished}
@@ -213,7 +219,9 @@ const ServiceProviderRegister = () => {
                         </Text>
                       )}
 
-                      <Text style={[styles.label, {color: theme.text}]}>Company Address</Text>
+                      <Text style={[styles.label, {color: theme.text}]}>
+                        Company Address
+                      </Text>
                       <CustomTextInput
                         placeholder="Company Address"
                         value={values.address}
@@ -225,7 +233,9 @@ const ServiceProviderRegister = () => {
                         <Text style={styles.errorText}>{errors.address}</Text>
                       )}
 
-                      <Text style={[styles.label, {color: theme.text}]}>Company Phone Number</Text>
+                      <Text style={[styles.label, {color: theme.text}]}>
+                        Company Phone Number
+                      </Text>
                       <CustomTextInput
                         placeholder="Company Phone Number"
                         value={values.phoneNumber}
@@ -239,7 +249,9 @@ const ServiceProviderRegister = () => {
                         </Text>
                       )}
 
-                      <Text style={[styles.label, {color: theme.text}]}>Company Email</Text>
+                      <Text style={[styles.label, {color: theme.text}]}>
+                        Company Email
+                      </Text>
                       <CustomTextInput
                         placeholder="Company Email"
                         value={values.email}
@@ -251,7 +263,9 @@ const ServiceProviderRegister = () => {
                         <Text style={styles.errorText}>{errors.email}</Text>
                       )}
 
-                      <Text style={[styles.label, {color: theme.text}]}>Website URL (Optional)</Text>
+                      <Text style={[styles.label, {color: theme.text}]}>
+                        Website URL (Optional)
+                      </Text>
                       <CustomTextInput
                         placeholder="URL"
                         value={values.website}
