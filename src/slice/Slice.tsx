@@ -54,7 +54,7 @@ export interface AuthState {
   token: string;
   service_uuid: string;
   product_uuid: string;
-  cart: CartItem[]; // Cart items with quantity
+  cart: CartItem[];
   service_provider_uuid: string;
 }
 
@@ -157,13 +157,16 @@ const authSlice = createSlice({
         role: string;
         userId: number;
         token: string;
-        user_uuid: string;
+        firebaseUid: string; // Renamed to make it clear this should be the Firebase Auth UID
       }>,
     ) => {
       state.role = action.payload.role;
       state.user_id = action.payload.userId;
       state.token = action.payload.token;
-      state.user_uuid = action.payload.user_uuid;
+      state.user_uuid = action.payload.firebaseUid; // Set user_uuid to Firebase Auth UID
+    },
+    setUserUuid: (state, action: PayloadAction<string>) => {
+      state.user_uuid = action.payload; // New reducer to explicitly set user_uuid
     },
     clearUser: state => {
       state.role = '';
@@ -178,11 +181,9 @@ const authSlice = createSlice({
         item => item.productUuid === action.payload.productUuid,
       );
       if (existingItemIndex !== -1) {
-        // Item exists, update quantity
         state.cart[existingItemIndex].quantity =
           (state.cart[existingItemIndex].quantity || 1) + 1;
       } else {
-        // Item doesn't exist, add it with quantity 1
         state.cart.push({...action.payload, quantity: 1});
       }
     },
@@ -200,7 +201,7 @@ const authSlice = createSlice({
         if ((item.quantity || 1) > 1) {
           item.quantity = (item.quantity || 1) - 1;
         } else {
-          state.cart = state.cart.filter(i => i.productUuid !== productUuid); // Remove if quantity reaches 0
+          state.cart = state.cart.filter(i => i.productUuid !== productUuid);
         }
       }
     },
@@ -209,7 +210,7 @@ const authSlice = createSlice({
       state.cart = state.cart.filter(i => i.productUuid !== productUuid);
     },
     clearCart: state => {
-      state.cart = []; // Clear cart manually
+      state.cart = [];
     },
   },
 });
@@ -278,6 +279,7 @@ export const {
   updateCnic,
   updatePhoto,
   setUser,
+  setUserUuid, // Export the new reducer
   clearUser,
   setServiceUuid,
   setProductUuid,

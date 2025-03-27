@@ -51,8 +51,8 @@ export type RootStackParamList = {
   Booking: undefined;
   Checkout: undefined;
   Receipt: undefined;
-  MarketPlace: {fromProduct: boolean};
-  ShopProfile: {fromBid: boolean};
+  MarketPlace: {fromProduct: boolean; productId: number};
+  ShopProfile: {fromBid: boolean; providerId: string};
 };
 export interface Productss {
   id: number;
@@ -186,6 +186,7 @@ export interface Attribute {
 }
 
 export interface CartItem {
+  id: number;
   productUuid: string;
   name: string;
   price: number;

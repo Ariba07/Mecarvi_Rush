@@ -8,7 +8,6 @@ import {
   Image,
   Platform,
   ScrollView,
-  Alert,
 } from 'react-native';
 import React, {useContext, useEffect, useState} from 'react';
 import {
@@ -25,14 +24,7 @@ import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 import {selectServiceProviderUuid, selectUserUuidId} from '../../slice/Slice';
 import {useSelector} from 'react-redux';
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  addDoc,
-  serverTimestamp,
-} from 'firebase/firestore';
+import {collection, query, where, getDocs, addDoc} from 'firebase/firestore';
 import {db} from '../../../FirebaseConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -63,7 +55,7 @@ const ShopProfile: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute<Prop>();
-  const {fromBid} = route.params;
+  const {fromBid, providerId} = route.params;
   const {theme} = useContext(ThemeContext);
   const serviceProviderUuid = useSelector(selectServiceProviderUuid);
   const reduxUserUuid = useSelector(selectUserUuidId);
@@ -147,46 +139,50 @@ const ShopProfile: React.FC = () => {
   }, [currentUserUuid, serviceProviderUuid]);
 
   const handleChat = async () => {
-    console.log('Handling chat - Current User UUID:', currentUserUuid);
-    console.log('Handling chat - Service Provider UUID:', serviceProviderUuid);
+    try {
+      // Step 1: Validate UUIDs
+      if (!currentUserUuid || !serviceProviderUuid) {
+        console.error('Missing UUIDs:', {currentUserUuid, serviceProviderUuid});
+        return;
+      }
+      console.log('Handling chat - Current User UUID:', currentUserUuid);
+      console.log('Handling chat - Service Provider UUID:', providerId);
 
-    if (!currentUserUuid || !serviceProviderUuid) {
-      console.error(
-        'Missing UUIDs for chat - User:',
-        currentUserUuid,
-        'Provider:',
-        serviceProviderUuid,
+      // Step 2: Generate chatId (consistent format)
+      const chatId = `${providerId}_${currentUserUuid}`;
+
+      // Step 3: Query Firestore for existing chat
+      const chatsRef = collection(db, 'chats');
+      const q = query(
+        chatsRef,
+        where('chatId', '==', chatId),
+        where('participants', 'array-contains', currentUserUuid),
       );
-      Alert.alert(
-        'Unable to start chat: User or provider information is missing.',
-      );
-      return;
+      const querySnapshot = await getDocs(q);
+
+      // Step 4: Check if chat exists
+      if (!querySnapshot.empty) {
+        const existingChat = querySnapshot.docs[0];
+        navigation.navigate('Message', {
+          chatId: existingChat.id,
+          chatName: existingChat.data().name || 'Chat with User',
+        });
+      } else {
+        const newChatRef = await addDoc(chatsRef, {
+          chatId: chatId,
+          name: 'Chat with User',
+          participants: [currentUserUuid, providerId],
+          createdAt: new Date(),
+        });
+
+        navigation.navigate('Message', {
+          chatId: newChatRef.id,
+          chatName: 'Chat with User',
+        });
+      }
+    } catch (error) {
+      console.error('Error in handleChat:', error);
     }
-
-    const participants = [currentUserUuid, serviceProviderUuid].sort();
-    const chatId = `${participants[0]}_${participants[1]}`;
-
-    const chatsRef = collection(db, 'chats');
-    const q = query(chatsRef, where('chatId', '==', chatId));
-    const querySnapshot = await getDocs(q);
-
-    let existingChatId = null;
-    if (!querySnapshot.empty) {
-      existingChatId = querySnapshot.docs[0].id;
-    } else {
-      const newChat = await addDoc(chatsRef, {
-        chatId,
-        name: `${profile?.name || 'Chat'} with User`,
-        participants: [currentUserUuid, serviceProviderUuid],
-        createdAt: serverTimestamp(),
-      });
-      existingChatId = newChat.id;
-    }
-
-    navigation.navigate('Message', {
-      chatId: existingChatId,
-      chatName: profile?.name || 'Chat',
-    });
   };
 
   const handleBookService = () => {

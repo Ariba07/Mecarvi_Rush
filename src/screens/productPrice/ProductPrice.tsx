@@ -60,7 +60,7 @@ const ProductPrice = () => {
     try {
       await apiHelper({
         method: 'POST',
-        endpoint: `marketplace/${product_uuid}?_method=patch`,
+        endpoint: 'marketplace',
         data: {price: price, product_id: id},
         token: token,
       });

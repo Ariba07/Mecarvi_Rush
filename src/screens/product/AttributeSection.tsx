@@ -104,6 +104,7 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
     }
 
     const cartItem: CartItem = {
+      id: productData.id,
       productUuid,
       name: productData.name || 'Unnamed Product',
       price: productData.price || 0,
@@ -209,7 +210,10 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
         <TouchableOpacity
           style={[styles.button, styles.fullWidthButton]}
           onPress={() =>
-            navigation.navigate('MarketPlace', {fromProduct: true})
+            navigation.navigate('MarketPlace', {
+              fromProduct: true,
+              productId: productData.id,
+            })
           }>
           <Text style={[styles.buttonText, {color: theme.backgroundColor}]}>
             Add Marketplace

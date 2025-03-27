@@ -21,9 +21,9 @@ import {
 } from 'firebase/firestore';
 import {RouteProp, useRoute} from '@react-navigation/native';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
-import {db} from '../../../FirebaseConfig';
+import {db, auth} from '../../../FirebaseConfig'; // Import auth
 import {useSelector} from 'react-redux';
-import {selectUserUuidId} from '../../slice/Slice'; // Updated to match your selector
+import {selectUserUuidId} from '../../slice/Slice';
 
 type MessagesRouteProp = RouteProp<RootStackParamList, 'Message'>;
 
@@ -42,8 +42,26 @@ const MessageScreen: React.FC = () => {
   const currentUserUuid = useSelector(selectUserUuidId);
 
   useEffect(() => {
+    // Check Firebase auth state
+    const unsubscribeAuth = auth.onAuthStateChanged(user => {
+      if (user) {
+        console.log('Firebase Auth User UID in MessageScreen:', user.uid);
+        console.log('Current User UUID (Redux/AsyncStorage):', currentUserUuid);
+        if (user.uid !== currentUserUuid) {
+          console.warn('Firebase UID and currentUserUuid do not match!');
+        }
+      } else {
+        console.warn('No Firebase Auth user signed in');
+      }
+    });
+
     if (!chatId) {
       console.error('No chatId provided');
+      return;
+    }
+
+    if (!currentUserUuid) {
+      console.warn('No currentUserUuid available');
       return;
     }
 
@@ -70,12 +88,25 @@ const MessageScreen: React.FC = () => {
       },
     );
 
-    return () => unsubscribe();
-  }, [chatId]);
+    return () => {
+      unsubscribe();
+      unsubscribeAuth();
+    };
+  }, [chatId, currentUserUuid]);
 
   const sendMessage = async () => {
-    if (!text.trim() || !currentUserUuid) {
-      console.warn('No text or currentUserUuid to send message');
+    if (!text.trim()) {
+      console.warn('Message text is empty');
+      return;
+    }
+
+    if (!currentUserUuid) {
+      console.warn('No currentUserUuid available to send message');
+      return;
+    }
+
+    if (!chatId) {
+      console.warn('No chatId available to send message');
       return;
     }
 
@@ -85,11 +116,11 @@ const MessageScreen: React.FC = () => {
     );
     try {
       await addDoc(messagesRef, {
-        text,
+        text: text.trim(),
         sender: currentUserUuid,
         createdAt: serverTimestamp(),
       });
-      console.log('Message sent by:', currentUserUuid);
+      console.log('Message sent by:', currentUserUuid, 'Text:', text);
       setText('');
     } catch (error) {
       console.error('Error sending message:', error);

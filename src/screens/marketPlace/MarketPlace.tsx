@@ -34,6 +34,7 @@ interface BusinessProvider {
   // Adding some default fields since rating and price aren't in API response
   rating: number;
   price: string;
+  user_uuid: string;
 }
 
 const MarketPlace: React.FC = () => {
@@ -62,6 +63,7 @@ const MarketPlace: React.FC = () => {
             service_provider_name: item.service_provider_name,
             logo: item.logo,
             average_turnaround_time: item.average_turnaround_time,
+            user_uuid: item.user.user_uuid,
             // Since rating and price aren't in API response, adding default values
             rating: 4.0, // Default rating, modify as needed
             price: '$100', // Default price, modify as needed or fetch from another endpoint
@@ -87,6 +89,7 @@ const MarketPlace: React.FC = () => {
       onPress={() => {
         navigation.navigate('ShopProfile', {
           fromBid: fromProduct === true ? false : true,
+          providerId: item.user_uuid,
         });
         dispatch(setServiceProviderUuid(item.service_provider_uuid));
       }}>

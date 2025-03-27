@@ -31,6 +31,8 @@ import {useDispatch} from 'react-redux';
 import {setUser} from '../../slice/Slice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {auth} from '../../../FirebaseConfig';
+import {signInWithCustomToken} from 'firebase/auth';
 
 const {width, height} = Dimensions.get('window');
 
@@ -41,7 +43,7 @@ const loginValidationSchema = Yup.object().shape({
 });
 
 const STORAGE_KEY = '@login_credentials';
-const TOKEN_KEY = 'userToken'; // Consistent with apiHelper expectation
+const TOKEN_KEY = 'userToken';
 
 const Login: React.FC = () => {
   const [isChecked, setIsChecked] = useState(false);
@@ -73,29 +75,52 @@ const Login: React.FC = () => {
         data: values,
       });
 
-      // Type the response based on your API structure
       const {data, meta} = response as {
         data: {
           user: {id: number; roles: string[]; user_uuid: string};
         };
-        meta: {token: string};
+        meta: {token: string; firebase_token: string};
       };
 
-      // Store the token in AsyncStorage
       await AsyncStorage.setItem(TOKEN_KEY, meta.token);
       console.log('Token stored:', meta.token);
 
-      // Dispatch user data to Redux
+      // Sign in with Firebase using the firebase_token
+      let firebaseUid: string;
+      try {
+        const userCredential = await signInWithCustomToken(
+          auth,
+          meta.firebase_token,
+        );
+        firebaseUid = userCredential.user.uid;
+        console.log('Signed in with Firebase, UID:', firebaseUid);
+      } catch (firebaseError) {
+        console.error('Firebase sign-in error:', firebaseError);
+        Alert.alert(
+          'Error',
+          'Failed to authenticate with Firebase. Please try again.',
+        );
+        return;
+      }
+
+      // Log the backend user_uuid for debugging
+      console.log('Backend user_uuid:', data.user.user_uuid);
+      console.log('Firebase UID:', firebaseUid);
+      if (data.user.user_uuid !== firebaseUid) {
+        console.warn('Backend user_uuid does not match Firebase UID!');
+      }
+
+      // Dispatch user data to Redux using the Firebase UID
       dispatch(
         setUser({
           role: data.user.roles[0],
           userId: data.user.id,
           token: meta.token,
-          user_uuid: data.user.user_uuid,
+          firebaseUid: firebaseUid, // Use the Firebase Auth UID
         }),
       );
 
-      // Store credentials, userId, and role in AsyncStorage if "Remember me" is checked
+      // Store credentials, userId, role, and firebaseUid in AsyncStorage if "Remember me" is checked
       if (isChecked) {
         await AsyncStorage.setItem(
           STORAGE_KEY,
@@ -104,14 +129,13 @@ const Login: React.FC = () => {
             password: values.password,
             userId: data.user.id,
             role: data.user.roles[0],
-            user_uuid: data.user.user_uuid,
+            user_uuid: firebaseUid, // Store the Firebase UID
           }),
         );
       } else {
         await AsyncStorage.removeItem(STORAGE_KEY);
       }
 
-      // Navigate to Subscription screen
       navigation.replace('Subscription');
     } catch (error: any) {
       console.error('Login error:', error.response?.data || error.message);
