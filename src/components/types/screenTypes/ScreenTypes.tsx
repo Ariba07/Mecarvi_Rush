@@ -39,7 +39,7 @@ export type RootStackParamList = {
   Quote: undefined;
   ServiceProviderDashboard: undefined;
   Services: undefined;
-  ProductPrice: undefined;
+  ProductPrice: {product_uuid: string; id: number};
   ServiceProviderOrderDetail: undefined;
   ServiceProviderProfile: undefined;
   Wallet: undefined;

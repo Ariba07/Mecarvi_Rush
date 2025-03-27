@@ -24,6 +24,8 @@ interface ProductCardProps {
   status: string;
   color: string;
   borderColor?: string;
+  uuid?: string;
+  id?: number;
 }
 
 const OrderCard: React.FC<ProductCardProps> = ({
@@ -33,6 +35,8 @@ const OrderCard: React.FC<ProductCardProps> = ({
   status,
   color,
   borderColor,
+  uuid,
+  id,
 }) => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -67,7 +71,20 @@ const OrderCard: React.FC<ProductCardProps> = ({
         <TouchableOpacity
           disabled={status !== 'Add Your Price' && status !== 'Add to cart'}
           onPress={() => {
-            status === 'Add Your Price' && navigation.navigate('ProductPrice');
+            if (status === 'Add Your Price') {
+              if (uuid) {
+                if (id !== undefined) {
+                  navigation.navigate('ProductPrice', {
+                    product_uuid: uuid,
+                    id: id,
+                  });
+                } else {
+                  console.error('ID is undefined');
+                }
+              } else {
+                console.error('UUID is undefined');
+              }
+            }
           }}
           style={[
             styles.cartButton,

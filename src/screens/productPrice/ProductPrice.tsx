@@ -7,24 +7,68 @@ import {
   Text,
   TextInput,
 } from 'react-native';
-import React, {useContext, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
-import {useNavigation} from '@react-navigation/native';
+import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
+import {
+  ApiResponse,
+  RootStackParamList,
+} from '../../components/types/screenTypes/ScreenTypes';
 import Header from '../../components/common/header/Header';
 import {renderStars} from '../../components/common/review/RenderStars';
 import CustomButton from '../../components/common/buttons/CustomButton';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
+import {useSelector} from 'react-redux';
+import {selectToken} from '../../slice/Slice';
+
+type ProductRouteProp = RouteProp<RootStackParamList, 'ProductPrice'>;
 
 const ProductPrice = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [price, setPrice] = useState<string>('');
   const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
+  const route = useRoute<ProductRouteProp>();
+  const {product_uuid, id} = route.params;
+  const [productData, setProductData] = useState<any | null>(null);
+  const token = useSelector(selectToken);
+
+  // Fetch products when product_uuid changes
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response: ApiResponse = await apiHelper({
+          method: 'GET',
+          endpoint: `products/${product_uuid}`,
+        });
+        const product = response?.data || [];
+        setProductData(product); // Set product data
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      }
+    };
+    fetchProducts();
+  }, [product_uuid]);
+
+  // Fetch products when product_uuid changes
+  const updatePrice = async () => {
+    try {
+      await apiHelper({
+        method: 'POST',
+        endpoint: `marketplace/${product_uuid}?_method=patch`,
+        data: {price: price, product_id: id},
+        token: token,
+      });
+      navigation.goBack();
+    } catch (error) {
+      console.error('Error updating Price:', error);
+    }
+  };
 
   return (
     <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
@@ -35,7 +79,7 @@ const ProductPrice = () => {
         />
         <View style={styles.imageSliderContainer}>
           <Image
-            source={require('../../assets/images/Orders.png')}
+            source={require('../../assets/images/Orders.png')} // Placeholder, as no image URL is in the data
             style={styles.productImage}
           />
         </View>
@@ -43,15 +87,19 @@ const ProductPrice = () => {
         <View style={styles.productInfoContainer}>
           <View>
             <Text style={[styles.productTitle, {color: theme.input}]}>
-              Signage Sign Board
+              {productData?.name || 'Loading...'} {/* Use product name */}
             </Text>
             <View style={styles.ratingContainer}>
               {renderStars(Number('4.5'))}
+              {/* Static rating as no rating in data */}
               <Text style={[styles.ratingText, {color: theme.input}]}>4.5</Text>
             </View>
           </View>
           {/* Price */}
-          <Text style={styles.productPrice}>$250</Text>
+          <Text style={styles.productPrice}>
+            ${productData?.price?.toFixed(2) || '0.00'}
+            {/* Use product price */}
+          </Text>
         </View>
 
         <View style={{marginVertical: wp(3)}}>
@@ -67,7 +115,7 @@ const ProductPrice = () => {
             placeholderTextColor={'#999'}
           />
         </View>
-        <CustomButton title="Submit" onPress={() => navigation.goBack()} />
+        <CustomButton title="Submit" onPress={() => updatePrice()} />
       </View>
     </SafeAreaView>
   );
