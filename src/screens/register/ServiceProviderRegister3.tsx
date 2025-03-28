@@ -190,11 +190,18 @@ const ServiceProviderRegister3 = () => {
                         Upload Logo
                       </Text>
                       <TouchableOpacity
-                        style={styles.uploadButton}
+                        style={[
+                          styles.uploadButton,
+                          {backgroundColor: theme.backgroundColor},
+                        ]}
                         onPress={() =>
                           pickDocument(setFieldValue, 'logoUpload')
                         }>
-                        <Text style={styles.uploadButtonText}>
+                        <Text
+                          style={[
+                            styles.uploadButtonText,
+                            {color: theme.text},
+                          ]}>
                           {values.logoUpload
                             ? values.logoUpload.name
                             : 'Upload Company Logo'}
@@ -211,11 +218,18 @@ const ServiceProviderRegister3 = () => {
                         Portfolio (Optional)
                       </Text>
                       <TouchableOpacity
-                        style={styles.uploadButton}
+                        style={[
+                          styles.uploadButton,
+                          {backgroundColor: theme.backgroundColor},
+                        ]}
                         onPress={() =>
                           pickDocument(setFieldValue, 'portfolio')
                         }>
-                        <Text style={styles.uploadButtonText}>
+                        <Text
+                          style={[
+                            styles.uploadButtonText,
+                            {color: theme.text},
+                          ]}>
                           {values.portfolio
                             ? values.portfolio.name
                             : 'Upload Portfolio'}
@@ -232,11 +246,18 @@ const ServiceProviderRegister3 = () => {
                         Proof of Business Registration
                       </Text>
                       <TouchableOpacity
-                        style={styles.uploadButton}
+                        style={[
+                          styles.uploadButton,
+                          {backgroundColor: theme.backgroundColor},
+                        ]}
                         onPress={() =>
                           pickDocument(setFieldValue, 'businessProof')
                         }>
-                        <Text style={styles.uploadButtonText}>
+                        <Text
+                          style={[
+                            styles.uploadButtonText,
+                            {color: theme.text},
+                          ]}>
                           {values.businessProof
                             ? values.businessProof.name
                             : 'Upload Business Proof'}
@@ -253,11 +274,18 @@ const ServiceProviderRegister3 = () => {
                         Document Verification (Optional)
                       </Text>
                       <TouchableOpacity
-                        style={styles.uploadButton}
+                        style={[
+                          styles.uploadButton,
+                          {backgroundColor: theme.backgroundColor},
+                        ]}
                         onPress={() =>
                           pickDocument(setFieldValue, 'documentVerification')
                         }>
-                        <Text style={styles.uploadButtonText}>
+                        <Text
+                          style={[
+                            styles.uploadButtonText,
+                            {color: theme.text},
+                          ]}>
                           {values.documentVerification
                             ? values.documentVerification.name
                             : 'Upload Verification Document'}

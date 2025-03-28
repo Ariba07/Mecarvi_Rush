@@ -35,17 +35,25 @@ const ServiceProviderRegister2 = () => {
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const dispatch = useDispatch();
-  useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const {theme} = useContext(ThemeContext); // Access theme
+  const {theme} = useContext(ThemeContext);
 
-  // Determine the background image based on the theme
   const backgroundImage =
     theme.backgroundColor === '#ffffff'
-      ? require('../../assets/images/BG.png') // Light theme
-      : require('../../assets/images/dark.png'); // Dark theme
+      ? require('../../assets/images/BG.png')
+      : require('../../assets/images/dark.png');
 
   const navigateToUpload = (values: any) => {
-    // Dispatch all business-related fields
+    // Extract only the IDs from serviceOffered
+    const serviceOfferedIds = values.serviceOffered.map(
+      (service: {id: number; name: string}) => service.id,
+    );
+
+    dispatch(
+      updateBusinessField({
+        field: 'serviceOffered',
+        value: serviceOfferedIds, // Dispatch only the IDs
+      }),
+    );
     dispatch(
       updateBusinessField({field: 'targetMarket', value: values.targetMarket}),
     );
@@ -65,12 +73,6 @@ const ServiceProviderRegister2 = () => {
       updateBusinessField({
         field: 'productionCapacity',
         value: values.productionCapacity,
-      }),
-    );
-    dispatch(
-      updateBusinessField({
-        field: 'serviceOffered',
-        value: values.serviceOffered,
       }),
     );
 
@@ -101,7 +103,7 @@ const ServiceProviderRegister2 = () => {
                 showsVerticalScrollIndicator={false}>
                 <Formik
                   initialValues={{
-                    serviceOffered: [], // Store multiple services as an array
+                    serviceOffered: [],
                     productionCapacity: '',
                     turnaroundTime: '',
                     specialization: '',
@@ -116,87 +118,95 @@ const ServiceProviderRegister2 = () => {
                     errors,
                     touched,
                     setFieldValue,
-                  }) => (
-                    <>
-                      <Text style={[styles.label, {color: theme.text}]}>Service Offered</Text>
-                      <CustomTextInput
-                        placeholder="Select Services"
-                        value={values.serviceOffered.join(', ')} // Convert array to a string for display
-                        onChangeText={selectedOptions =>
-                          setFieldValue('serviceOffered', selectedOptions)
-                        } // Update array
-                        isMultiSelect={true} // Pass a prop to indicate multi-select
-                      />
-                      {touched.serviceOffered && errors.serviceOffered && (
-                        <Text style={styles.errorText}>
-                          {errors.serviceOffered}
+                  }) => {
+                    return (
+                      <>
+                        <Text style={[styles.label, {color: theme.text}]}>
+                          Service Offered
                         </Text>
-                      )}
-
-                      <Text style={[styles.label, {color: theme.text}]}>Production Capacity</Text>
-                      <CustomTextInput
-                        placeholder="Select Capacity"
-                        value={values.productionCapacity}
-                        onChangeText={text =>
-                          handleChange('productionCapacity')(text as string)
-                        }
-                      />
-                      {touched.productionCapacity &&
-                        errors.productionCapacity && (
+                        <CustomTextInput
+                          placeholder="Select Services"
+                          value={values.serviceOffered}
+                          onChangeText={selectedOptions => {
+                            setFieldValue('serviceOffered', selectedOptions);
+                          }}
+                          isMultiSelect={true}
+                        />
+                        {touched.serviceOffered && errors.serviceOffered && (
                           <Text style={styles.errorText}>
-                            {errors.productionCapacity}
+                            {errors.serviceOffered}
                           </Text>
                         )}
 
-                      <Text style={[styles.label, {color: theme.text}]}>
-                        Average Turnaround Time for Orders
-                      </Text>
-                      <CustomTextInput
-                        placeholder="In Days or Hours"
-                        value={values.turnaroundTime}
-                        onChangeText={text =>
-                          handleChange('turnaroundTime')(text as string)
-                        }
-                      />
-                      {touched.turnaroundTime && errors.turnaroundTime && (
-                        <Text style={styles.errorText}>
-                          {errors.turnaroundTime}
+                        <Text style={[styles.label, {color: theme.text}]}>
+                          Production Capacity
                         </Text>
-                      )}
+                        <CustomTextInput
+                          placeholder="Select Capacity"
+                          value={values.productionCapacity}
+                          onChangeText={text =>
+                            handleChange('productionCapacity')(text as string)
+                          }
+                        />
+                        {touched.productionCapacity &&
+                          errors.productionCapacity && (
+                            <Text style={styles.errorText}>
+                              {errors.productionCapacity}
+                            </Text>
+                          )}
 
-                      <Text style={[styles.label, {color: theme.text}]}>
-                        Specialization (Optional)
-                      </Text>
-                      <CustomTextInput
-                        placeholder="Tell Your Niche"
-                        value={values.specialization}
-                        onChangeText={text =>
-                          handleChange('specialization')(text as string)
-                        }
-                      />
-                      {touched.specialization && errors.specialization && (
-                        <Text style={styles.errorText}>
-                          {errors.specialization}
+                        <Text style={[styles.label, {color: theme.text}]}>
+                          Average Turnaround Time for Orders
                         </Text>
-                      )}
+                        <CustomTextInput
+                          placeholder="In Days or Hours"
+                          value={values.turnaroundTime}
+                          onChangeText={text =>
+                            handleChange('turnaroundTime')(text as string)
+                          }
+                        />
+                        {touched.turnaroundTime && errors.turnaroundTime && (
+                          <Text style={styles.errorText}>
+                            {errors.turnaroundTime}
+                          </Text>
+                        )}
 
-                      <Text style={[styles.label, {color: theme.text}]}>Target Market</Text>
-                      <CustomTextInput
-                        placeholder="Select Your Target Market"
-                        value={values.targetMarket}
-                        onChangeText={text =>
-                          handleChange('targetMarket')(text as string)
-                        }
-                      />
-                      {touched.targetMarket && errors.targetMarket && (
-                        <Text style={styles.errorText}>
-                          {errors.targetMarket}
+                        <Text style={[styles.label, {color: theme.text}]}>
+                          Specialization (Optional)
                         </Text>
-                      )}
+                        <CustomTextInput
+                          placeholder="Tell Your Niche"
+                          value={values.specialization}
+                          onChangeText={text =>
+                            handleChange('specialization')(text as string)
+                          }
+                        />
+                        {touched.specialization && errors.specialization && (
+                          <Text style={styles.errorText}>
+                            {errors.specialization}
+                          </Text>
+                        )}
 
-                      <CustomButton title="Next" onPress={handleSubmit} />
-                    </>
-                  )}
+                        <Text style={[styles.label, {color: theme.text}]}>
+                          Target Market
+                        </Text>
+                        <CustomTextInput
+                          placeholder="Select Your Target Market"
+                          value={values.targetMarket}
+                          onChangeText={text =>
+                            handleChange('targetMarket')(text as string)
+                          }
+                        />
+                        {touched.targetMarket && errors.targetMarket && (
+                          <Text style={styles.errorText}>
+                            {errors.targetMarket}
+                          </Text>
+                        )}
+
+                        <CustomButton title="Next" onPress={handleSubmit} />
+                      </>
+                    );
+                  }}
                 </Formik>
               </ScrollView>
             </View>

@@ -2,6 +2,7 @@ import {initializeApp, getApps, getApp} from 'firebase/app';
 import {getFirestore} from 'firebase/firestore';
 import {getAuth} from 'firebase/auth';
 import {Platform} from 'react-native';
+import '@react-native-firebase/messaging';
 
 const firebaseConfig = {
   apiKey:

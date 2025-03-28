@@ -1,4 +1,4 @@
-import React, {useContext, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -23,6 +23,9 @@ import AboutUs from '../../components/helperUtils/profile/AboutUs';
 import Work from '../../components/helperUtils/profile/Work';
 import Reviews from '../../components/helperUtils/profile/Reviews';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
+import {useSelector} from 'react-redux';
+import {selectUserUuidId} from '../../slice/Slice';
 
 const tabs = [
   {label: 'Services'},
@@ -36,7 +39,21 @@ const ServiceProviderProfile = () => {
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [selectedTab, setSelectedTab] = useState('Services');
   const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
+  const user_uuid = useSelector(selectUserUuidId);
 
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      try {
+        await apiHelper({
+          method: 'GET',
+          endpoint: `service-provider/${user_uuid}`,
+        });
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+      }
+    };
+    fetchProfileData();
+  }, [user_uuid]);
   return (
     <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
       <View style={styles.container}>

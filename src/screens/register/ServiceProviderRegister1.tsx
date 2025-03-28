@@ -109,7 +109,9 @@ const ServiceProviderRegister1 = () => {
                   onSubmit={handleNext}>
                   {({handleChange, handleSubmit, values, errors, touched}) => (
                     <>
-                      <Text style={[styles.label, {color: theme.text}]}>Owner Name</Text>
+                      <Text style={[styles.label, {color: theme.text}]}>
+                        Owner Name
+                      </Text>
                       <CustomTextInput
                         placeholder="Company Name"
                         value={values.ownerName}
@@ -121,7 +123,9 @@ const ServiceProviderRegister1 = () => {
                         <Text style={styles.errorText}>{errors.ownerName}</Text>
                       )}
 
-                      <Text style={[styles.label, {color: theme.text}]}>Owner's Email</Text>
+                      <Text style={[styles.label, {color: theme.text}]}>
+                        Owner's Email
+                      </Text>
                       <CustomTextInput
                         placeholder="Company Email"
                         value={values.ownerEmail}
@@ -135,7 +139,9 @@ const ServiceProviderRegister1 = () => {
                         </Text>
                       )}
 
-                      <Text style={[styles.label, {color: theme.text}]}>Owner's Phone Number</Text>
+                      <Text style={[styles.label, {color: theme.text}]}>
+                        Owner's Phone Number
+                      </Text>
                       <CustomTextInput
                         placeholder="Company Phone Number"
                         value={values.ownerPhoneNumber}
@@ -163,7 +169,9 @@ const ServiceProviderRegister1 = () => {
                         <Text style={styles.errorText}>{errors.linkedIn}</Text>
                       )}
 
-                      <Text style={[styles.label, {color: theme.text}]}>Password</Text>
+                      <Text style={[styles.label, {color: theme.text}]}>
+                        Password
+                      </Text>
                       <CustomTextInput
                         placeholder="Password"
                         secureTextEntry
@@ -176,7 +184,9 @@ const ServiceProviderRegister1 = () => {
                         <Text style={styles.errorText}>{errors.password}</Text>
                       )}
 
-                      <Text style={[styles.label, {color: theme.text}]}>Confirm Password</Text>
+                      <Text style={[styles.label, {color: theme.text}]}>
+                        Confirm Password
+                      </Text>
                       <CustomTextInput
                         placeholder="Confirm Password"
                         secureTextEntry

@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useContext, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {
   TextInput,
   StyleSheet,
@@ -15,16 +15,32 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import {ThemeContext} from '../../helperUtils/theme/ThemeContext';
+import {apiHelper} from '../../helperUtils/apiHelper/ApiHelper';
 
 interface CustomTextInputProps {
   placeholder: string;
   secureTextEntry?: boolean;
-  value?: string | string[];
-  onChangeText?: (text: string | string[]) => void;
+  value?: string | {id: number; name: string}[];
+  onChangeText?: (text: string | {id: number; name: string}[]) => void;
   isMultiSelect?: boolean;
   width?: number;
-  options?: string[]; // Add dynamic options prop
 }
+
+const dropdownOptions: {[key: string]: string[]} = {
+  'State Registration': ['Registered', 'Unregistered', 'Pending'],
+  'Legal Structure of Business': ['Sole Proprietorship', 'Partnership', 'LLC'],
+  'Select Capacity': ['Small', 'Medium', 'Large'],
+  'Select Your Target Market': ['Local', 'National', 'International'],
+  'Sidewalk Sign Size': ['Small', 'Medium', 'Large'],
+  'Sidewalk Sign Material': ['Aluminum', 'Plastic', 'Wood'],
+  'Sidewalk Sign Hardware': ['A-Frame', 'H-Frame', 'No Frame'],
+  'Sidewalk Sign Artwork': [
+    'Printed Graphic',
+    'Vinyl Lettering',
+    'Custom Design',
+  ],
+  'Address-type': ['shipping', 'billing'],
+};
 
 const CustomTextInput: React.FC<CustomTextInputProps> = ({
   placeholder,
@@ -33,25 +49,50 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
   onChangeText,
   isMultiSelect = false,
   width,
-  options = [], // Default to empty array if no options provided
 }) => {
   const [isPasswordVisible, setPasswordVisible] = useState(!secureTextEntry);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
-  const [selectedServices, setSelectedServices] = useState<string[]>(
-    Array.isArray(value) ? value : [],
-  );
+  const [selectedServices, setSelectedServices] = useState<
+    {id: number; name: string}[]
+  >(Array.isArray(value) ? value : []);
   const {theme} = useContext(ThemeContext);
 
-  const isDropdownField = options.length > 0; // Use options prop to determine if it's a dropdown
+  const [categories, setCategories] = useState<{id: number; name: string}[]>(
+    [],
+  );
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response: {data: {data: any[]}} = await apiHelper({
+          method: 'GET',
+          endpoint: 'categories/?parent_only=1',
+        });
+        const categoryData = (response?.data?.data || []).map(category => ({
+          id: category.id,
+          name: category.name,
+        }));
+        setCategories(categoryData);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+        setCategories([]);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  const isDropdownField =
+    placeholder in dropdownOptions || placeholder === 'Select Services';
 
   const handleDropdownPress = () => {
     setActiveDropdown(activeDropdown === placeholder ? null : placeholder);
   };
 
-  const handleSelectOption = (option: string) => {
+  const handleSelectOption = (option: {id: number; name: string}) => {
     if (isMultiSelect) {
-      const updatedSelections = selectedServices.includes(option)
-        ? selectedServices.filter(item => item !== option)
+      const isSelected = selectedServices.some(item => item.id === option.id);
+      const updatedSelections = isSelected
+        ? selectedServices.filter(item => item.id !== option.id)
         : [...selectedServices, option];
       setSelectedServices(updatedSelections);
       if (onChangeText) {
@@ -59,12 +100,18 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
       }
     } else {
       if (onChangeText) {
-        onChangeText(option);
+        onChangeText(option.name);
       }
       setActiveDropdown(null);
     }
   };
 
+  const getDropdownOptions = () => {
+    if (placeholder === 'Select Services') {
+      return categories;
+    }
+    return dropdownOptions[placeholder] || [];
+  };
   return (
     <View>
       {isDropdownField ? (
@@ -82,7 +129,9 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
               style={[styles.input, {color: theme.input}]}
               placeholder={placeholder}
               value={
-                isMultiSelect ? selectedServices.join(', ') : (value as string)
+                isMultiSelect
+                  ? selectedServices.map(service => service.name).join(', ')
+                  : (value as string)
               }
               editable={false}
               placeholderTextColor={'#999'}
@@ -99,27 +148,29 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
             <View
               style={[
                 styles.dropdownContainer,
-                {
-                  width: width ? width : wp(80),
-                  backgroundColor: theme.backgroundColor,
-                },
+                {width: width ? width : wp(80), backgroundColor: theme.whole},
               ]}>
               <ScrollView nestedScrollEnabled style={styles.dropdownScroll}>
-                {options.map(item => (
-                  <TouchableOpacity
-                    key={item}
-                    style={[
-                      styles.dropdownItem,
-                      selectedServices.includes(item) && {
-                        backgroundColor: '#f0f8ff',
-                      },
-                    ]}
-                    onPress={() => handleSelectOption(item)}>
-                    <Text style={[styles.dropdownText, {color: theme.text}]}>
-                      {item}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+                {getDropdownOptions().map(item => {
+                  const option =
+                    typeof item === 'string' ? {id: 0, name: item} : item;
+                  return (
+                    <TouchableOpacity
+                      key={option.id || option.name}
+                      style={[
+                        styles.dropdownItem,
+                        {backgroundColor: theme.backgroundColor},
+                        selectedServices.some(s => s.id === option.id) && {
+                          backgroundColor: '#9c9c9c',
+                        },
+                      ]}
+                      onPress={() => handleSelectOption(option)}>
+                      <Text style={[styles.dropdownText, {color: theme.input}]}>
+                        {option.name}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </ScrollView>
             </View>
           )}
@@ -168,7 +219,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: Platform.OS === 'ios' ? '#A9A9A9' : '#777',
+    borderColor: Platform.OS === 'ios' ? '#A9A9A9' : '#777 777',
     borderRadius: wp(2),
     paddingVertical: Platform.OS === 'ios' ? hp(1.5) : hp(0.2),
     paddingHorizontal: wp(2),

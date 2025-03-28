@@ -235,10 +235,13 @@ const VerifyScreen: React.FC<VerifyScreenProps> = ({
 
           // Append service offered as an array
           if (serviceData.serviceOffered?.length) {
-            const servicesString = serviceData.serviceOffered.join(','); // Convert array to comma-separated string
-            formData.append('services_offered', servicesString);
+            serviceData.serviceOffered.forEach(service => {
+              formData.append('services_offered[]', service);
+            });
           }
         }
+
+        console.log(serviceData.serviceOffered);
 
         // Function to handle both images & PDF uploads
         const appendFile = (

@@ -32,7 +32,7 @@ export interface AuthState {
   ownerPhoneNumber?: string;
   ownerEmail?: string;
   linkedIn?: string;
-  serviceOffered?: string[];
+  serviceOffered?: number[];
   productionCapacity?: string;
   turnaroundTime?: string;
   specialization?: string;

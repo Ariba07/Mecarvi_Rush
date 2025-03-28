@@ -33,6 +33,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 import {auth} from '../../../FirebaseConfig';
 import {signInWithCustomToken} from 'firebase/auth';
+import {initializeFCM} from '../../components/helperUtils/notifications/FCMTokenManager';
 
 const {width, height} = Dimensions.get('window');
 
@@ -44,6 +45,7 @@ const loginValidationSchema = Yup.object().shape({
 
 const STORAGE_KEY = '@login_credentials';
 const TOKEN_KEY = 'userToken';
+const FCM_UNSUBSCRIBE_KEY = '@fcm_unsubscribe';
 
 const Login: React.FC = () => {
   const [isChecked, setIsChecked] = useState(false);
@@ -136,6 +138,43 @@ const Login: React.FC = () => {
         await AsyncStorage.removeItem(STORAGE_KEY);
       }
 
+      // Initialize FCM after successful login
+      try {
+        // Clean up any existing token refresh listener
+        const existingUnsubscribe = await AsyncStorage.getItem(
+          FCM_UNSUBSCRIBE_KEY,
+        );
+        if (existingUnsubscribe) {
+          try {
+            const unsubscribeFunc = JSON.parse(existingUnsubscribe);
+            unsubscribeFunc();
+            console.log('Cleaned up previous FCM token refresh listener.');
+          } catch (cleanupError) {
+            console.error(
+              'Error cleaning up previous FCM listener:',
+              cleanupError,
+            );
+          }
+        }
+
+        // Initialize FCM
+        const unsubscribeFCM = initializeFCM();
+        console.log('FCM initialized after login.');
+
+        // Store the unsubscribe function
+        await AsyncStorage.setItem(
+          FCM_UNSUBSCRIBE_KEY,
+          unsubscribeFCM.toString(),
+        );
+      } catch (fcmError) {
+        console.error('Error initializing FCM after login:', fcmError);
+        Alert.alert(
+          'Notification Setup',
+          'Failed to set up notifications. You may not receive notifications.',
+        );
+      }
+
+      // Navigate to the Subscription screen
       navigation.replace('Subscription');
     } catch (error: any) {
       console.error('Login error:', error.response?.data || error.message);
