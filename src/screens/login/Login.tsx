@@ -125,9 +125,9 @@ const Login: React.FC = () => {
         await AsyncStorage.removeItem(STORAGE_KEY);
       }
 
-      // FCM Handling
+      // FCM Handling: Pass isChecked to initializeFCM
       await AsyncStorage.removeItem(FCM_UNSUBSCRIBE_KEY);
-      initializeFCM();
+      initializeFCM(isChecked);
 
       navigation.replace('Subscription');
     } catch (error: any) {

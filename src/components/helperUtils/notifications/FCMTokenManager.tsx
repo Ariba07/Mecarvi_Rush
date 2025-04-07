@@ -1,4 +1,10 @@
-import messaging from '@react-native-firebase/messaging';
+import {
+  getMessaging,
+  getToken,
+  onTokenRefresh,
+  AuthorizationStatus,
+  deleteToken,
+} from '@react-native-firebase/messaging';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {apiHelper} from '../apiHelper/ApiHelper';
 
@@ -6,10 +12,11 @@ const FCM_TOKEN_KEY = '@fcm_token';
 
 // Function to request notification permissions (required for iOS)
 async function requestNotificationPermission(): Promise<boolean> {
-  const authStatus = await messaging().requestPermission();
+  const messaging = getMessaging();
+  const authStatus = await messaging.requestPermission();
   const enabled =
-    authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-    authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+    authStatus === AuthorizationStatus.AUTHORIZED ||
+    authStatus === AuthorizationStatus.PROVISIONAL;
 
   if (enabled) {
     console.log('Notification permission granted.');
@@ -21,7 +28,7 @@ async function requestNotificationPermission(): Promise<boolean> {
 }
 
 // Function to get and send the FCM token to the backend
-async function sendFCMTokenToBackend(): Promise<void> {
+async function sendFCMTokenToBackend(isChecked: boolean): Promise<void> {
   try {
     // Request permission (iOS requires this)
     const permissionGranted = await requestNotificationPermission();
@@ -32,11 +39,12 @@ async function sendFCMTokenToBackend(): Promise<void> {
       return;
     }
 
-    // Register the device with FCM
-    await messaging().registerDeviceForRemoteMessages();
+    // Register the device with FCM (still required for iOS)
+    const messaging = getMessaging();
+    await messaging.registerDeviceForRemoteMessages();
 
     // Get the FCM token
-    const token = await messaging().getToken();
+    const token = await getToken(messaging);
     console.log('FCM Token:', token);
 
     // Check if the token has changed
@@ -57,8 +65,14 @@ async function sendFCMTokenToBackend(): Promise<void> {
     });
     console.log('FCM token sent to backend successfully:', token);
 
-    // Store the token locally
-    await AsyncStorage.setItem(FCM_TOKEN_KEY, token);
+    // Store the token locally only if "Remember me" is checked
+    if (isChecked) {
+      await AsyncStorage.setItem(FCM_TOKEN_KEY, token);
+      console.log('FCM token stored in AsyncStorage.');
+    } else {
+      await AsyncStorage.removeItem(FCM_TOKEN_KEY);
+      console.log('FCM token not stored (Remember me not checked).');
+    }
   } catch (error) {
     console.error('Error sending FCM token to backend:', error);
     throw error; // Re-throw the error to be caught in the calling function
@@ -66,8 +80,9 @@ async function sendFCMTokenToBackend(): Promise<void> {
 }
 
 // Function to handle token refresh and send the new token to the backend
-function setupTokenRefreshListener(): () => void {
-  return messaging().onTokenRefresh(async (newToken: string) => {
+function setupTokenRefreshListener(isChecked: boolean): () => void {
+  const messaging = getMessaging();
+  return onTokenRefresh(messaging, async (newToken: string) => {
     console.log('FCM Token refreshed:', newToken);
     const storedToken = await AsyncStorage.getItem(FCM_TOKEN_KEY);
     if (storedToken === newToken) {
@@ -88,7 +103,11 @@ function setupTokenRefreshListener(): () => void {
         'Refreshed FCM token sent to backend successfully:',
         newToken,
       );
-      await AsyncStorage.setItem(FCM_TOKEN_KEY, newToken);
+      // Store the refreshed token only if "Remember me" was checked
+      if (isChecked) {
+        await AsyncStorage.setItem(FCM_TOKEN_KEY, newToken);
+        console.log('Refreshed FCM token stored in AsyncStorage.');
+      }
     } catch (error) {
       console.error('Error sending refreshed FCM token to backend:', error);
     }
@@ -96,12 +115,12 @@ function setupTokenRefreshListener(): () => void {
 }
 
 // Main function to initialize FCM token management
-export function initializeFCM(): () => void {
+export function initializeFCM(isChecked: boolean): () => void {
   // Get and send the initial token
-  sendFCMTokenToBackend();
+  sendFCMTokenToBackend(isChecked);
 
   // Set up the token refresh listener
-  const unsubscribe = setupTokenRefreshListener();
+  const unsubscribe = setupTokenRefreshListener(isChecked);
 
   return unsubscribe;
 }
@@ -109,6 +128,9 @@ export function initializeFCM(): () => void {
 // Function to clear the stored FCM token (e.g., on logout)
 export async function clearFCMToken(): Promise<void> {
   try {
+    const messaging = getMessaging();
+    await deleteToken(messaging); // Delete the FCM token from Firebase
+    console.log('FCM token deleted from Firebase.');
     await AsyncStorage.removeItem(FCM_TOKEN_KEY);
     console.log('Stored FCM token cleared.');
   } catch (error) {

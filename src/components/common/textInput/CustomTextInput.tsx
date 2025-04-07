@@ -32,14 +32,6 @@ const dropdownOptions: {[key: string]: string[]} = {
   'Legal Structure of Business': ['Sole Proprietorship', 'Partnership', 'LLC'],
   'Select Capacity': ['Small', 'Medium', 'Large'],
   'Select Your Target Market': ['Local', 'National', 'International'],
-  'Sidewalk Sign Size': ['Small', 'Medium', 'Large'],
-  'Sidewalk Sign Material': ['Aluminum', 'Plastic', 'Wood'],
-  'Sidewalk Sign Hardware': ['A-Frame', 'H-Frame', 'No Frame'],
-  'Sidewalk Sign Artwork': [
-    'Printed Graphic',
-    'Vinyl Lettering',
-    'Custom Design',
-  ],
   'Address-type': ['shipping', 'billing'],
 };
 

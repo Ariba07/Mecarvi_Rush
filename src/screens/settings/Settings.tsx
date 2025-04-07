@@ -30,6 +30,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 import Theme from '../../assets/images/Theme.svg';
+import {clearFCMToken} from '../../components/helperUtils/notifications/FCMTokenManager';
 
 const STORAGE_KEY = '@login_credentials';
 
@@ -190,6 +191,7 @@ const Settings = () => {
       await AsyncStorage.removeItem('@login_credentials');
       dispatch(clearUser());
       navigation.replace('Login');
+      clearFCMToken();
     } catch (error) {
       console.log('Error during logout:', error);
     }

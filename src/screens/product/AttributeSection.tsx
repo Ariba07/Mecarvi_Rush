@@ -1,4 +1,5 @@
-import React from 'react';
+/* eslint-disable react-native/no-inline-styles */
+import React, {useState} from 'react';
 import {View, Text, TextInput, TouchableOpacity, Image} from 'react-native';
 import {
   heightPercentageToDP as hp,
@@ -10,8 +11,9 @@ import File from '../../assets/images/File.svg';
 import {styles} from '../../assets/styles/product/Product';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {useDispatch} from 'react-redux';
-import {addToCart} from '../../slice/Slice'; // Import the action
+import {addToCart} from '../../slice/Slice';
 import {CartItem} from '../../components/types/screenTypes/ScreenTypes';
+import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 
 interface AttributesSectionProps {
   attributes: any[];
@@ -27,8 +29,8 @@ interface AttributesSectionProps {
   setReviewText: (text: string) => void;
   theme: any;
   navigation: NativeStackNavigationProp<any>;
-  productData: any; // Add productData
-  productUuid: string | null; // Add productUuid
+  productData: any;
+  productUuid: string | null;
 }
 
 const AttributesSection: React.FC<AttributesSectionProps> = ({
@@ -49,7 +51,7 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
   productUuid,
 }) => {
   const dispatch = useDispatch();
-  console.log(productData);
+  const [quantity, setQuantity] = useState(1);
 
   const handleChange = (
     key: string,
@@ -117,14 +119,79 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
       productUuid,
       name: productData.name || 'Unnamed Product',
       price: productData.price || 0,
-      selectedColor: selectedColor || undefined,
+      quantity: quantity,
+      selectedColor: selectedColor ? getHexColor(selectedColor) : undefined,
       frontFile: frontFile ? {uri: frontFile.uri} : undefined,
       backFile: backFile ? {uri: backFile.uri} : undefined,
       orderNotes: reviewText || undefined,
+      attributes: attributeValues,
+    };
+    dispatch(addToCart(cartItem));
+  };
+
+  const handleRequestQuote = async () => {
+    if (!productUuid || !productData) {
+      return;
+    }
+
+    const cartItem: CartItem = {
+      id: productData.id,
+      productUuid,
+      name: productData.name || 'Unnamed Product',
+      price: productData.price || 0,
+      quantity: quantity,
+      selectedColor: selectedColor ? getHexColor(selectedColor) : undefined,
+      frontFile: frontFile ? {uri: frontFile.uri} : undefined,
+      backFile: backFile ? {uri: backFile.uri} : undefined,
+      orderNotes: reviewText || undefined,
+      attributes: attributeValues,
     };
 
+    // Prepare form-data for the API request
+    const formData = new FormData();
+    formData.append('product_id', cartItem.id.toString());
+    formData.append('quantity', cartItem.quantity?.toString() || '1');
+    formData.append('note', cartItem.orderNotes || '');
+
+    if (cartItem.attributes) {
+      Object.entries(cartItem.attributes).forEach(([key, value]) => {
+        formData.append(`details[${key}]`, value);
+      });
+    }
+
+    if (cartItem.frontFile && frontFile) {
+      formData.append('front_image', {
+        uri: frontFile.uri,
+        type: frontFile.type || 'image/jpeg',
+        name: frontFile.name || 'front_image.jpg',
+      });
+    }
+    if (cartItem.backFile && backFile) {
+      formData.append('back_image', {
+        uri: backFile.uri,
+        type: backFile.type || 'image/jpeg',
+        name: backFile.name || 'back_image.jpg',
+      });
+    }
+
+    try {
+      // Call the apiHelper function
+      const result: {success: boolean; [key: string]: any} = await apiHelper({
+        method: 'POST',
+        endpoint: 'quote-requests/',
+        data: formData,
+      });
+
+      console.log('Quote Request Response:', result);
+
+      navigation.navigate('Quote');
+    } catch (error) {
+      console.error('Error making quote request:', error);
+      // Handle network error (e.g., show error message to user)
+    }
+
+    // Optionally still dispatch to cart
     dispatch(addToCart(cartItem));
-    // navigation.navigate('Cart'); // Navigate to Cart screen after adding
   };
 
   return (
@@ -137,7 +204,7 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
             value={attributeValues[attr.key] || ''}
             width={wp(90)}
             onChangeText={text => handleChange(attr.key, text)}
-            isMultiSelect={attr.options.length > 1}
+            isMultiSelect={false}
             options={attr.options}
           />
         </View>
@@ -155,6 +222,54 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
             onPress={() => setSelectedColor(color)}
           />
         ))}
+      </View>
+      <View style={{marginBottom: hp(2)}}>
+        <Text style={[styles.label, {color: theme.text}]}>Quantity</Text>
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            width: wp(30),
+            justifyContent: 'space-between',
+            marginTop: hp(1),
+          }}>
+          <TouchableOpacity
+            style={{
+              width: wp(8),
+              height: wp(8),
+              borderRadius: wp(4),
+              backgroundColor: theme.backgroundColor,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+            onPress={() => setQuantity(prev => Math.max(1, prev - 1))}
+            disabled={quantity <= 1}>
+            <Text style={{color: theme.input, fontSize: wp(5)}}>-</Text>
+          </TouchableOpacity>
+
+          <Text
+            style={{
+              fontSize: wp(4.5),
+              color: theme.text,
+              width: wp(10),
+              textAlign: 'center',
+            }}>
+            {quantity}
+          </Text>
+
+          <TouchableOpacity
+            style={{
+              width: wp(8),
+              height: wp(8),
+              borderRadius: wp(4),
+              backgroundColor: theme.backgroundColor,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+            onPress={() => setQuantity(prev => prev + 1)}>
+            <Text style={{color: theme.input, fontSize: wp(5)}}>+</Text>
+          </TouchableOpacity>
+        </View>
       </View>
       <Text style={[styles.label, {color: theme.text}]}>
         Upload Logo/Artwork
@@ -201,6 +316,7 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
         onChangeText={setReviewText}
         placeholderTextColor={'#9c9c9c'}
       />
+
       <View style={styles.buttonContainer}>
         <View style={styles.row}>
           <TouchableOpacity style={styles.button} onPress={handleChooseForMe}>
@@ -208,9 +324,7 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
               Choose for me
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => navigation.navigate('Quote')}>
+          <TouchableOpacity style={styles.button} onPress={handleRequestQuote}>
             <Text style={[styles.buttonText, {color: theme.backgroundColor}]}>
               Request a Quote
             </Text>

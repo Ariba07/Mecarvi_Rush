@@ -195,4 +195,5 @@ export interface CartItem {
   backFile?: {uri: string} | null;
   orderNotes?: string;
   quantity?: number;
+  attributes?: {[key: string]: string}; // Added attributes field
 }
