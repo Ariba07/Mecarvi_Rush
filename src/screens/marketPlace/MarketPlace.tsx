@@ -24,59 +24,53 @@ import {setServiceProviderUuid} from '../../slice/Slice';
 
 type Prop = RouteProp<RootStackParamList, 'MarketPlace'>;
 
-// Define the type for our provider based on API response
+// Define the type for our provider based on the actual API response
 interface BusinessProvider {
-  service_provider_uuid: string;
+  service_provider_uuid: string; // marketplace_uuid from response
   id: number;
   service_provider_name: string;
   logo: string;
-  average_turnaround_time: string;
-  // Adding some default fields since rating and price aren't in API response
-  rating: number;
+  address: string;
   price: string;
-  user_uuid: string;
 }
 
 const MarketPlace: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute<Prop>();
-  const {fromProduct} = route.params;
+  const {fromProduct, productId} = route.params;
   const {theme} = useContext(ThemeContext);
   const [providers, setProviders] = useState<BusinessProvider[]>([]);
   const dispatch = useDispatch();
 
-  // Fetch products when component mounts
+  // Fetch providers when component mounts
   useEffect(() => {
     const fetchProviders = async () => {
       try {
         const response = await apiHelper({
           method: 'GET',
-          endpoint: 'service-provider/',
+          endpoint: `marketplace/product/${productId}`,
         });
 
         // Map API response to our required format
         const mappedProviders = (response as {data: any[]}).data.map(
           (item: any) => ({
-            service_provider_uuid: item.service_provider_uuid,
+            service_provider_uuid: item.service_provider_uuid, // Use marketplace_uuid as service_provider_uuid
             id: item.id,
             service_provider_name: item.service_provider_name,
             logo: item.logo,
-            average_turnaround_time: item.average_turnaround_time,
-            user_uuid: item.user.user_uuid,
-            // Since rating and price aren't in API response, adding default values
-            rating: 4.0, // Default rating, modify as needed
-            price: '$100', // Default price, modify as needed or fetch from another endpoint
+            address: item.address,
+            price: `$${parseFloat(item.price).toFixed(2)}`, // Format price with $
           }),
         );
 
         setProviders(mappedProviders);
       } catch (error) {
-        console.error('Error fetching products:', error);
+        console.error('Error fetching providers:', error);
       }
     };
     fetchProviders();
-  }, []);
+  }, [productId]);
 
   const handleAccept = (providerId: number) => {
     console.log(`Accepted provider with ID: ${providerId}`);
@@ -87,10 +81,14 @@ const MarketPlace: React.FC = () => {
     <TouchableOpacity
       style={[styles.providerCard, {backgroundColor: theme.backgroundColor}]}
       onPress={() => {
-        navigation.navigate('ShopProfile', {
-          fromBid: fromProduct === true ? false : true,
-          providerId: item.user_uuid,
-        });
+        if (item.service_provider_uuid) {
+          navigation.navigate('ShopProfile', {
+            fromBid: fromProduct === true ? false : true,
+            providerId: item.service_provider_uuid,
+          });
+        } else {
+          console.error('Provider ID is undefined');
+        }
         dispatch(setServiceProviderUuid(item.service_provider_uuid));
       }}>
       <Image
@@ -102,20 +100,10 @@ const MarketPlace: React.FC = () => {
         <Text style={[styles.providerName, {color: theme.text}]}>
           {item.service_provider_name}
         </Text>
-        <Text style={[styles.deliveryDate, {color: theme.text}]}>
-          Delivery Date: {item.average_turnaround_time}
+        <Text style={[styles.address, {color: theme.text}]}>
+          Address: {item.address}
         </Text>
-        <View style={styles.ratingContainer}>
-          {[...Array(5)].map((_, index) => (
-            <Icon
-              key={index}
-              name="star"
-              size={wp(4)}
-              color={index < item.rating ? '#ffd700' : '#ddd'}
-            />
-          ))}
-          <Text style={styles.ratingText}>{item.rating.toFixed(1)}</Text>
-        </View>
+
         <View style={styles.row}>
           <Text style={[styles.price, {color: theme.input}]}>{item.price}</Text>
           {!fromProduct && (
@@ -153,6 +141,9 @@ const MarketPlace: React.FC = () => {
           keyExtractor={item => item.id.toString()}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContainer}
+          ListEmptyComponent={
+            <Text style={styles.emptyText}>No providers found</Text>
+          }
         />
       </View>
     </SafeAreaView>
@@ -204,13 +195,20 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
   },
+  address: {
+    fontSize: wp(3),
+    color: '#666',
+    marginTop: hp(0.5),
+  },
   deliveryDate: {
     fontSize: wp(3),
     color: '#666',
+    marginTop: hp(0.5),
   },
   ratingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginTop: hp(0.5),
   },
   ratingText: {
     fontSize: wp(3),
@@ -238,6 +236,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    marginTop: hp(0.5),
+  },
+  emptyText: {
+    fontSize: wp(4),
+    color: '#666',
+    textAlign: 'center',
+    marginTop: hp(5),
   },
 });
 

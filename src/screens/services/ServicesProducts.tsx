@@ -1,4 +1,11 @@
-import {View, Platform, StyleSheet, SafeAreaView, FlatList} from 'react-native';
+import {
+  View,
+  Platform,
+  StyleSheet,
+  SafeAreaView,
+  FlatList,
+  Text,
+} from 'react-native';
 import React, {useContext, useEffect, useState} from 'react';
 import {
   widthPercentageToDP as wp,
@@ -14,28 +21,43 @@ import {
 import OrderCard from '../../components/common/orderCard/OrderCard';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
+import {selectServicesOffered} from '../../slice/Slice';
+import {useSelector} from 'react-redux';
 
 const ServicesProducts = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
-  const [products, setProducts] = useState<Productss[]>([]); // Type state with Product
+  const {theme} = useContext(ThemeContext);
+  const [products, setProducts] = useState<Productss[]>([]);
+  const services = useSelector(selectServicesOffered); // Array of service IDs
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
+        // Construct the query string with multiple category_id[] parameters
+        const queryString = (services || [])
+          .map(serviceId => `category_id[]=${serviceId}`)
+          .join('&');
+        const endpoint = `products${queryString ? `?${queryString}` : ''}`;
+
         const response: {data: Productss[]} = await apiHelper({
           method: 'GET',
-          endpoint: 'products',
+          endpoint: endpoint, // e.g., products?category_id[]=1&category_id[]=2
         });
-        const fetchedProduct = response?.data || [];
-        setProducts(fetchedProduct);
+
+        const fetchedProducts = response?.data || [];
+        setProducts(fetchedProducts);
       } catch (error) {
         console.error('Error fetching products:', error);
       }
     };
-    fetchProducts();
-  }, []); // Empty
+
+    // Only fetch products if services array is not empty
+    if (services && services.length > 0) {
+      fetchProducts();
+    }
+  }, [services]); // Re-run when services change
+
   return (
     <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
       <View style={styles.container}>
@@ -57,6 +79,11 @@ const ServicesProducts = () => {
               id={item.id}
             />
           )}
+          ListEmptyComponent={
+            <Text style={styles.emptyText}>
+              No products found for the selected services
+            </Text>
+          }
         />
       </View>
     </SafeAreaView>
@@ -71,13 +98,19 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: Platform.select({
-      ios: wp(6), // Slightly more padding on iOS
+      ios: wp(6),
       android: wp(5),
     }),
     paddingBottom: Platform.select({
       ios: hp(1),
       android: hp(1),
     }),
+  },
+  emptyText: {
+    fontSize: wp(4),
+    color: '#666',
+    textAlign: 'center',
+    marginTop: hp(5),
   },
 });
 

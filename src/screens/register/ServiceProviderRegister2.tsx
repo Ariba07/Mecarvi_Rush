@@ -94,7 +94,9 @@ const ServiceProviderRegister2 = () => {
             </View>
 
             <Text style={styles.title}>Registration</Text>
-            <Text style={styles.subTitle}>Service Details</Text>
+            <Text style={[styles.subTitle, {color: theme.text}]}>
+              Service Details
+            </Text>
 
             <View style={{height: hp(65), marginTop: hp(2)}}>
               <ScrollView

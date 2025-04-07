@@ -106,7 +106,7 @@ const OrderCard: React.FC<ProductCardProps> = ({
       </View>
 
       {/* Price */}
-      <Text style={[styles.price, {color: theme.text}]}>{price}</Text>
+      <Text style={[styles.price, {color: theme.text}]}>$ {price}</Text>
     </TouchableOpacity>
   );
 };

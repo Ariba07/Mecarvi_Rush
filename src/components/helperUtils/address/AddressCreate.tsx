@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, {useContext, useState} from 'react';
 import {
   View,
@@ -23,6 +24,9 @@ interface AddressCreateProps {
   onClose: () => void;
 }
 
+const GOOGLE_API_KEY = 'AIzaSyAU9bshzS-D9P2Equ-0HW9skO7Ro9wR9ZY';
+const GEOCODE_API_URL = 'https://maps.google.com/maps/api/geocode/json';
+
 const AddressCreate: React.FC<AddressCreateProps> = ({visible, onClose}) => {
   const [addressType, setAddressType] = useState('');
   const [country, setCountry] = useState('');
@@ -30,9 +34,35 @@ const AddressCreate: React.FC<AddressCreateProps> = ({visible, onClose}) => {
   const [city, setCity] = useState('');
   const [zipCode, setZipCode] = useState('');
   const [address, setAddress] = useState('');
+  const [latitude, setLatitude] = useState('');
+  const [longitude, setLongitude] = useState('');
   const [loading, setLoading] = useState(false);
   const user_id = useSelector(selectUserId);
-  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
+  const {theme} = useContext(ThemeContext);
+
+  const fetchCoordinates = async (fullAddress: string) => {
+    try {
+      const response = await fetch(
+        `${GEOCODE_API_URL}?key=${GOOGLE_API_KEY}&address=${encodeURIComponent(
+          fullAddress,
+        )}`,
+      );
+      const data = await response.json();
+
+      if (data.status === 'OK' && data.results.length > 0) {
+        const {lat, lng} = data.results[0].geometry.location;
+        setLatitude(lat.toString());
+        setLongitude(lng.toString());
+        return {latitude: lat, longitude: lng};
+      } else {
+        throw new Error('Unable to geocode address');
+      }
+    } catch (error) {
+      console.error('Geocoding Error:', error);
+      Alert.alert('Error', 'Failed to get coordinates for the address');
+      return null;
+    }
+  };
 
   const handleSave = async () => {
     if (!addressType || !country || !state || !city || !zipCode || !address) {
@@ -42,6 +72,15 @@ const AddressCreate: React.FC<AddressCreateProps> = ({visible, onClose}) => {
 
     setLoading(true);
     try {
+      // Construct full address for geocoding
+      const fullAddress = `${address}, ${city}, ${state}, ${zipCode}, ${country}`;
+      const coordinates = await fetchCoordinates(fullAddress);
+
+      if (!coordinates) {
+        setLoading(false);
+        return;
+      }
+
       const payload = {
         user_id: user_id,
         address_type: addressType,
@@ -50,6 +89,8 @@ const AddressCreate: React.FC<AddressCreateProps> = ({visible, onClose}) => {
         state,
         zip_code: zipCode,
         country,
+        latitude: coordinates.latitude,
+        longitude: coordinates.longitude,
         is_default: true,
       };
 
@@ -61,6 +102,15 @@ const AddressCreate: React.FC<AddressCreateProps> = ({visible, onClose}) => {
 
       if (response.status === 1) {
         Alert.alert('Success', 'Address added successfully');
+        // Reset form
+        setAddressType('');
+        setCountry('');
+        setState('');
+        setCity('');
+        setZipCode('');
+        setAddress('');
+        setLatitude('');
+        setLongitude('');
         onClose();
       } else {
         Alert.alert('Error', response.message || 'Failed to add address');
@@ -91,8 +141,16 @@ const AddressCreate: React.FC<AddressCreateProps> = ({visible, onClose}) => {
               <CustomTextInput
                 placeholder="Address-type"
                 value={addressType}
-                onChangeText={(text: string | string[]) =>
-                  setAddressType(Array.isArray(text) ? text.join(', ') : text)
+                onChangeText={(text: string | {id: number; name: string}[]) =>
+                  setAddressType(
+                    Array.isArray(text)
+                      ? text
+                          .map(item =>
+                            typeof item === 'string' ? item : item.name,
+                          )
+                          .join(', ')
+                      : text,
+                  )
                 }
               />
             </View>
@@ -200,7 +258,7 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
   },
   disabledButton: {
-    backgroundColor: '#A0C4C4', // Lighter shade to indicate disabled state
+    backgroundColor: '#A0C4C4',
     elevation: 0,
     shadowOpacity: 0,
   },
@@ -208,27 +266,6 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: wp(4.5),
     fontWeight: 'bold',
-  },
-  checkboxContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  checkbox: {
-    width: wp(5),
-    height: wp(5),
-    borderWidth: 1,
-    borderColor: '#03A7A7',
-    borderRadius: wp(1),
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: wp(2),
-  },
-  checkboxChecked: {
-    backgroundColor: '#03A7A7',
-  },
-  checkboxLabel: {
-    fontSize: wp(4),
-    color: '#333',
   },
 });
 

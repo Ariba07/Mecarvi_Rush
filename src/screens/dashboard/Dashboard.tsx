@@ -27,8 +27,12 @@ import SideMenu from '../../assets/images/SideMenu.svg';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
-import {useDispatch} from 'react-redux';
-import {setServiceUuid} from '../../slice/Slice';
+import {useDispatch, useSelector} from 'react-redux';
+import {
+  selectDefaultCity,
+  selectDefaultCountry,
+  setServiceUuid,
+} from '../../slice/Slice';
 
 const banners = [
   {id: '1', image: require('../../assets/images/Banner.png')},
@@ -42,6 +46,8 @@ const Dashboard: React.FC = () => {
   const [categories, setCategories] = useState<any[]>([]);
   const {theme} = useContext(ThemeContext); // Access theme
   const dispatch = useDispatch();
+  const defaultCity = useSelector(selectDefaultCity);
+  const defaultCountry = useSelector(selectDefaultCountry);
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [selectedTab, setSelectedTab] = useState<'prints' | 'rentals'>(
@@ -143,11 +149,15 @@ const Dashboard: React.FC = () => {
                 {backgroundColor: theme.backgroundColor},
               ]}
               onPress={() => {
-                move.navigate('Address');
+                move.navigate('Address', {forDelivery: false});
               }}>
               <View style={styles.location}>
                 <Icon name="location" size={20} color={'#FF00A7'} />
-                <Text style={{color: theme.text}}>New York,USA </Text>
+                <Text style={{color: theme.text}}>
+                  {defaultCity !== null && defaultCountry !== null
+                    ? `${defaultCity}, ${defaultCountry}`
+                    : 'Select a city'}{' '}
+                </Text>
                 <Icon name="chevron-down" size={15} color={'#5c5c5c'} />
               </View>
             </TouchableOpacity>
@@ -376,7 +386,7 @@ const styles = StyleSheet.create({
   },
   locationContainer: {
     backgroundColor: '#ffffff',
-    width: wp(40),
+    width: wp(48),
     paddingVertical: hp(1),
     borderRadius: 8,
   },
@@ -384,7 +394,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginHorizontal: wp(2),
+    marginHorizontal: wp(1),
   },
   locationRow: {
     flexDirection: 'row',

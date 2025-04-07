@@ -12,7 +12,7 @@ import {
   Alert,
 } from 'react-native';
 import Header from '../../components/common/header/Header';
-import {useNavigation} from '@react-navigation/native';
+import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
 import {
@@ -23,6 +23,9 @@ import {Svg, Circle} from 'react-native-svg';
 import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 import AddressCreate from '../../components/helperUtils/address/AddressCreate';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {useDispatch} from 'react-redux';
+import {setDefaultAddressDetails, setDeliveryAddressDetails} from '../../slice/Slice';
+type AddressRouteProp = RouteProp<RootStackParamList, 'Address'>;
 
 const Address = () => {
   const navigation =
@@ -31,9 +34,11 @@ const Address = () => {
   const [addresses, setAddresses] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
-  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
+  const {theme} = useContext(ThemeContext);
+  const dispatch = useDispatch();
+  const route = useRoute<AddressRouteProp>();
+  const {forDelivery} = route.params;
 
-  // Function to fetch addresses
   const fetchAddress = async () => {
     try {
       const response = await apiHelper({
@@ -49,22 +54,29 @@ const Address = () => {
     }
   };
 
-  // Initial fetch on mount
   useEffect(() => {
-    fetchAddress();
-  }, []);
+    const defaultAddress = addresses.find(item => item.is_default);
+    if (defaultAddress) {
+      setSelectedId(defaultAddress.user_address_uuid);
 
-  // Pull-to-refresh handler
+      dispatch(
+        setDefaultAddressDetails({
+          city: defaultAddress.city || '',
+          country: defaultAddress.country || '',
+        }),
+      );
+    }
+    fetchAddress();
+  }, [addresses, dispatch]);
+
   const onRefresh = async () => {
     setRefreshing(true);
     await fetchAddress();
     setRefreshing(false);
   };
 
-  // Function to update the is_default parameter with all required fields
   const updateDefaultAddress = async (addressId: string) => {
     try {
-      // Find the address to update
       const addressToUpdate = addresses.find(
         item => item.user_address_uuid === addressId,
       );
@@ -72,14 +84,30 @@ const Address = () => {
         throw new Error('Address not found');
       }
 
-      // Optimistically update the UI: set selected address to true, others to false
+      // Optimistically update the UI
       const updatedAddresses = addresses.map(item => ({
         ...item,
-        is_default: item.user_address_uuid === addressId ? true : false,
+        is_default: item.user_address_uuid === addressId,
       }));
       setAddresses(updatedAddresses);
+      setSelectedId(addressId);
 
-      // Step 1: Set the selected address to is_default: true
+if (forDelivery) {
+  dispatch(
+    setDeliveryAddressDetails({
+      city: addressToUpdate.city,
+      country: addressToUpdate.country,
+    }),
+  );
+} else {
+  dispatch(
+    setDefaultAddressDetails({
+      city: addressToUpdate.city,
+      country: addressToUpdate.country,
+    }),
+  );
+}
+      // Update the selected address to be default using existing coordinates
       const payload = {
         user_id: addressToUpdate.user_id,
         address_type: addressToUpdate.address_type,
@@ -88,16 +116,25 @@ const Address = () => {
         state: addressToUpdate.state,
         zip_code: addressToUpdate.zip_code,
         country: addressToUpdate.country,
-        is_default: true,
+        latitude: addressToUpdate.latitude,
+        longitude: addressToUpdate.longitude,
+        is_default: true, // Use boolean instead of integer
       };
 
-      await apiHelper({
+      const response = (await apiHelper({
         method: 'PATCH',
         endpoint: `user-address/${addressId}?_method=patch`,
         data: payload,
-      });
+      })) as {status: number; message?: string};
 
-      // Step 2: Set all other addresses to is_default: false
+      if (response.status !== 1) {
+        const errorMessage =
+          (response as {message?: string})?.message ||
+          'Failed to update default address';
+        throw new Error(errorMessage);
+      }
+
+      // Set all other addresses to is_default: false
       const otherAddresses = addresses.filter(
         item => item.user_address_uuid !== addressId,
       );
@@ -111,6 +148,8 @@ const Address = () => {
             state: item.state,
             zip_code: item.zip_code,
             country: item.country,
+            latitude: item.latitude,
+            longitude: item.longitude,
             is_default: false,
           };
           await apiHelper({
@@ -121,22 +160,23 @@ const Address = () => {
         }),
       );
 
-      // Refresh the address list to ensure consistency with the backend
       await fetchAddress();
     } catch (error: any) {
-      console.error('Error updating default address:', error.message);
-      Alert.alert(
-        'Error',
-        'An error occurred while updating the default address',
-      );
-      // Revert the UI on error
+      console.error('Error updating default address:', error);
+      let errorMessage = 'An error occurred while updating the default address';
+      if (error.response?.status === 422) {
+        const errors = error.response?.data?.errors;
+        if (errors) {
+          errorMessage = Object.values(errors).flat().join('\n');
+        }
+      }
+      Alert.alert('Error', errorMessage);
       await fetchAddress();
     }
   };
 
   const handleSelectAddress = (addressId: string) => {
-    setSelectedId(addressId);
-    updateDefaultAddress(addressId); // Call the API to update is_default
+    updateDefaultAddress(addressId);
   };
 
   const renderItem = ({item}: {item: any}) => {
@@ -176,7 +216,7 @@ const Address = () => {
                 cy={10}
                 r={5}
                 strokeWidth={1}
-                fill={item.is_default ? '#03A7A7' : 'transparent'}
+                fill={isSelected ? '#03A7A7' : 'transparent'}
               />
             </Svg>
           </View>
@@ -195,7 +235,7 @@ const Address = () => {
         <FlatList
           data={addresses}
           renderItem={renderItem}
-          keyExtractor={item => item.id.toString()}
+          keyExtractor={item => item.user_address_uuid}
           contentContainerStyle={{paddingBottom: hp(5)}}
           ListEmptyComponent={
             <Text style={styles.emptyText}>No Address found</Text>
@@ -220,7 +260,7 @@ const Address = () => {
           visible={modalVisible}
           onClose={() => {
             setModalVisible(false);
-            fetchAddress(); // Refresh addresses after adding a new one
+            fetchAddress();
           }}
         />
       </View>
@@ -261,10 +301,7 @@ const styles = StyleSheet.create({
   address: {
     color: '#666',
     fontSize: wp(3.5),
-  },
-  phone: {
-    color: '#666',
-    fontSize: wp(3.5),
+    width: wp(70),
   },
   addButton: {
     borderWidth: 1,
@@ -286,7 +323,7 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: wp(6),
     color: '#FF00A7',
-    textAlign: 'center', // Ensures text is centered within its container
+    textAlign: 'center',
     fontWeight: 'bold',
   },
 });

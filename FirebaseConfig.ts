@@ -1,8 +1,10 @@
 import {initializeApp, getApps, getApp} from 'firebase/app';
 import {getFirestore} from 'firebase/firestore';
 import {getAuth} from 'firebase/auth';
+import {getStorage} from 'firebase/storage'; // Import Firebase Storage
 import {Platform} from 'react-native';
-import '@react-native-firebase/messaging';
+// Remove unused import if you're not setting up messaging here
+// import '@react-native-firebase/messaging';
 
 const firebaseConfig = {
   apiKey:
@@ -28,4 +30,7 @@ const db = getFirestore(app);
 // Initialize Firebase Auth
 const auth = getAuth(app);
 
-export {app, db, auth};
+// Initialize Firebase Storage
+const storage = getStorage(app);
+
+export {app, db, auth, storage};

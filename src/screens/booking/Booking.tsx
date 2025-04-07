@@ -20,44 +20,33 @@ import Header from '../../components/common/header/Header';
 import Icon from 'react-native-vector-icons/MaterialIcons'; // For location pin and calendar icons
 import CustomButton from '../../components/common/buttons/CustomButton';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {useSelector} from 'react-redux';
+import {selectDeliveryCity, selectDeliveryCountry} from '../../slice/Slice';
 
 // Define interface for date and time slots
 interface DateSlot {
   day: string;
   date: number;
-  // Removed 'selected' since it's managed by state
 }
 
 interface TimeSlot {
   time: string;
-  // Removed 'selected' since it's managed by state
 }
 
 const Booking: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
-
-  // State for selected locations, dates, and time slots
-  const [pickupLocation, setPickupLocation] = useState<string>('New York, USA');
-  const [deliveryLocation, setDeliveryLocation] =
-    useState<string>('New York, USA');
-  const [isPickupDropdownVisible, setIsPickupDropdownVisible] =
-    useState<boolean>(false);
-  const [isDeliveryDropdownVisible, setIsDeliveryDropdownVisible] =
-    useState<boolean>(false);
+  const {theme} = useContext(ThemeContext);
   const [pickupDate, setPickupDate] = useState<number | null>(null);
   const [deliveryDate, setDeliveryDate] = useState<number | null>(null);
   const [pickupTime, setPickupTime] = useState<string | null>('2:00 PM'); // Default selected time
   const [deliveryTime, setDeliveryTime] = useState<string | null>(null);
+  const deliveryCity = useSelector(selectDeliveryCity);
+  const deliveryCountry = useSelector(selectDeliveryCountry);
+  const [selectedTab, setSelectedTab] = useState<'pickup' | 'delivery'>(
+    'pickup',
+  ); // Track selected tab
 
-  // Static location options
-  const locationOptions: string[] = [
-    'New York, USA',
-    'Los Angeles, USA',
-    'Chicago, USA',
-    'Houston, USA',
-  ];
   const [dateSlots, setDateSlots] = useState<DateSlot[]>([]);
 
   useEffect(() => {
@@ -82,16 +71,6 @@ const Booking: React.FC = () => {
 
     generateDateSlots();
   }, []);
-  // Handle location selection
-  const handleSelectLocation = (location: string, isPickup: boolean) => {
-    if (isPickup) {
-      setPickupLocation(location);
-      setIsPickupDropdownVisible(false);
-    } else {
-      setDeliveryLocation(location);
-      setIsDeliveryDropdownVisible(false);
-    }
-  };
 
   // Time slots data
   const timeSlots: TimeSlot[] = [
@@ -120,32 +99,26 @@ const Booking: React.FC = () => {
     }
   };
 
-  // Render location dropdown item
-  const renderLocationItem = ({item}: {item: string}) => (
-    <TouchableOpacity
-      style={styles.dropdownItem}
-      onPress={() => handleSelectLocation(item, isPickupDropdownVisible)}>
-      <Text style={[styles.dropdownItemText, {color: theme.input}]}>
-        {item}
-      </Text>
-    </TouchableOpacity>
-  );
-
   // Render date slot item
   const renderDateSlot = ({item}: {item: DateSlot}) => (
     <TouchableOpacity
       style={[
         styles.dateSlot,
-        pickupDate === item.date || deliveryDate === item.date
+        selectedTab === 'pickup'
+          ? pickupDate === item.date
+            ? styles.selectedDateSlot
+            : {backgroundColor: theme.backgroundColor}
+          : deliveryDate === item.date
           ? styles.selectedDateSlot
           : {backgroundColor: theme.backgroundColor},
       ]}
-      onPress={() => handleSelectDate(item.date, true)}>
+      onPress={() => handleSelectDate(item.date, selectedTab === 'pickup')}>
       <Text style={[styles.dateText, {color: theme.text}]}>{item.date}</Text>
       <Text style={styles.dayText}>{item.day}</Text>
     </TouchableOpacity>
   );
 
+  // Render time slot item
   const renderTimeSlot = ({item}: {item: TimeSlot}, isPickupTime: boolean) => (
     <TouchableOpacity
       style={[
@@ -179,142 +152,168 @@ const Booking: React.FC = () => {
     <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
       <View style={styles.container}>
         <Header title="Book Schedule" onBackPress={() => navigation.goBack()} />
+        {/* Tab container to hold the "pickup" and "delivery" tabs */}
+        <View style={styles.tabsContainer}>
+          <TouchableOpacity
+            onPress={() => setSelectedTab('pickup')}
+            style={[
+              styles.tab,
+              selectedTab === 'pickup' && styles.selectedTabStyle,
+            ]}>
+            <Text
+              style={[
+                styles.title,
+                selectedTab === 'pickup'
+                  ? styles.selectedTabText
+                  : {color: theme.text},
+              ]}>
+              Pickup
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => setSelectedTab('delivery')}
+            style={[
+              styles.tab,
+              selectedTab === 'delivery' && styles.selectedTabStyle,
+            ]}>
+            <Text
+              style={[
+                styles.title,
+                selectedTab === 'delivery'
+                  ? styles.selectedTabText
+                  : {color: theme.text},
+              ]}>
+              Delivery
+            </Text>
+          </TouchableOpacity>
+        </View>
 
         <ScrollView
           style={{marginBottom: hp(10)}}
           showsVerticalScrollIndicator={false}>
-          {/* Pickup Location */}
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, {color: theme.text}]}>
-              Pickup Location
-            </Text>
-            <TouchableOpacity
-              style={[
-                styles.locationContainer,
-                styles.timeList,
-                {backgroundColor: theme.backgroundColor},
-              ]}
-              onPress={() =>
-                setIsPickupDropdownVisible(!isPickupDropdownVisible)
-              }>
-              <Icon name="location-pin" size={20} color="#ff69b4" />
-              <Text style={[styles.locationText, {color: theme.input}]}>
-                {pickupLocation}
-              </Text>
-              <Icon name="arrow-drop-down" size={20} color={theme.input} />
-            </TouchableOpacity>
-            {isPickupDropdownVisible && (
-              <View
-                style={[
-                  styles.dropdownContent,
-                  {backgroundColor: theme.backgroundColor},
-                ]}>
+          {selectedTab === 'pickup' && (
+            <>
+              {/* Pickup Location */}
+              <View style={styles.section}>
+                {/* <Text
+                  style={[
+                    styles.sectionTitle,
+                    {color: theme.text, alignSelf: 'center'},
+                  ]}>
+                  Pickup
+                </Text> */}
+                {/* Uncomment if you need to select a pickup location */}
+                {/* <TouchableOpacity
+                  style={[
+                    styles.locationContainer,
+                    styles.timeList,
+                    { backgroundColor: theme.backgroundColor },
+                  ]}
+                  onPress={() =>
+                    navigation.navigate('Address', { forDelivery: false })
+                  }>
+                  <Icon name="location-pin" size={20} color="#ff69b4" />
+                  <Text style={[styles.locationText, { color: theme.input }]}>
+                    {defaultCity !== null && defaultCountry !== null
+                      ? `${defaultCity}, ${defaultCountry}`
+                      : 'Select a city'}
+                  </Text>
+                  <Icon name="arrow-drop-down" size={20} color={theme.input} />
+                </TouchableOpacity> */}
+              </View>
+              {/* Pickup Date */}
+              <View style={styles.section}>
+                <View style={styles.row}>
+                  <Text style={[styles.sectionTitle, {color: theme.text}]}>
+                    Pickup Date
+                  </Text>
+                  <Icon name="calendar-today" size={20} color="#666" />
+                </View>
                 <FlatList
-                  data={locationOptions}
-                  renderItem={renderLocationItem}
-                  keyExtractor={item => item}
-                  style={styles.dropdownList}
+                  data={dateSlots}
+                  renderItem={renderDateSlot}
+                  keyExtractor={item => item.date.toString()}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={styles.dateList}
                 />
               </View>
-            )}
-          </View>
-          {/* Pickup Date */}
-          <View style={styles.section}>
-            <View style={styles.row}>
-              <Text style={[styles.sectionTitle, {color: theme.text}]}>
-                Pickup Date
-              </Text>
-              <Icon name="calendar-today" size={20} color="#666" />
-            </View>
-            <FlatList
-              data={dateSlots}
-              renderItem={renderDateSlot}
-              keyExtractor={item => item.date.toString()}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.dateList}
-            />
-          </View>
-          {/* Pickup Time Slot */}
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, {color: theme.text}]}>
-              Pickup Time Slot
-            </Text>
-            <FlatList
-              data={timeSlots}
-              renderItem={({item}) => renderTimeSlot({item}, true)}
-              keyExtractor={item => item.time}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.timeList}
-            />
-          </View>
-          {/* Delivery Location */}
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, {color: theme.text}]}>
-              Delivery Location
-            </Text>
-            <TouchableOpacity
-              style={[
-                styles.locationContainer,
-                styles.timeList,
-                {backgroundColor: theme.backgroundColor},
-              ]}
-              onPress={() =>
-                setIsDeliveryDropdownVisible(!isDeliveryDropdownVisible)
-              }>
-              <Icon name="location-pin" size={20} color="#ff69b4" />
-              <Text style={[styles.locationText, {color: theme.input}]}>
-                {deliveryLocation}
-              </Text>
-              <Icon name="arrow-drop-down" size={20} color={theme.input} />
-            </TouchableOpacity>
-            {isDeliveryDropdownVisible && (
-              <View
-                style={[
-                  styles.dropdownContent,
-                  {backgroundColor: theme.backgroundColor},
-                ]}>
+              {/* Pickup Time Slot */}
+              <View style={styles.section}>
+                <Text style={[styles.sectionTitle, {color: theme.text}]}>
+                  Pickup Time Slot
+                </Text>
                 <FlatList
-                  data={locationOptions}
-                  renderItem={renderLocationItem}
-                  keyExtractor={item => item}
-                  style={styles.dropdownList}
+                  data={timeSlots}
+                  renderItem={({item}) => renderTimeSlot({item}, true)}
+                  keyExtractor={item => item.time}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={styles.timeList}
                 />
               </View>
-            )}
-          </View>
-          {/* Delivery Date */}
-          <View style={styles.section}>
-            <View style={styles.row}>
-              <Text style={[styles.sectionTitle, {color: theme.text}]}>
-                Delivery Date
-              </Text>
-              <Icon name="calendar-today" size={20} color="#666" />
-            </View>
-            <FlatList
-              data={dateSlots}
-              renderItem={renderDateSlot}
-              keyExtractor={item => item.date.toString()}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.dateList}
-            />
-          </View>
-          {/* Delivery Time Slot */}
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, {color: theme.text}]}>
-              Time Slot
-            </Text>
-            <FlatList
-              data={timeSlots}
-              renderItem={({item}) => renderTimeSlot({item}, false)}
-              keyExtractor={item => item.time}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.timeList}
-            />
-          </View>
+            </>
+          )}
+
+          {selectedTab === 'delivery' && (
+            <>
+              {/* Delivery Location */}
+              <View style={styles.section}>
+                <Text style={[styles.sectionTitle, {color: theme.text}]}>
+                  Delivery Location
+                </Text>
+                <TouchableOpacity
+                  style={[
+                    styles.locationContainer,
+                    styles.timeList,
+                    {backgroundColor: theme.backgroundColor},
+                  ]}
+                  onPress={() =>
+                    navigation.navigate('Address', {forDelivery: true})
+                  }>
+                  <Icon name="location-pin" size={20} color="#ff69b4" />
+                  <Text style={[styles.locationText, {color: theme.input}]}>
+                    {deliveryCity !== null && deliveryCountry !== null
+                      ? `${deliveryCity}, ${deliveryCountry}`
+                      : 'Select a city'}
+                  </Text>
+                  <Icon name="arrow-drop-down" size={20} color={theme.input} />
+                </TouchableOpacity>
+              </View>
+              {/* Delivery Date */}
+              <View style={styles.section}>
+                <View style={styles.row}>
+                  <Text style={[styles.sectionTitle, {color: theme.text}]}>
+                    Delivery Date
+                  </Text>
+                  <Icon name="calendar-today" size={20} color="#666" />
+                </View>
+                <FlatList
+                  data={dateSlots}
+                  renderItem={renderDateSlot}
+                  keyExtractor={item => item.date.toString()}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={styles.dateList}
+                />
+              </View>
+              {/* Delivery Time Slot */}
+              <View style={styles.section}>
+                <Text style={[styles.sectionTitle, {color: theme.text}]}>
+                  Delivery Time Slot
+                </Text>
+                <FlatList
+                  data={timeSlots}
+                  renderItem={({item}) => renderTimeSlot({item}, false)}
+                  keyExtractor={item => item.time}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={styles.timeList}
+                />
+              </View>
+            </>
+          )}
         </ScrollView>
 
         {/* Proceed to Pay Button */}
@@ -415,38 +414,31 @@ const styles = StyleSheet.create({
   selectedTimeText: {
     color: '#03A7A7', // Teal text for selected time
   },
-  dropdownContent: {
-    position: 'absolute',
-    top: hp(10), // Position below location container
-    left: 0,
-    right: 0,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    zIndex: 10,
-  },
-  dropdownList: {
-    maxHeight: hp(30),
-  },
-  dropdownItem: {
-    padding: wp(3),
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  dropdownItemText: {
-    fontSize: wp(4),
-    color: '#000',
-  },
   payButton: {
     position: 'absolute',
     bottom: Platform.select({ios: hp(4), android: hp(4)}),
     left: Platform.select({ios: wp(6), android: wp(5)}),
     right: Platform.select({ios: wp(6), android: wp(5)}),
   },
+  tabsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    alignItems: 'center',
+  },
+  tab: {
+    paddingHorizontal: wp('5%'),
+    paddingVertical: hp('1%'),
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  selectedTabStyle: {
+    borderBottomColor: '#03A7A7',
+    borderBottomWidth: 2,
+  },
+  selectedTabText: {
+    color: '#03A7A7', // Color for the selected tab
+  },
+  title: {fontSize: wp('5%'), fontWeight: 'bold'},
 });
 
 export default Booking;

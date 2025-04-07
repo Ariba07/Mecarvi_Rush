@@ -56,6 +56,13 @@ export interface AuthState {
   product_uuid: string;
   cart: CartItem[];
   service_provider_uuid: string;
+  servicesOffered?: string[]; // Added for service providers
+  latitude?: number;
+  longitude?: number;
+  defaultCity: string | null;
+  defaultCountry: string | null;
+  deliveryCity: string | null;
+  deliveryCountry: string | null;
 }
 
 export const initialState: AuthState = {
@@ -74,6 +81,13 @@ export const initialState: AuthState = {
   cart: [],
   user_uuid: '',
   service_provider_uuid: '',
+  servicesOffered: [], // Initialize as empty array
+  latitude: 0,
+  longitude: 0,
+  defaultCity: null,
+  defaultCountry: null,
+  deliveryCity: null,
+  deliveryCountry: null,
 };
 
 const authSlice = createSlice({
@@ -125,6 +139,8 @@ const authSlice = createSlice({
           'password',
           'email',
           'phoneNumber',
+          'longitude',
+          'latitude',
         ].includes(action.payload.field)
       ) {
         state[action.payload.field] = action.payload.value;
@@ -157,16 +173,20 @@ const authSlice = createSlice({
         role: string;
         userId: number;
         token: string;
-        firebaseUid: string; // Renamed to make it clear this should be the Firebase Auth UID
+        firebaseUid: string;
+        serviceProviderUuid?: string; // Optional, only for service providers
+        servicesOffered?: string[]; // Optional, only for service providers
       }>,
     ) => {
       state.role = action.payload.role;
       state.user_id = action.payload.userId;
       state.token = action.payload.token;
-      state.user_uuid = action.payload.firebaseUid; // Set user_uuid to Firebase Auth UID
+      state.user_uuid = action.payload.firebaseUid;
+      state.service_provider_uuid = action.payload.serviceProviderUuid || '';
+      state.servicesOffered = action.payload.servicesOffered || [];
     },
     setUserUuid: (state, action: PayloadAction<string>) => {
-      state.user_uuid = action.payload; // New reducer to explicitly set user_uuid
+      state.user_uuid = action.payload;
     },
     clearUser: state => {
       state.role = '';
@@ -175,6 +195,8 @@ const authSlice = createSlice({
       state.token = '';
       state.cart = [];
       state.user_uuid = '';
+      state.service_provider_uuid = '';
+      state.servicesOffered = [];
     },
     addToCart: (state, action: PayloadAction<CartItem>) => {
       const existingItemIndex = state.cart.findIndex(
@@ -188,29 +210,40 @@ const authSlice = createSlice({
       }
     },
     incrementQuantity: (state, action: PayloadAction<string>) => {
-      const productUuid = action.payload;
-      const item = state.cart.find(i => i.productUuid === productUuid);
+      const item = state.cart.find(i => i.productUuid === action.payload);
       if (item) {
         item.quantity = (item.quantity || 1) + 1;
       }
     },
     decrementQuantity: (state, action: PayloadAction<string>) => {
-      const productUuid = action.payload;
-      const item = state.cart.find(i => i.productUuid === productUuid);
+      const item = state.cart.find(i => i.productUuid === action.payload);
       if (item) {
         if ((item.quantity || 1) > 1) {
           item.quantity = (item.quantity || 1) - 1;
         } else {
-          state.cart = state.cart.filter(i => i.productUuid !== productUuid);
+          state.cart = state.cart.filter(i => i.productUuid !== action.payload);
         }
       }
     },
     removeFromCart: (state, action: PayloadAction<string>) => {
-      const productUuid = action.payload;
-      state.cart = state.cart.filter(i => i.productUuid !== productUuid);
+      state.cart = state.cart.filter(i => i.productUuid !== action.payload);
     },
     clearCart: state => {
       state.cart = [];
+    },
+    setDefaultAddressDetails: (
+      state,
+      action: PayloadAction<{city: string; country: string}>,
+    ) => {
+      state.defaultCity = action.payload.city;
+      state.defaultCountry = action.payload.country;
+    },
+    setDeliveryAddressDetails: (
+      state,
+      action: PayloadAction<{city: string; country: string}>,
+    ) => {
+      state.deliveryCity = action.payload.city;
+      state.deliveryCountry = action.payload.country;
     },
   },
 });
@@ -250,6 +283,8 @@ export const selectBusinessAuthState = (state: {auth: AuthState}) => ({
   password: state.auth.password,
   email: state.auth.email,
   phoneNumber: state.auth.phoneNumber,
+  longitude: state.auth.longitude,
+  latitude: state.auth.latitude,
 });
 
 export const selectCnicImage = (state: {auth: AuthState}) => state.auth.cnic;
@@ -261,7 +296,6 @@ export const selectRole = (state: {auth: AuthState}) => state.auth.role;
 export const selectUserId = (state: {auth: AuthState}) => state.auth.user_id;
 export const selectUserUuidId = (state: {auth: AuthState}) =>
   state.auth.user_uuid;
-
 export const selectToken = (state: {auth: AuthState}) => state.auth.token;
 export const selectServiceUuid = (state: {auth: AuthState}) =>
   state.auth.service_uuid;
@@ -270,6 +304,16 @@ export const selectProductUuid = (state: {auth: AuthState}) =>
 export const selectServiceProviderUuid = (state: {auth: AuthState}) =>
   state.auth.service_provider_uuid;
 export const selectCart = (state: {auth: AuthState}) => state.auth.cart;
+export const selectServicesOffered = (state: {auth: AuthState}) =>
+  state.auth.servicesOffered;
+export const selectDefaultCity = (state: {auth: AuthState}) =>
+  state.auth.defaultCity;
+export const selectDefaultCountry = (state: {auth: AuthState}) =>
+  state.auth.defaultCountry;
+export const selectDeliveryCity = (state: {auth: AuthState}) =>
+  state.auth.deliveryCity;
+export const selectDeliveryCountry = (state: {auth: AuthState}) =>
+  state.auth.deliveryCountry;
 
 export const {
   updateCustomerField,
@@ -279,7 +323,7 @@ export const {
   updateCnic,
   updatePhoto,
   setUser,
-  setUserUuid, // Export the new reducer
+  setUserUuid,
   clearUser,
   setServiceUuid,
   setProductUuid,
@@ -289,6 +333,8 @@ export const {
   removeFromCart,
   clearCart,
   setServiceProviderUuid,
+  setDefaultAddressDetails,
+  setDeliveryAddressDetails,
 } = authSlice.actions;
 
 export default authSlice.reducer;

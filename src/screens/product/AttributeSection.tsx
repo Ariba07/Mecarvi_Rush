@@ -49,11 +49,20 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
   productUuid,
 }) => {
   const dispatch = useDispatch();
+  console.log(productData);
 
-  const handleChange = (key: string, value: string | string[]) => {
+  const handleChange = (
+    key: string,
+    value: string | {id: number; name: string}[] | string[],
+  ) => {
+    const processedValue = Array.isArray(value)
+      ? value
+          .map(item => (typeof item === 'string' ? item : item.name))
+          .join(', ')
+      : value;
     setAttributeValues({
       ...attributeValues,
-      [key]: Array.isArray(value) ? value.join(', ') : value,
+      [key]: processedValue,
     });
   };
 

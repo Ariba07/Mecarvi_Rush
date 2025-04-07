@@ -27,7 +27,7 @@ export type RootStackParamList = {
   Service: undefined;
   Search: undefined;
   Products: undefined;
-  Address: undefined;
+  Address: {forDelivery?: boolean};
   Message: {chatId: string; chatName: string};
   Tracking: undefined;
   OrderDetails: undefined;

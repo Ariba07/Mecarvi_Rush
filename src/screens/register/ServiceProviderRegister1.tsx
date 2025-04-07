@@ -87,7 +87,7 @@ const ServiceProviderRegister1 = () => {
             </View>
 
             <Text style={styles.title}>Registration</Text>
-            <Text style={styles.subTitle}>
+            <Text style={[styles.subTitle, {color: theme.text}]}>
               Owner/Primary Contact Information
             </Text>
 

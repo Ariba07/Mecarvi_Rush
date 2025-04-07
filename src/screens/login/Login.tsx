@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-native/no-inline-styles */
 import React, {useState, useEffect, useContext} from 'react';
 import {
@@ -8,9 +7,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
-  Platform,
-  TouchableWithoutFeedback,
-  Keyboard,
   Alert,
   Dimensions,
 } from 'react-native';
@@ -37,7 +33,6 @@ import {initializeFCM} from '../../components/helperUtils/notifications/FCMToken
 
 const {width, height} = Dimensions.get('window');
 
-// Validation Schema
 const loginValidationSchema = Yup.object().shape({
   email: Yup.string().email('Invalid email').required('Email is required'),
   password: Yup.string().required('Password is required'),
@@ -52,21 +47,20 @@ const Login: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const dispatch = useDispatch();
-  const [initialValues, setInitialValues] = useState({email: '', password: ''});
   const {theme} = useContext(ThemeContext);
+  const backgroundImage =
+    theme.backgroundColor === '#ffffff'
+      ? require('../../assets/images/BG.png')
+      : require('../../assets/images/dark.png');
 
   useEffect(() => {
-    const checkCredentials = async () => {
-      try {
-        const savedCredentials = await AsyncStorage.getItem(STORAGE_KEY);
-        if (savedCredentials) {
+    AsyncStorage.getItem(STORAGE_KEY)
+      .then(credentials => {
+        if (credentials) {
           navigation.replace('Subscription');
         }
-      } catch (error) {
-        console.log('Error checking credentials:', (error as any)?.message);
-      }
-    };
-    checkCredentials();
+      })
+      .catch(error => console.log('Error checking credentials:', error));
   }, [navigation]);
 
   const handleLogin = async (values: {email: string; password: string}) => {
@@ -76,229 +70,172 @@ const Login: React.FC = () => {
         endpoint: 'authentication/login/',
         data: values,
       });
-
       const {data, meta} = response as {
         data: {
-          user: {id: number; roles: string[]; user_uuid: string};
+          user?: {id: number; roles: string[]}; // For service provider
+          id?: number; // For customer
+          roles?: string[]; // For customer
+          service_provider_uuid?: string; // For service provider
+          services_offered?: string[]; // For service provider
         };
         meta: {token: string; firebase_token: string};
       };
 
       await AsyncStorage.setItem(TOKEN_KEY, meta.token);
-      console.log('Token stored:', meta.token);
 
-      // Sign in with Firebase using the firebase_token
-      let firebaseUid: string;
-      try {
-        const userCredential = await signInWithCustomToken(
-          auth,
-          meta.firebase_token,
-        );
-        firebaseUid = userCredential.user.uid;
-        console.log('Signed in with Firebase, UID:', firebaseUid);
-      } catch (firebaseError) {
-        console.error('Firebase sign-in error:', firebaseError);
-        Alert.alert(
-          'Error',
-          'Failed to authenticate with Firebase. Please try again.',
-        );
-        return;
-      }
-
-      // Log the backend user_uuid for debugging
-      console.log('Backend user_uuid:', data.user.user_uuid);
-      console.log('Firebase UID:', firebaseUid);
-      if (data.user.user_uuid !== firebaseUid) {
-        console.warn('Backend user_uuid does not match Firebase UID!');
-      }
-
-      // Dispatch user data to Redux using the Firebase UID
-      dispatch(
-        setUser({
-          role: data.user.roles[0],
-          userId: data.user.id,
-          token: meta.token,
-          firebaseUid: firebaseUid, // Use the Firebase Auth UID
-        }),
+      const userCredential = await signInWithCustomToken(
+        auth,
+        meta.firebase_token,
       );
+      const firebaseUid = userCredential.user.uid;
 
-      // Store credentials, userId, role, and firebaseUid in AsyncStorage if "Remember me" is checked
+      // Determine if it's a customer or service provider response
+      const isCustomer = data.roles?.includes('customer');
+      const userId = isCustomer ? data.id : data.user?.id;
+      const roles = isCustomer ? data.roles : data.user?.roles;
+
+      const userData = {
+        role: roles?.[0] || 'unknown', // Provide a default value for role
+        userId: userId || 0, // Ensure userId is not undefined
+        token: meta.token,
+        firebaseUid,
+        ...(roles?.includes('service_provider') && {
+          serviceProviderUuid: data.service_provider_uuid,
+          servicesOffered: data.services_offered,
+        }),
+      };
+
+      dispatch(setUser(userData));
+      console.log('User data:', userData);
+
       if (isChecked) {
-        await AsyncStorage.setItem(
-          STORAGE_KEY,
-          JSON.stringify({
-            email: values.email,
-            password: values.password,
-            userId: data.user.id,
-            role: data.user.roles[0],
-            user_uuid: firebaseUid, // Store the Firebase UID
+        const storageData = {
+          email: values.email,
+          password: values.password,
+          userId,
+          role: roles?.[0],
+          user_uuid: firebaseUid,
+          ...(roles?.includes('service_provider') && {
+            serviceProviderUuid: data.service_provider_uuid,
+            servicesOffered: data.services_offered,
           }),
-        );
+        };
+        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(storageData));
       } else {
         await AsyncStorage.removeItem(STORAGE_KEY);
       }
 
-      // Initialize FCM after successful login
-      try {
-        // Clean up any existing token refresh listener
-        const existingUnsubscribe = await AsyncStorage.getItem(
-          FCM_UNSUBSCRIBE_KEY,
-        );
-        if (existingUnsubscribe) {
-          try {
-            const unsubscribeFunc = JSON.parse(existingUnsubscribe);
-            unsubscribeFunc();
-            console.log('Cleaned up previous FCM token refresh listener.');
-          } catch (cleanupError) {
-            console.error(
-              'Error cleaning up previous FCM listener:',
-              cleanupError,
-            );
-          }
-        }
+      // FCM Handling
+      await AsyncStorage.removeItem(FCM_UNSUBSCRIBE_KEY);
+      initializeFCM();
 
-        // Initialize FCM
-        const unsubscribeFCM = initializeFCM();
-        console.log('FCM initialized after login.');
-
-        // Store the unsubscribe function
-        await AsyncStorage.setItem(
-          FCM_UNSUBSCRIBE_KEY,
-          unsubscribeFCM.toString(),
-        );
-      } catch (fcmError) {
-        console.error('Error initializing FCM after login:', fcmError);
-        Alert.alert(
-          'Notification Setup',
-          'Failed to set up notifications. You may not receive notifications.',
-        );
-      }
-
-      // Navigate to the Subscription screen
       navigation.replace('Subscription');
     } catch (error: any) {
       console.error('Login error:', error.response?.data || error.message);
-      Alert.alert('Error', 'Login failed. Please check your credentials.');
+      Alert.alert(
+        'Error',
+        error.message === 'Firebase sign-in failed'
+          ? 'Firebase authentication failed.'
+          : 'Login failed.',
+      );
     }
   };
 
-  const backgroundImage =
-    theme.backgroundColor === '#ffffff'
-      ? require('../../assets/images/BG.png')
-      : require('../../assets/images/dark.png');
-
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View style={{flex: 1, backgroundColor: theme.backgroundColor}}>
-        <ImageBackground source={backgroundImage} style={styles.background}>
-          <View style={styles.logoView}>
-            <Image
-              source={require('../../assets/images/headerLogo.png')}
-              style={styles.logo}
-            />
-          </View>
-          <View style={styles.container}>
-            <Text style={styles.title}>Login</Text>
+    <View style={{flex: 1, backgroundColor: theme.backgroundColor}}>
+      <ImageBackground source={backgroundImage} style={styles.background}>
+        <View style={styles.logoView}>
+          <Image
+            source={require('../../assets/images/headerLogo.png')}
+            style={styles.logo}
+          />
+        </View>
+        <View style={styles.container}>
+          <Text style={styles.title}>Login</Text>
+          <Formik
+            initialValues={{email: '', password: ''}}
+            validationSchema={loginValidationSchema}
+            onSubmit={handleLogin}>
+            {({handleChange, handleSubmit, values, errors, touched}) => (
+              <View>
+                <Text style={[styles.label, {color: theme.text}]}>Email</Text>
+                <CustomTextInput
+                  placeholder="Email"
+                  value={values.email}
+                  onChangeText={text => handleChange('email')(text as string)}
+                />
+                {touched.email && errors.email && (
+                  <Text style={styles.errorText}>{errors.email}</Text>
+                )}
 
-            <Formik
-              initialValues={initialValues}
-              validationSchema={loginValidationSchema}
-              onSubmit={handleLogin}>
-              {({handleChange, handleSubmit, values, errors, touched}) => (
-                <View>
-                  <Text style={[styles.label, {color: theme.text}]}>Email</Text>
-                  <CustomTextInput
-                    placeholder="Email"
-                    value={values.email}
-                    onChangeText={text => handleChange('email')(text as string)}
-                  />
-                  {touched.email && errors.email && (
-                    <Text style={styles.errorText}>{errors.email}</Text>
-                  )}
+                <Text style={[styles.label, {color: theme.text}]}>
+                  Password
+                </Text>
+                <CustomTextInput
+                  placeholder="Password"
+                  secureTextEntry
+                  value={values.password}
+                  onChangeText={text =>
+                    handleChange('password')(text as string)
+                  }
+                />
+                {touched.password && errors.password && (
+                  <Text style={styles.errorText}>{errors.password}</Text>
+                )}
 
-                  <Text style={[styles.label, {color: theme.text}]}>
-                    Password
-                  </Text>
-                  <CustomTextInput
-                    placeholder="Password"
-                    secureTextEntry={true}
-                    value={values.password}
-                    onChangeText={text =>
-                      handleChange('password')(text as string)
-                    }
-                  />
-                  {touched.password && errors.password && (
-                    <Text style={styles.errorText}>{errors.password}</Text>
-                  )}
-
-                  <View style={styles.options}>
-                    <TouchableOpacity
-                      style={styles.checkboxContainer}
-                      onPress={() => setIsChecked(!isChecked)}>
-                      <View
-                        style={[
-                          styles.checkbox,
-                          isChecked && styles.checkboxChecked,
-                        ]}>
+                <View style={styles.options}>
+                  <TouchableOpacity
+                    style={styles.checkboxContainer}
+                    onPress={() => setIsChecked(!isChecked)}>
+                    <View
+                      style={[
+                        styles.checkbox,
+                        isChecked && styles.checkboxChecked,
+                      ]}>
+                      {isChecked && (
                         <Icon
                           name="checkmark"
-                          size={Platform.OS === 'ios' ? wp(4) : wp(3)}
-                          color={'#ffffff'}
+                          size={wp(3)}
+                          color="#fff"
                           type="ionicon"
                         />
-                      </View>
-                      <Text style={[styles.rememberText, {color: theme.text}]}>
-                        Remember me
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => navigation.navigate('Forget')}>
-                      <Text style={[styles.forgotText, {color: theme.text}]}>
-                        Forgot Password?
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-
-                  <CustomButton title="Login" onPress={handleSubmit} />
+                      )}
+                    </View>
+                    <Text style={[styles.rememberText, {color: theme.text}]}>
+                      Remember me
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => navigation.navigate('Forget')}>
+                    <Text style={[styles.forgotText, {color: theme.text}]}>
+                      Forgot Password?
+                    </Text>
+                  </TouchableOpacity>
                 </View>
-              )}
-            </Formik>
 
-            <View style={styles.footer}>
-              <Text style={[styles.footerText, {color: theme.text}]}>
-                Don't have an account?
-              </Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Options')}>
-                <Text style={styles.registerText}>Register here</Text>
-              </TouchableOpacity>
-            </View>
+                <CustomButton title="Login" onPress={handleSubmit} />
+              </View>
+            )}
+          </Formik>
+          <View style={styles.footer}>
+            <Text style={[styles.footerText, {color: theme.text}]}>
+              Don't have an account?{' '}
+            </Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Options')}>
+              <Text style={styles.registerText}>Register here</Text>
+            </TouchableOpacity>
           </View>
-        </ImageBackground>
-      </View>
-    </TouchableWithoutFeedback>
+        </View>
+      </ImageBackground>
+    </View>
   );
 };
 
-// Styles remain unchanged
 const styles = StyleSheet.create({
-  background: {
-    width: width,
-    height: height,
-  },
-  container: {
-    flex: 1,
-    paddingHorizontal: wp(5),
-  },
-  logoView: {
-    alignSelf: 'center',
-    marginTop: Platform.OS === 'ios' ? hp(8) : hp(5),
-    marginBottom: Platform.OS === 'ios' ? hp(11) : hp(13),
-  },
-  logo: {
-    width: Platform.OS === 'ios' ? wp(45) : wp(50),
-    height: hp(15),
-    resizeMode: 'contain',
-  },
+  background: {width, height},
+  container: {flex: 1, paddingHorizontal: wp(5)},
+  logoView: {alignSelf: 'center', marginTop: hp(5), marginBottom: hp(13)},
+  logo: {width: wp(50), height: hp(15), resizeMode: 'contain'},
   title: {
     fontSize: wp(7),
     fontWeight: 'bold',
@@ -313,36 +250,16 @@ const styles = StyleSheet.create({
     marginTop: hp(2),
     alignSelf: 'center',
   },
-  rememberText: {
-    fontSize: wp(4),
-    color: '#333',
-  },
-  forgotText: {
-    fontSize: wp(3),
-    color: '#333333',
-    textDecorationLine: 'underline',
-    top: wp(-5),
-  },
-  footerText: {
-    fontSize: wp(3),
-    alignSelf: 'center',
-    marginRight: wp(1),
-  },
-  footer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
-    marginTop: hp(1),
-  },
+  rememberText: {fontSize: wp(4), color: '#333'},
+  forgotText: {fontSize: wp(3), color: '#333', textDecorationLine: 'underline'},
+  footer: {flexDirection: 'row', justifyContent: 'center', marginTop: hp(1)},
+  footerText: {fontSize: wp(3), color: '#333'},
   registerText: {
     color: '#ff00a7',
     fontSize: wp(3),
     textDecorationLine: 'underline',
   },
-  checkboxContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
+  checkboxContainer: {flexDirection: 'row', alignItems: 'center'},
   checkbox: {
     width: hp(2),
     height: hp(2),
@@ -350,18 +267,13 @@ const styles = StyleSheet.create({
     borderColor: '#333',
     borderRadius: wp(1),
     marginRight: wp(2),
-    backgroundColor: '#FFF',
-    marginLeft: wp(1),
   },
-  checkboxChecked: {
-    backgroundColor: '#03A7A7',
-  },
+  checkboxChecked: {backgroundColor: '#03A7A7'},
   label: {
     fontSize: wp(3.5),
     color: '#333',
     marginTop: hp(1.5),
     fontWeight: '500',
-    width: '80%',
     marginLeft: wp(5),
   },
   errorText: {

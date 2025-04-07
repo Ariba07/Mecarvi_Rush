@@ -24,6 +24,7 @@ interface CustomTextInputProps {
   onChangeText?: (text: string | {id: number; name: string}[]) => void;
   isMultiSelect?: boolean;
   width?: number;
+  options?: string[] | {id: number; name: string}[]; // Add options prop
 }
 
 const dropdownOptions: {[key: string]: string[]} = {
@@ -49,6 +50,7 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
   onChangeText,
   isMultiSelect = false,
   width,
+  options, // Add options to destructured props
 }) => {
   const [isPasswordVisible, setPasswordVisible] = useState(!secureTextEntry);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
@@ -82,7 +84,9 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
   }, []);
 
   const isDropdownField =
-    placeholder in dropdownOptions || placeholder === 'Select Services';
+    placeholder in dropdownOptions ||
+    placeholder === 'Select Services' ||
+    (options && options.length > 0); // Consider it a dropdown if options are provided
 
   const handleDropdownPress = () => {
     setActiveDropdown(activeDropdown === placeholder ? null : placeholder);
@@ -107,11 +111,24 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
   };
 
   const getDropdownOptions = () => {
+    // Use passed options if provided
+    if (options && options.length > 0) {
+      return options.map(option =>
+        typeof option === 'string'
+          ? {id: 0, name: option} // Convert string options to object format
+          : option,
+      );
+    }
+    // Fallback to internal logic
     if (placeholder === 'Select Services') {
       return categories;
     }
-    return dropdownOptions[placeholder] || [];
+    return (dropdownOptions[placeholder] || []).map(option => ({
+      id: 0,
+      name: option,
+    }));
   };
+
   return (
     <View>
       {isDropdownField ? (

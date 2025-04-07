@@ -25,7 +25,7 @@ import Reviews from '../../components/helperUtils/profile/Reviews';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 import {useSelector} from 'react-redux';
-import {selectUserUuidId} from '../../slice/Slice';
+import {selectServiceProviderUuid} from '../../slice/Slice';
 
 const tabs = [
   {label: 'Services'},
@@ -38,22 +38,53 @@ const ServiceProviderProfile = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [selectedTab, setSelectedTab] = useState('Services');
-  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
-  const user_uuid = useSelector(selectUserUuidId);
+  const {theme} = useContext(ThemeContext);
+  const user_uuid = useSelector(selectServiceProviderUuid);
+  interface ProfileData {
+    user: any;
+    service_provider_name: string;
+    address: string;
+    logo: string;
+  }
+
+  console.log(user_uuid);
+
+  const [profileData, setProfileData] = useState<ProfileData | null>(null);
 
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
-        await apiHelper({
+        const response = (await apiHelper({
           method: 'GET',
           endpoint: `service-provider/${user_uuid}`,
-        });
+        })) as {
+          data: {
+            user: any;
+            service_provider_name: string;
+            address: string;
+            logo: string;
+          };
+        };
+        setProfileData(response.data);
       } catch (error) {
         console.error('Error fetching profile:', error);
       }
     };
     fetchProfileData();
   }, [user_uuid]);
+
+  console.log(profileData);
+
+  if (!profileData) {
+    return (
+      <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
+        <Text>Loading...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  const {service_provider_name, address, logo} = profileData;
+
   return (
     <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
       <View style={styles.container}>
@@ -62,19 +93,20 @@ const ServiceProviderProfile = () => {
         {/* Profile Image & Name */}
         <View style={styles.profileContainer}>
           <Image
-            source={require('../../assets/images/Orders.png')} // Replace with your image
+            source={{uri: logo}}
             style={styles.profileImage}
             resizeMode="cover"
           />
           <Text style={[styles.storeName, {color: theme.input}]}>
-            Your name
+            {service_provider_name}
           </Text>
-          <Text style={[styles.label, {color: theme.text}]}>New York, USA</Text>
+          <Text style={[styles.label, {color: theme.text}]}>{address}</Text>
           <View style={styles.ratings}>
             <Rate width={wp(3)} height={wp(3)} />
             <Text style={[styles.ratingText, {color: theme.backgroundColor}]}>
               {' '}
-              4.9 (12 Reviews)
+              4.9 (12 Reviews){' '}
+              {/* This could be dynamic if API provides rating data */}
             </Text>
           </View>
         </View>
@@ -124,7 +156,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F7FA',
   },
   container: {
-    flex: 1, // Ensures full screen usage
+    flex: 1,
     paddingHorizontal: Platform.select({
       ios: wp(6),
       android: wp(5),
@@ -164,7 +196,7 @@ const styles = StyleSheet.create({
   ratingText: {color: '#ffffff', fontSize: wp(3.5)},
   tabContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between', // Ensures even spacing
+    justifyContent: 'space-between',
     alignItems: 'center',
     width: '100%',
     paddingVertical: hp(2),
@@ -178,7 +210,6 @@ const styles = StyleSheet.create({
     color: '#444',
     paddingVertical: hp(0.5),
   },
-
   activeTab: {
     color: '#FF0080',
     fontWeight: 'bold',
@@ -190,7 +221,7 @@ const styles = StyleSheet.create({
     borderRadius: wp(3),
   },
   contentContainer: {
-    flex: 1, // Takes remaining space
+    flex: 1,
   },
 });
 

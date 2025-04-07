@@ -1,7 +1,7 @@
 import axios, {AxiosRequestConfig, AxiosResponse} from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export const API_BASE_URL = 'http://192.168.1.19:8000/api/';
+export const API_BASE_URL = 'http://192.168.1.45:8000/api/';
 
 if (!API_BASE_URL) {
   throw new Error('API_BASE_URL is not defined in the environment variables.');
@@ -24,13 +24,6 @@ export const apiHelper = async <T,>({
 
   // Use provided token, or fall back to AsyncStorage if no token is passed
   const authToken = token || (await AsyncStorage.getItem('userToken'));
-
-  // // Log the token for debugging
-  // if (!authToken) {
-  //   console.warn(`No token found for request to ${endpoint}`);
-  // } else {
-  //   console.log(`Using token for ${endpoint}: ${authToken}`);
-  // }
 
   const config: AxiosRequestConfig = {
     method,

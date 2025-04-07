@@ -20,6 +20,8 @@ import Icon from 'react-native-vector-icons/MaterialIcons'; // For location pin 
 import CustomButton from '../../components/common/buttons/CustomButton';
 import getFormattedDateTime from '../../components/helperUtils/dateTimeUtils/DateTime';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {useSelector} from 'react-redux';
+import {selectDefaultCity, selectDefaultCountry} from '../../slice/Slice';
 
 // Define interface for the formatted date and time
 interface FormattedDateTime {
@@ -31,7 +33,8 @@ const Schedule: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
-
+  const defaultCity = useSelector(selectDefaultCity);
+  const defaultCountry = useSelector(selectDefaultCountry);
   const [isAsap, setIsAsap] = useState<boolean>(true); // State to toggle between ASAP and Schedule
 
   // Get the formatted date and time
@@ -48,11 +51,16 @@ const Schedule: React.FC = () => {
             style={[
               styles.locationContainer,
               {backgroundColor: theme.backgroundColor},
-            ]}>
+            ]}
+            onPress={() =>
+              navigation.navigate('Address', {forDelivery: false})
+            }>
             <Icon name="location-pin" size={20} color="#FF00A7" />
             <View style={styles.selectedCityContainer}>
               <Text style={[styles.locationText, {color: theme.input}]}>
-                {'Select a city'}
+                {defaultCity !== null && defaultCountry !== null
+                  ? `${defaultCity}, ${defaultCountry}`
+                  : 'Select a city'}
               </Text>
             </View>
             <Icon name="arrow-drop-down" size={20} color={theme.input} />
