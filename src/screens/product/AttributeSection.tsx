@@ -119,13 +119,15 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
       productUuid,
       name: productData.name || 'Unnamed Product',
       price: productData.price || 0,
-      quantity: quantity,
+      quantity: quantity || 1, // Ensure quantity has a default
       selectedColor: selectedColor ? getHexColor(selectedColor) : undefined,
       frontFile: frontFile ? {uri: frontFile.uri} : undefined,
       backFile: backFile ? {uri: backFile.uri} : undefined,
       orderNotes: reviewText || undefined,
       attributes: attributeValues,
     };
+
+    console.log('Dispatching cartItem:', cartItem);
     dispatch(addToCart(cartItem));
   };
 

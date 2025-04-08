@@ -37,6 +37,7 @@ export type RootStackParamList = {
   Points: undefined;
   Product: undefined;
   Quote: undefined;
+  QuoteDecision: undefined;
   ServiceProviderDashboard: undefined;
   Services: undefined;
   ProductPrice: {product_uuid: string; id: number};
@@ -174,6 +175,7 @@ export interface Products {
 }
 
 export interface ApiResponse {
+  status: number;
   data: Products;
 }
 

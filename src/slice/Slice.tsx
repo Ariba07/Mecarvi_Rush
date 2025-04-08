@@ -63,6 +63,7 @@ export interface AuthState {
   defaultCountry: string | null;
   deliveryCity: string | null;
   deliveryCountry: string | null;
+  notifyUuid?: string;
 }
 
 export const initialState: AuthState = {
@@ -88,6 +89,7 @@ export const initialState: AuthState = {
   defaultCountry: null,
   deliveryCity: null,
   deliveryCountry: null,
+  notifyUuid: '',
 };
 
 const authSlice = createSlice({
@@ -164,6 +166,9 @@ const authSlice = createSlice({
     setProductUuid: (state, action: PayloadAction<string>) => {
       state.product_uuid = action.payload;
     },
+    setNotifyUuid: (state, action: PayloadAction<string>) => {
+      state.notifyUuid = action.payload;
+    },
     setServiceProviderUuid: (state, action: PayloadAction<string>) => {
       state.service_provider_uuid = action.payload;
     },
@@ -197,6 +202,7 @@ const authSlice = createSlice({
       state.user_uuid = '';
       state.service_provider_uuid = '';
       state.servicesOffered = [];
+      state.notifyUuid = '';
     },
     addToCart: (state, action: PayloadAction<CartItem>) => {
       const existingItemIndex = state.cart.findIndex(
@@ -206,7 +212,10 @@ const authSlice = createSlice({
         state.cart[existingItemIndex].quantity =
           (state.cart[existingItemIndex].quantity || 1) + 1;
       } else {
-        state.cart.push({...action.payload, quantity: 1});
+        state.cart.push({
+          ...action.payload,
+          quantity: action.payload.quantity || 1, // Use provided quantity, fallback to 1
+        });
       }
     },
     incrementQuantity: (state, action: PayloadAction<string>) => {
@@ -301,6 +310,8 @@ export const selectServiceUuid = (state: {auth: AuthState}) =>
   state.auth.service_uuid;
 export const selectProductUuid = (state: {auth: AuthState}) =>
   state.auth.product_uuid;
+export const selectNotifyUuid = (state: {auth: AuthState}) =>
+  state.auth.notifyUuid;
 export const selectServiceProviderUuid = (state: {auth: AuthState}) =>
   state.auth.service_provider_uuid;
 export const selectCart = (state: {auth: AuthState}) => state.auth.cart;
@@ -335,6 +346,7 @@ export const {
   setServiceProviderUuid,
   setDefaultAddressDetails,
   setDeliveryAddressDetails,
+  setNotifyUuid,
 } = authSlice.actions;
 
 export default authSlice.reducer;

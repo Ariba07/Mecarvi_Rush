@@ -45,9 +45,9 @@ const Cart = () => {
     dispatch(decrementQuantity(productUuid));
   };
 
-  // Calculate totals
+  // Calculate totals using quantity from Redux store
   const subtotal = cartItems.reduce(
-    (sum, item) => sum + item.price * (item.quantity || 1),
+    (sum, item) => sum + item.price * (item.quantity ?? 0), // Provide default value
     0,
   );
   const loyaltyPoints = 0.0; // Replace with actual logic if needed
@@ -82,7 +82,7 @@ const Cart = () => {
           <Text style={[styles.quantityText, {color: '#30a7a7'}]}>-</Text>
         </TouchableOpacity>
         <Text style={[styles.quantity, {color: theme.text}]}>
-          {item.quantity || 1}
+          {item.quantity} {/* Remove fallback */}
         </Text>
         <TouchableOpacity
           onPress={() => increaseQuantity(item.productUuid)}

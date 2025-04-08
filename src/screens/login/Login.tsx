@@ -40,10 +40,12 @@ const loginValidationSchema = Yup.object().shape({
 
 const STORAGE_KEY = '@login_credentials';
 const TOKEN_KEY = 'userToken';
-const FCM_UNSUBSCRIBE_KEY = '@fcm_unsubscribe';
 
 const Login: React.FC = () => {
   const [isChecked, setIsChecked] = useState(false);
+  const [unsubscribeFCM, setUnsubscribeFCM] = useState<(() => void) | null>(
+    null,
+  );
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const dispatch = useDispatch();
@@ -53,6 +55,7 @@ const Login: React.FC = () => {
       ? require('../../assets/images/BG.png')
       : require('../../assets/images/dark.png');
 
+  // Check for stored credentials to auto-login
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEY)
       .then(credentials => {
@@ -63,6 +66,16 @@ const Login: React.FC = () => {
       .catch(error => console.log('Error checking credentials:', error));
   }, [navigation]);
 
+  // Cleanup FCM listeners when the component unmounts
+  useEffect(() => {
+    return () => {
+      if (unsubscribeFCM) {
+        unsubscribeFCM();
+        console.log('FCM listeners unsubscribed on Login unmount');
+      }
+    };
+  }, [unsubscribeFCM]);
+
   const handleLogin = async (values: {email: string; password: string}) => {
     try {
       const response = await apiHelper({
@@ -72,11 +85,11 @@ const Login: React.FC = () => {
       });
       const {data, meta} = response as {
         data: {
-          user?: {id: number; roles: string[]}; // For service provider
-          id?: number; // For customer
-          roles?: string[]; // For customer
-          service_provider_uuid?: string; // For service provider
-          services_offered?: string[]; // For service provider
+          user?: {id: number; roles: string[]};
+          id?: number;
+          roles?: string[];
+          service_provider_uuid?: string;
+          services_offered?: string[];
         };
         meta: {token: string; firebase_token: string};
       };
@@ -89,14 +102,13 @@ const Login: React.FC = () => {
       );
       const firebaseUid = userCredential.user.uid;
 
-      // Determine if it's a customer or service provider response
       const isCustomer = data.roles?.includes('customer');
       const userId = isCustomer ? data.id : data.user?.id;
       const roles = isCustomer ? data.roles : data.user?.roles;
 
       const userData = {
-        role: roles?.[0] || 'unknown', // Provide a default value for role
-        userId: userId || 0, // Ensure userId is not undefined
+        role: roles?.[0] || 'unknown',
+        userId: userId || 0,
         token: meta.token,
         firebaseUid,
         ...(roles?.includes('service_provider') && {
@@ -125,9 +137,9 @@ const Login: React.FC = () => {
         await AsyncStorage.removeItem(STORAGE_KEY);
       }
 
-      // FCM Handling: Pass isChecked to initializeFCM
-      await AsyncStorage.removeItem(FCM_UNSUBSCRIBE_KEY);
-      initializeFCM(isChecked);
+      // Initialize FCM after successful login
+      const unsubscribe = initializeFCM(isChecked, navigation, dispatch);
+      setUnsubscribeFCM(() => unsubscribe); // Store the unsubscribe function in state
 
       navigation.replace('Subscription');
     } catch (error: any) {
@@ -219,7 +231,7 @@ const Login: React.FC = () => {
           </Formik>
           <View style={styles.footer}>
             <Text style={[styles.footerText, {color: theme.text}]}>
-              Don't have an account?{' '}
+              Don’t have an account?{' '}
             </Text>
             <TouchableOpacity onPress={() => navigation.navigate('Options')}>
               <Text style={styles.registerText}>Register here</Text>
