@@ -273,7 +273,9 @@ const ServiceProviderOrderDecision = () => {
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.rejectButton, {borderColor: theme.text}]}
-              onPress={() => {}}>
+              onPress={() => {
+                navigation.replace('BottomTabs');
+              }}>
               <Text style={[styles.rejectButtonText, {color: theme.text}]}>
                 Reject
               </Text>

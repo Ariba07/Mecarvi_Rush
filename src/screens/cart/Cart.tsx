@@ -25,6 +25,7 @@ import {
   selectCart,
   incrementQuantity,
   decrementQuantity,
+  setTotalPrice,
 } from '../../slice/Slice';
 
 const Cart = () => {
@@ -148,6 +149,7 @@ const Cart = () => {
               title="Schedule"
               onPress={() => {
                 navigation.navigate('Schedule');
+                dispatch(setTotalPrice(total));
               }}
             />
           </View>
@@ -223,7 +225,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: wp(2),
     padding: wp(4),
-    marginBottom: wp(15),
+    marginBottom: wp(25),
   },
   summaryRow: {
     flexDirection: 'row',

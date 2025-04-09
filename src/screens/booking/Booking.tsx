@@ -17,16 +17,25 @@ import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
 import Header from '../../components/common/header/Header';
-import Icon from 'react-native-vector-icons/MaterialIcons'; // For location pin and calendar icons
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import CustomButton from '../../components/common/buttons/CustomButton';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
-import {useSelector} from 'react-redux';
-import {selectDeliveryCity, selectDeliveryCountry} from '../../slice/Slice';
+import {useDispatch, useSelector} from 'react-redux';
+import {
+  selectDeliveryCity,
+  selectDeliveryCountry,
+  setAddressType,
+  setDeliveryDate,
+  setDeliveryTime,
+  selectDeliveryDate,
+  selectDeliveryTime,
+} from '../../slice/Slice';
 
 // Define interface for date and time slots
 interface DateSlot {
   day: string;
   date: number;
+  fullDate: string; // Add fullDate to store YYYY-MM-DD
 }
 
 interface TimeSlot {
@@ -37,18 +46,30 @@ const Booking: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const {theme} = useContext(ThemeContext);
-  const [pickupDate, setPickupDate] = useState<number | null>(null);
-  const [deliveryDate, setDeliveryDate] = useState<number | null>(null);
-  const [pickupTime, setPickupTime] = useState<string | null>('2:00 PM'); // Default selected time
-  const [deliveryTime, setDeliveryTime] = useState<string | null>(null);
+  const dispatch = useDispatch();
   const deliveryCity = useSelector(selectDeliveryCity);
   const deliveryCountry = useSelector(selectDeliveryCountry);
+  const storedDeliveryDate = useSelector(selectDeliveryDate);
+  const storedDeliveryTime = useSelector(selectDeliveryTime);
+
+  const [pickupDate, setLocalPickupDate] = useState<number | null>(null);
+  const [deliveryDate, setLocalDeliveryDate] = useState<number | null>(null);
+  const [pickupTime, setLocalPickupTime] = useState<string | null>('2:00 PM');
+  const [deliveryTime, setLocalDeliveryTime] = useState<string | null>(null);
   const [selectedTab, setSelectedTab] = useState<'pickup' | 'delivery'>(
     'pickup',
-  ); // Track selected tab
-
+  );
   const [dateSlots, setDateSlots] = useState<DateSlot[]>([]);
 
+  // Initialize local state from Redux (optional, for persistence)
+  useEffect(() => {
+    if (storedDeliveryTime) {
+      setLocalDeliveryTime(storedDeliveryTime);
+    }
+    // Note: Dates are handled in generateDateSlots to match fullDate
+  }, [storedDeliveryTime]);
+
+  // Generate date slots with fullDate in YYYY-MM-DD format
   useEffect(() => {
     const generateDateSlots = () => {
       const today = new Date();
@@ -60,22 +81,34 @@ const Booking: React.FC = () => {
 
         const dayName = futureDate.toLocaleDateString('en-US', {
           weekday: 'short',
-        }); // e.g., "Sun"
-        const date = futureDate.getDate(); // e.g., 7
+        });
+        const date = futureDate.getDate();
+        const fullDate = futureDate.toISOString().split('T')[0]; // YYYY-MM-DD
 
-        newDateSlots.push({day: dayName, date});
+        newDateSlots.push({day: dayName, date, fullDate});
       }
 
       setDateSlots(newDateSlots);
+
+      // Set local date state based on Redux (if available)
+
+      if (storedDeliveryDate) {
+        const matchingSlot = newDateSlots.find(
+          slot => slot.fullDate === storedDeliveryDate,
+        );
+        if (matchingSlot) {
+          setLocalDeliveryDate(matchingSlot.date);
+        }
+      }
     };
 
     generateDateSlots();
-  }, []);
+  }, [storedDeliveryDate]);
 
   // Time slots data
   const timeSlots: TimeSlot[] = [
     {time: '1:00 PM'},
-    {time: '2:00 PM'}, // Default selected (handled by pickupTime state)
+    {time: '2:00 PM'},
     {time: '3:00 PM'},
     {time: '4:00 PM'},
     {time: '5:00 PM'},
@@ -83,19 +116,30 @@ const Booking: React.FC = () => {
 
   // Handle date selection
   const handleSelectDate = (date: number, isPickup: boolean) => {
+    const selectedSlot = dateSlots.find(slot => slot.date === date);
+    if (!selectedSlot) {
+      return;
+    }
+
+    const fullDate = selectedSlot.fullDate; // YYYY-MM-DD
+
     if (isPickup) {
-      setPickupDate(date);
+      setLocalPickupDate(date);
+      dispatch(setDeliveryDate(fullDate));
     } else {
-      setDeliveryDate(date);
+      setLocalDeliveryDate(date);
+      dispatch(setDeliveryDate(fullDate));
     }
   };
 
   // Handle time slot selection
   const handleSelectTime = (time: string, isPickup: boolean) => {
     if (isPickup) {
-      setPickupTime(time);
+      setLocalPickupTime(time);
+      dispatch(setDeliveryTime(time));
     } else {
-      setDeliveryTime(time);
+      setLocalDeliveryTime(time);
+      dispatch(setDeliveryTime(time));
     }
   };
 
@@ -152,10 +196,13 @@ const Booking: React.FC = () => {
     <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
       <View style={styles.container}>
         <Header title="Book Schedule" onBackPress={() => navigation.goBack()} />
-        {/* Tab container to hold the "pickup" and "delivery" tabs */}
+        {/* Tab container */}
         <View style={styles.tabsContainer}>
           <TouchableOpacity
-            onPress={() => setSelectedTab('pickup')}
+            onPress={() => {
+              setSelectedTab('pickup');
+              dispatch(setAddressType('pickup'));
+            }}
             style={[
               styles.tab,
               selectedTab === 'pickup' && styles.selectedTabStyle,
@@ -170,9 +217,11 @@ const Booking: React.FC = () => {
               Pickup
             </Text>
           </TouchableOpacity>
-
           <TouchableOpacity
-            onPress={() => setSelectedTab('delivery')}
+            onPress={() => {
+              setSelectedTab('delivery');
+              dispatch(setAddressType('delivery'));
+            }}
             style={[
               styles.tab,
               selectedTab === 'delivery' && styles.selectedTabStyle,
@@ -196,28 +245,19 @@ const Booking: React.FC = () => {
             <>
               {/* Pickup Location */}
               <View style={styles.section}>
-                {/* <Text
-                  style={[
-                    styles.sectionTitle,
-                    {color: theme.text, alignSelf: 'center'},
-                  ]}>
-                  Pickup
-                </Text> */}
-                {/* Uncomment if you need to select a pickup location */}
+                {/* Uncomment if needed */}
                 {/* <TouchableOpacity
                   style={[
                     styles.locationContainer,
                     styles.timeList,
-                    { backgroundColor: theme.backgroundColor },
+                    {backgroundColor: theme.backgroundColor},
                   ]}
                   onPress={() =>
-                    navigation.navigate('Address', { forDelivery: false })
+                    navigation.navigate('Address', {forDelivery: false})
                   }>
                   <Icon name="location-pin" size={20} color="#ff69b4" />
-                  <Text style={[styles.locationText, { color: theme.input }]}>
-                    {defaultCity !== null && defaultCountry !== null
-                      ? `${defaultCity}, ${defaultCountry}`
-                      : 'Select a city'}
+                  <Text style={[styles.locationText, {color: theme.input}]}>
+                    Select a city
                   </Text>
                   <Icon name="arrow-drop-down" size={20} color={theme.input} />
                 </TouchableOpacity> */}
@@ -330,10 +370,11 @@ const Booking: React.FC = () => {
   );
 };
 
+// Styles remain unchanged
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f0f4f8', // Light background as per image
+    backgroundColor: '#f0f4f8',
   },
   container: {
     flex: 1,
@@ -381,7 +422,7 @@ const styles = StyleSheet.create({
     marginRight: wp(2),
   },
   selectedDateSlot: {
-    backgroundColor: '#03A7A71A', // Teal background for selected date
+    backgroundColor: '#03A7A71A',
   },
   dateText: {
     fontSize: wp(4.5),
@@ -405,14 +446,14 @@ const styles = StyleSheet.create({
     marginRight: wp(2),
   },
   selectedTimeSlot: {
-    backgroundColor: '#03A7A71A', // Teal background for selected time
+    backgroundColor: '#03A7A71A',
   },
   timeText: {
     fontSize: wp(4),
     color: '#333',
   },
   selectedTimeText: {
-    color: '#03A7A7', // Teal text for selected time
+    color: '#03A7A7',
   },
   payButton: {
     position: 'absolute',
@@ -436,7 +477,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
   },
   selectedTabText: {
-    color: '#03A7A7', // Color for the selected tab
+    color: '#03A7A7',
   },
   title: {fontSize: wp('5%'), fontWeight: 'bold'},
 });

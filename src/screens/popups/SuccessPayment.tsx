@@ -10,19 +10,33 @@ import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes
 import CustomButton from '../../components/common/buttons/CustomButton';
 import Success from '../../assets/images/Success.svg';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {useSelector} from 'react-redux';
+import {selectTotalPrice} from '../../slice/Slice';
 
 const Receipt: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
+  const {theme} = useContext(ThemeContext);
+  const total = useSelector(selectTotalPrice);
 
-  // Static booking details (you can pass these as props or fetch from state/context)
+  // Get current date and time
+  const currentDate = new Date();
+  const formattedDate = currentDate.toLocaleDateString('en-US', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  }); // e.g., "09 Apr 2025"
+  const formattedTime = currentDate.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  }); // e.g., "03:55 AM"
+
+  // Static booking details with current date and time
   const bookingDetails = {
-    pickupDate: '11 Jan 2025',
-    pickupTime: '10:30 AM',
-    to: 'Business',
-    deliveryDate: '26 July 2025',
-    total: '$ 25.00',
+    pickupDate: formattedDate, // Use current date
+    pickupTime: formattedTime, // Use current time
+    total: total,
   };
 
   return (
@@ -47,22 +61,10 @@ const Receipt: React.FC = () => {
               {bookingDetails.pickupTime}
             </Text>
           </View>
-          <View style={styles.detailRow}>
-            <Text style={[styles.detailLabel, {color: theme.text}]}>To</Text>
-            <Text style={[styles.detailValue, {color: theme.input}]}>
-              {bookingDetails.to}
-            </Text>
-          </View>
-          <View style={styles.detailRow}>
-            <Text style={[styles.detailLabel, {color: theme.text}]}>Date</Text>
-            <Text style={[styles.detailValue, {color: theme.input}]}>
-              {bookingDetails.deliveryDate}
-            </Text>
-          </View>
           <View style={styles.divider} />
           <View style={styles.detailRow}>
             <Text style={[styles.detailLabel, {color: theme.text}]}>TOTAL</Text>
-            <Text style={styles.totalValue}>{bookingDetails.total}</Text>
+            <Text style={styles.totalValue}>$ {bookingDetails.total}</Text>
           </View>
         </View>
       </View>
@@ -83,7 +85,7 @@ const Receipt: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F4F7FA', // Light background as per image
+    backgroundColor: '#F4F7FA',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -125,7 +127,7 @@ const styles = StyleSheet.create({
   },
   totalValue: {
     fontSize: wp(4),
-    color: '#FF00A7', // Pink color for total as per image
+    color: '#FF00A7',
     fontWeight: 'bold',
   },
   divider: {

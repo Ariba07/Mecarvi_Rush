@@ -41,8 +41,8 @@ export const getFormattedDateTime = () => {
   const formattedTime = `At ${hours}:${minutes} ${ampm}`;
 
   return {
-    date: formattedDate,
-    time: formattedTime,
+    currentDate: formattedDate,
+    currentTime: formattedTime,
   };
 };
 

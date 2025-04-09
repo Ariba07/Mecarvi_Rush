@@ -24,7 +24,11 @@ import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 import AddressCreate from '../../components/helperUtils/address/AddressCreate';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 import {useDispatch} from 'react-redux';
-import {setDefaultAddressDetails, setDeliveryAddressDetails} from '../../slice/Slice';
+import {
+  setAddressId,
+  setDefaultAddressDetails,
+  setDeliveryAddressDetails,
+} from '../../slice/Slice';
 type AddressRouteProp = RouteProp<RootStackParamList, 'Address'>;
 
 const Address = () => {
@@ -75,10 +79,13 @@ const Address = () => {
     setRefreshing(false);
   };
 
-  const updateDefaultAddress = async (addressId: string) => {
+  const updateDefaultAddress = async (
+    addressUuid: string,
+    addressId: number,
+  ) => {
     try {
       const addressToUpdate = addresses.find(
-        item => item.user_address_uuid === addressId,
+        item => item.user_address_uuid === addressUuid,
       );
       if (!addressToUpdate) {
         throw new Error('Address not found');
@@ -87,26 +94,27 @@ const Address = () => {
       // Optimistically update the UI
       const updatedAddresses = addresses.map(item => ({
         ...item,
-        is_default: item.user_address_uuid === addressId,
+        is_default: item.user_address_uuid === addressUuid,
       }));
       setAddresses(updatedAddresses);
-      setSelectedId(addressId);
+      setSelectedId(addressUuid);
 
-if (forDelivery) {
-  dispatch(
-    setDeliveryAddressDetails({
-      city: addressToUpdate.city,
-      country: addressToUpdate.country,
-    }),
-  );
-} else {
-  dispatch(
-    setDefaultAddressDetails({
-      city: addressToUpdate.city,
-      country: addressToUpdate.country,
-    }),
-  );
-}
+      if (forDelivery) {
+        dispatch(
+          setDeliveryAddressDetails({
+            city: addressToUpdate.city,
+            country: addressToUpdate.country,
+          }),
+        );
+        dispatch(setAddressId(addressId));
+      } else {
+        dispatch(
+          setDefaultAddressDetails({
+            city: addressToUpdate.city,
+            country: addressToUpdate.country,
+          }),
+        );
+      }
       // Update the selected address to be default using existing coordinates
       const payload = {
         user_id: addressToUpdate.user_id,
@@ -123,7 +131,7 @@ if (forDelivery) {
 
       const response = (await apiHelper({
         method: 'PATCH',
-        endpoint: `user-address/${addressId}?_method=patch`,
+        endpoint: `user-address/${addressUuid}?_method=patch`,
         data: payload,
       })) as {status: number; message?: string};
 
@@ -136,7 +144,7 @@ if (forDelivery) {
 
       // Set all other addresses to is_default: false
       const otherAddresses = addresses.filter(
-        item => item.user_address_uuid !== addressId,
+        item => item.user_address_uuid !== addressUuid,
       );
       await Promise.all(
         otherAddresses.map(async item => {
@@ -159,8 +167,6 @@ if (forDelivery) {
           });
         }),
       );
-
-      await fetchAddress();
     } catch (error: any) {
       console.error('Error updating default address:', error);
       let errorMessage = 'An error occurred while updating the default address';
@@ -171,12 +177,11 @@ if (forDelivery) {
         }
       }
       Alert.alert('Error', errorMessage);
-      await fetchAddress();
     }
   };
 
-  const handleSelectAddress = (addressId: string) => {
-    updateDefaultAddress(addressId);
+  const handleSelectAddress = (addressUuid: string, addressId: number) => {
+    updateDefaultAddress(addressUuid, addressId);
   };
 
   const renderItem = ({item}: {item: any}) => {
@@ -190,7 +195,7 @@ if (forDelivery) {
           isSelected && styles.selectedCard,
           {backgroundColor: theme.backgroundColor},
         ]}
-        onPress={() => handleSelectAddress(item.user_address_uuid)}>
+        onPress={() => handleSelectAddress(item.user_address_uuid, item.id)}>
         <View style={styles.cardContent}>
           <View>
             <Text style={[styles.title, {color: theme.text}]}>

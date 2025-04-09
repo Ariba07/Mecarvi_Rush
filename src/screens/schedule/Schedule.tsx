@@ -16,12 +16,18 @@ import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
 import Header from '../../components/common/header/Header';
-import Icon from 'react-native-vector-icons/MaterialIcons'; // For location pin icon
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import CustomButton from '../../components/common/buttons/CustomButton';
 import getFormattedDateTime from '../../components/helperUtils/dateTimeUtils/DateTime';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
-import {useSelector} from 'react-redux';
-import {selectDefaultCity, selectDefaultCountry} from '../../slice/Slice';
+import {useSelector, useDispatch} from 'react-redux';
+import {
+  selectDefaultCity,
+  selectDefaultCountry,
+  setAddressType,
+  setDeliveryDate,
+  setDeliveryTime,
+} from '../../slice/Slice';
 
 // Define interface for the formatted date and time
 interface FormattedDateTime {
@@ -32,13 +38,46 @@ interface FormattedDateTime {
 const Schedule: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
+  const {theme} = useContext(ThemeContext);
   const defaultCity = useSelector(selectDefaultCity);
   const defaultCountry = useSelector(selectDefaultCountry);
-  const [isAsap, setIsAsap] = useState<boolean>(true); // State to toggle between ASAP and Schedule
+  const [isAsap, setIsAsap] = useState<boolean>(true);
+  const dispatch = useDispatch(); // Add useDispatch hook
 
   // Get the formatted date and time
-  const {date, time}: FormattedDateTime = getFormattedDateTime();
+  const {currentDate, currentTime} = getFormattedDateTime();
+
+  // Function to get current date and time in required formats
+  const getCurrentDateTime = (): FormattedDateTime => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+
+    return {
+      date: `${year}-${month}-${day}`, // e.g., "2025-04-09"
+      time: `${hours}:${minutes}`, // e.g., "15:55"
+    };
+  };
+
+  // Get the formatted date and time
+  const {date, time} = getCurrentDateTime();
+
+  // Function to handle ASAP selection and dispatch Redux actions
+  const handleAsapSelection = () => {
+    setIsAsap(true);
+    dispatch(setAddressType('delivery')); // Dispatch sourceType as 'delivery'
+    dispatch(setDeliveryDate(date)); // Dispatch current date (YYYY-MM-DD)
+    dispatch(setDeliveryTime(time)); // Dispatch current time (H:i)
+  };
+
+  // Function to handle Schedule selection (optional: reset or set different values)
+  const handleScheduleSelection = () => {
+    setIsAsap(false);
+    // Optionally dispatch different values or reset if needed
+  };
 
   return (
     <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
@@ -52,9 +91,7 @@ const Schedule: React.FC = () => {
               styles.locationContainer,
               {backgroundColor: theme.backgroundColor},
             ]}
-            onPress={() =>
-              navigation.navigate('Address', {forDelivery: false})
-            }>
+            onPress={() => navigation.navigate('Address', {forDelivery: true})}>
             <Icon name="location-pin" size={20} color="#FF00A7" />
             <View style={styles.selectedCityContainer}>
               <Text style={[styles.locationText, {color: theme.input}]}>
@@ -75,7 +112,8 @@ const Schedule: React.FC = () => {
               isAsap ? styles.selectedOption : {},
               {backgroundColor: theme.backgroundColor},
             ]}
-            onPress={() => setIsAsap(true)}>
+            onPress={handleAsapSelection} // Update to use the new handler
+          >
             <View
               style={[
                 styles.radioCircle,
@@ -94,7 +132,8 @@ const Schedule: React.FC = () => {
               !isAsap ? styles.selectedOption : {},
               {backgroundColor: theme.backgroundColor},
             ]}
-            onPress={() => setIsAsap(false)}>
+            onPress={handleScheduleSelection} // Update to use the new handler
+          >
             <View
               style={[
                 styles.radioCircle,
@@ -113,8 +152,12 @@ const Schedule: React.FC = () => {
           <Text style={[styles.requestText, {color: theme.input}]}>
             Request Service On
           </Text>
-          <Text style={[styles.dateText, {color: theme.input}]}>{date}</Text>
-          <Text style={[styles.timeText, {color: theme.input}]}>{time}</Text>
+          <Text style={[styles.dateText, {color: theme.input}]}>
+            {currentDate}
+          </Text>
+          <Text style={[styles.timeText, {color: theme.input}]}>
+            {currentTime}
+          </Text>
         </View>
 
         <View style={styles.payButton}>
@@ -218,31 +261,6 @@ const styles = StyleSheet.create({
     bottom: Platform.select({ios: hp(4), android: hp(8)}),
     left: Platform.select({ios: wp(6), android: wp(5)}),
     right: Platform.select({ios: wp(6), android: wp(5)}),
-  },
-  modalOverlay: {
-    flex: 1,
-  },
-  modalContent: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    maxHeight: hp(50), // Keep the max height constraint
-    elevation: 5, // Add shadow for Android
-    shadowColor: '#000', // Add shadow for iOS
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-  },
-  dropdownList: {
-    maxHeight: hp(50),
-  },
-  dropdownItem: {
-    padding: wp(3),
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  dropdownItemText: {
-    fontSize: wp(4),
-    color: '#000',
   },
 });
 

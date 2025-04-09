@@ -7,7 +7,7 @@ import authReducer from '../Mecarvi_Rush/src/slice/Slice'; // Updated path
 const persistConfig = {
   key: 'auth', // Key for the persisted state (auth slice)
   storage: AsyncStorage, // Use AsyncStorage for persistence
-  whitelist: ['cart'], // Only persist the 'cart' field within 'auth' (optional optimization)
+  whitelist: ['cart', 'sourceType'], // Only persist the 'cart' field within 'auth' (optional optimization)
 };
 
 // Wrap the authReducer with persistReducer
@@ -22,7 +22,7 @@ const store = configureStore({
     getDefaultMiddleware({
       serializableCheck: {
         ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'], // Ignore persist actions
-        ignoredPaths: ['auth.cart'], // Ignore paths with non-serializable data if needed
+        ignoredPaths: ['auth.cart', 'auth.sourceType'], // Ignore paths with non-serializable data if needed
       },
     }),
 });

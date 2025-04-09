@@ -6,7 +6,8 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  Image, // Added for displaying logo images
+  Image,
+  Alert,
 } from 'react-native';
 import React, {useContext} from 'react';
 import {
@@ -17,53 +18,126 @@ import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
 import Header from '../../components/common/header/Header';
-import Icon from 'react-native-vector-icons/MaterialIcons'; // For credit card icon in header
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import CustomButton from '../../components/common/buttons/CustomButton';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {useDispatch, useSelector} from 'react-redux';
+import {
+  clearCart,
+  selectAddressId,
+  selectAddressType,
+  selectCart,
+  selectDeliveryDate,
+  selectDeliveryTime,
+  selectSourceType,
+} from '../../slice/Slice';
+import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 
 interface PaymentOption {
   id: string;
   label: string;
-  logoUrl: string; // Changed from `icon` to `logoUrl`
+  logoUrl: string;
   selected: boolean;
-  balance?: string; // Optional for Wallet
+  balance?: string;
 }
 
 const Checkout: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
+  const {theme} = useContext(ThemeContext);
+  const cart = useSelector(selectCart);
+  const addressType = useSelector(selectAddressType);
+  const sourceType = useSelector(selectSourceType);
+  const Time = useSelector(selectDeliveryTime);
+  const date = useSelector(selectDeliveryDate);
+  const addressId = useSelector(selectAddressId);
+  const dispatch = useDispatch();
 
-  // State to manage selected payment option
+  // Function to convert "4:00 PM" to "16:00" format
+  const convertTo24HourFormat = (timeStr: string) => {
+    const [time, period] = timeStr.split(' ');
+    const [hours, minutes] = time.split(':');
+    let hourNum = parseInt(hours, 10);
+
+    if (period === 'PM' && hourNum !== 12) {
+      hourNum += 12;
+    } else if (period === 'AM' && hourNum === 12) {
+      hourNum = 0;
+    }
+
+    return `${hourNum.toString().padStart(2, '0')}:${minutes}`;
+  };
+
+  const createOrder = async () => {
+    try {
+      // Convert time to 24-hour format
+      const formattedTime = Time ? convertTo24HourFormat(Time) : '';
+      // Validate user_address_id for delivery
+      if (addressType === 'delivery' && !addressId) {
+        console.error('Error: User address ID is required for delivery.');
+        Alert.alert('Please select a delivery address before proceeding.');
+        return; // Exit the function if validation fails
+      }
+      const orderData = {
+        items: cart.map(item => ({
+          product_id: item.id, // Changed from id to productUuid
+          quantity: item.quantity,
+          price: item.price,
+          name: item.name,
+          attributes: item.attributes || {},
+        })),
+        fulfillment_type: addressType,
+        source_type: sourceType,
+        fulfillment_time: formattedTime, // Use converted time
+        fulfillment_date: date,
+        user_address_id: addressType === 'delivery' ? addressId : undefined,
+        // payment_method: selectedPayment, // Uncommented this as it might be needed
+      };
+
+      console.log('Order Data:', orderData);
+
+      const response = await apiHelper({
+        method: 'POST',
+        endpoint: 'orders/cart/',
+        data: orderData,
+      });
+
+      if (response) {
+        navigation.navigate('Receipt');
+        dispatch(clearCart());
+      }
+    } catch (error) {
+      console.error('Error creating order:', error);
+    }
+  };
+
   const [selectedPayment, setSelectedPayment] =
     React.useState<string>('paypal');
 
-  // Payment options data with logo URLs
   const paymentOptions: PaymentOption[] = [
     {
       id: 'paypal',
       label: 'Paypal',
       logoUrl:
-        'https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/PayPal_logo.svg/1200px-PayPal_logo.svg.png', // Example PayPal logo URL
+        'https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/PayPal_logo.svg/1200px-PayPal_logo.svg.png',
       selected: true,
     },
     {
       id: 'stripe',
       label: 'Stripe',
       logoUrl:
-        'https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Stripe_Logo%2C_revised_2016.svg/1200px-Stripe_Logo%2C_revised_2016.svg.png', // Example Stripe logo URL, // Official Stripe logo
+        'https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Stripe_Logo%2C_revised_2016.svg/1200px-Stripe_Logo%2C_revised_2016.svg.png',
       selected: false,
     },
     {
       id: 'wallet',
       label: 'Wallet',
-      logoUrl: 'https://img.icons8.com/color/48/000000/wallet.png', // Generic wallet icon from Icons8
+      logoUrl: 'https://img.icons8.com/color/48/000000/wallet.png',
       selected: false,
       balance: '$5.00',
     },
   ];
 
-  // Handle payment option selection
   const handleSelectPayment = (id: string) => {
     setSelectedPayment(id);
   };
@@ -129,22 +203,18 @@ const Checkout: React.FC = () => {
         </View>
         {/* Pay Now Button */}
         <View style={styles.payButton}>
-          <CustomButton
-            title="Pay Now"
-            onPress={() => {
-              navigation.navigate('Receipt');
-            }}
-          />
+          <CustomButton title="Pay Now" onPress={createOrder} />
         </View>
       </View>
     </SafeAreaView>
   );
 };
 
+// Styles remain the same
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f0f4f8', // Light background as per image
+    backgroundColor: '#f0f4f8',
   },
   container: {
     flex: 1,
@@ -181,7 +251,7 @@ const styles = StyleSheet.create({
   },
   selectedPaymentOption: {
     borderWidth: 1,
-    borderColor: '#FF00A7', // Pink border for selected option
+    borderColor: '#FF00A7',
   },
   radioCircle: {
     height: wp(5),
@@ -197,7 +267,7 @@ const styles = StyleSheet.create({
     height: wp(3),
     width: wp(3),
     borderRadius: wp(1.5),
-    backgroundColor: '#FF00A7', // Pink fill for selected
+    backgroundColor: '#FF00A7',
   },
   paymentText: {
     fontSize: wp(4),
@@ -205,7 +275,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   paymentLogo: {
-    width: wp(15), // Adjust size as needed
+    width: wp(15),
     height: wp(5),
     marginLeft: wp(2),
   },

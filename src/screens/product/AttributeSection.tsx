@@ -11,7 +11,7 @@ import File from '../../assets/images/File.svg';
 import {styles} from '../../assets/styles/product/Product';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {useDispatch} from 'react-redux';
-import {addToCart} from '../../slice/Slice';
+import {addToCart, setSourceType} from '../../slice/Slice';
 import {CartItem} from '../../components/types/screenTypes/ScreenTypes';
 import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 
@@ -128,7 +128,9 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
     };
 
     console.log('Dispatching cartItem:', cartItem);
+    navigation.navigate('Cart');
     dispatch(addToCart(cartItem));
+    dispatch(setSourceType('cart'));
   };
 
   const handleRequestQuote = async () => {
@@ -192,8 +194,7 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
       // Handle network error (e.g., show error message to user)
     }
 
-    // Optionally still dispatch to cart
-    dispatch(addToCart(cartItem));
+    dispatch(setSourceType('quote'));
   };
 
   return (
@@ -334,12 +335,13 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
         </View>
         <TouchableOpacity
           style={[styles.button, styles.fullWidthButton]}
-          onPress={() =>
+          onPress={() => {
             navigation.navigate('MarketPlace', {
               fromProduct: true,
               productId: productData.id,
-            })
-          }>
+            });
+            dispatch(setSourceType('marketplace'));
+          }}>
           <Text style={[styles.buttonText, {color: theme.backgroundColor}]}>
             Add Marketplace
           </Text>
