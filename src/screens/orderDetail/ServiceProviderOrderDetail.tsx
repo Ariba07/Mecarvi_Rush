@@ -7,8 +7,9 @@ import {
   Image,
   TouchableOpacity,
   ScrollView,
+  Alert,
 } from 'react-native';
-import React, {useContext, useState} from 'react';
+import React, {useContext, useState, useEffect} from 'react';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -21,6 +22,7 @@ import {CheckCircle, Circle} from 'react-native-feather';
 import {trackingSteps} from '../tracking/Tracking';
 import ChatIcon from '../../assets/images/Chat.svg';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 
 const customerDetail = [
   {label: 'Customer Name', value: 'Chris'},
@@ -28,14 +30,234 @@ const customerDetail = [
   {label: 'Phone no.', value: '09876543212'},
   {label: 'Sipping Address', value: 'NewYork, USA'},
 ];
+// Reverse mapping for API status to tracking step status
+const reverseStatusMapping: {[key: string]: string} = {
+  'Order Placed': 'Order is accepted.',
+  Accepted: 'Order is accepted.',
+  Pickup: 'Order is being Pickup.',
+  OnTheWay: 'Order is on the way.',
+  Delivered: 'Order will be delivered soon.',
+};
 
 const statuses = ['Processing', 'Pending', 'Completed', 'Declined'];
 
-const ServiceProviderOrderDetail = () => {
+const ServiceProviderOrderDetail: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const {theme} = useContext(ThemeContext);
   const [selectedStatus, setSelectedStatus] = useState('Processing');
-  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
+  const [trackingProgress, setTrackingProgress] = useState(
+    trackingSteps.map(step => ({...step, completed: false})),
+  );
+
+  // Hardcoding order_id and orderUuid for now; in a real app, this would come from props or navigation params
+  const orderId = '1';
+  const orderUuid = 'b0290969-917e-4be7-87e9-420fb8d4aea6';
+
+  // Map tracking steps to API statuses
+  const statusMapping: {[key: string]: string} = {
+    'Order is accepted.': 'Accepted',
+    'Order is being Pickup.': 'Pickup',
+    'Order is on the way.': 'OnTheWay',
+    'Order will be delivered soon.': 'Delivered',
+  };
+
+  // Function to format the update_time
+  const formatUpdateTime = (updateTime: string) => {
+    const date = new Date(updateTime);
+    return date.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+      hour12: true,
+    }); // e.g., "Apr 10, 2025, 8:41 AM"
+  };
+
+  // Fetch tracking order on component mount
+  useEffect(() => {
+    const fetchTrackingOrder = async () => {
+      try {
+        const response = (await apiHelper({
+          method: 'GET',
+          endpoint: `order-tracking/order/${orderUuid}`,
+        })) as {
+          status: number;
+          data: {
+            order_tracking_uuid: string;
+            order_id: number;
+            status: string;
+            update_time: string;
+            details: string;
+            created_at: string;
+            updated_at: string;
+          }[];
+        };
+
+        if (response.status === 1 && response.data) {
+          const updatedProgress = [...trackingSteps].map(step => ({
+            ...step,
+            completed: false,
+            time: step.time,
+          }));
+
+          response.data.forEach(tracking => {
+            const stepStatus = reverseStatusMapping[tracking.status];
+            if (stepStatus) {
+              const stepIndex = updatedProgress.findIndex(
+                step => step.status === stepStatus,
+              );
+              if (stepIndex !== -1) {
+                updatedProgress[stepIndex].completed = true;
+                updatedProgress[stepIndex].time = formatUpdateTime(
+                  tracking.update_time,
+                );
+
+                // Update selectedStatus based on the latest tracking status
+                if (
+                  tracking.status === 'Order Placed' ||
+                  tracking.status === 'Accepted'
+                ) {
+                  setSelectedStatus('Processing');
+                } else if (
+                  tracking.status === 'Pickup' ||
+                  tracking.status === 'OnTheWay'
+                ) {
+                  setSelectedStatus('Pending');
+                } else if (tracking.status === 'Delivered') {
+                  setSelectedStatus('Completed');
+                }
+              }
+            }
+          });
+
+          setTrackingProgress(updatedProgress);
+        } else {
+          console.error('Failed to fetch tracking order');
+        }
+      } catch (error) {
+        console.error('Error fetching tracking order:', error);
+        Alert.alert(
+          'Error',
+          'Failed to fetch tracking order. Please try again.',
+        );
+      }
+    };
+
+    fetchTrackingOrder();
+  }, [orderUuid]);
+
+  const updateOrderStatus = async (stepStatus: string, index: number) => {
+    // Check if all previous steps are completed
+    for (let i = 0; i < index; i++) {
+      if (!trackingProgress[i].completed) {
+        Alert.alert('Error', 'Please complete the previous steps first.');
+        return;
+      }
+    }
+
+    const apiStatus = statusMapping[stepStatus];
+    if (!apiStatus) {
+      console.error('No API status mapped for:', stepStatus);
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('status', apiStatus);
+      formData.append('order_id', orderId);
+      formData.append('details', 'Updated via app');
+
+      const response = (await apiHelper({
+        method: 'POST',
+        endpoint: 'order-tracking',
+        data: formData,
+      })) as {status: number; data: {update_time: string}; [key: string]: any};
+
+      if (response.status === 1) {
+        // Update the tracking progress
+        const updatedProgress = [...trackingProgress];
+        // Mark the clicked step and all previous steps as completed
+        for (let i = 0; i <= index; i++) {
+          updatedProgress[i].completed = true;
+        }
+        // Mark subsequent steps as not completed
+        for (let i = index + 1; i < updatedProgress.length; i++) {
+          updatedProgress[i].completed = false;
+        }
+
+        // Update the time for the current step with the API response's update_time
+        if (response.data?.update_time) {
+          updatedProgress[index].time = formatUpdateTime(
+            response.data.update_time,
+          );
+        }
+
+        // If the current step is "Order is being Pickup", automatically trigger "Order is on the way"
+        if (
+          stepStatus === 'Order is being Pickup.' &&
+          index + 1 < updatedProgress.length
+        ) {
+          const nextStepStatus = updatedProgress[index + 1].status; // Should be "Order is on the way"
+          const nextApiStatus = statusMapping[nextStepStatus];
+          if (nextApiStatus) {
+            const nextFormData = new FormData();
+            nextFormData.append('status', nextApiStatus);
+            nextFormData.append('order_id', orderId);
+            nextFormData.append(
+              'details',
+              'Automatically updated after pickup',
+            );
+
+            const nextResponse = (await apiHelper({
+              method: 'POST',
+              endpoint: 'order-tracking',
+              data: nextFormData,
+            })) as {
+              status: number;
+              data: {update_time: string};
+              [key: string]: any;
+            };
+
+            if (nextResponse.status === 1) {
+              updatedProgress[index + 1].completed = true; // Mark "Order is on the way" as completed
+              // Update the time for "Order is on the way" with the API response's update_time
+              if (nextResponse.data?.update_time) {
+                updatedProgress[index + 1].time = formatUpdateTime(
+                  nextResponse.data.update_time,
+                );
+              }
+            } else {
+              console.error(
+                'Failed to automatically update "Order is on the way"',
+              );
+            }
+          }
+        }
+
+        setTrackingProgress(updatedProgress);
+
+        // Update the selected status (for the Order Type buttons, if needed)
+        if (apiStatus === 'Accepted') {
+          setSelectedStatus('Processing');
+        } else if (apiStatus === 'Pickup') {
+          setSelectedStatus('Pending');
+        } else if (apiStatus === 'OnTheWay') {
+          setSelectedStatus('Pending');
+        } else if (apiStatus === 'Delivered') {
+          setSelectedStatus('Completed');
+        }
+
+        Alert.alert('Success', `Order status updated to ${apiStatus}`);
+      } else {
+        throw new Error('Failed to update order status');
+      }
+    } catch (error) {
+      console.error('Error updating order status:', error);
+      Alert.alert('Error', 'Failed to update order status. Please try again.');
+    }
+  };
 
   return (
     <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
@@ -48,7 +270,7 @@ const ServiceProviderOrderDetail = () => {
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false}>
-          {/**Order Overview */}
+          {/** Order Overview */}
           <View style={styles.space}>
             <Text style={[styles.title, {color: theme.input}]}>
               Orders Overview
@@ -76,7 +298,7 @@ const ServiceProviderOrderDetail = () => {
 
                 <View style={styles.row}>
                   <TouchableOpacity style={[styles.cartButton]}>
-                    <Text style={styles.cartText}>Processing </Text>
+                    <Text style={styles.cartText}>{selectedStatus}</Text>
                   </TouchableOpacity>
                   <Text style={[styles.price, {color: theme.text}]}>$ 250</Text>
                 </View>
@@ -84,7 +306,7 @@ const ServiceProviderOrderDetail = () => {
             </View>
           </View>
 
-          {/**Customer Detail */}
+          {/** Customer Detail */}
           <View style={styles.space}>
             <Text style={[styles.title, {color: theme.input}]}>
               Customer Detail
@@ -117,7 +339,7 @@ const ServiceProviderOrderDetail = () => {
             </View>
           </View>
 
-          {/**Status */}
+          {/** Status */}
           <View style={styles.space}>
             <Text style={[styles.title, {color: theme.input}]}>Order Type</Text>
             <View style={styles.buttonContainer}>
@@ -148,13 +370,13 @@ const ServiceProviderOrderDetail = () => {
             </View>
           </View>
 
-          {/* Card Section */}
+          {/* Card Section - Order Status */}
           <View style={[styles.card, {backgroundColor: theme.backgroundColor}]}>
             <Text style={[styles.title, {color: theme.input}]}>
               Order Status
             </Text>
             <View>
-              {trackingSteps.map((item, index) => (
+              {trackingProgress.map((item, index) => (
                 <View key={item.id} style={styles.stepContainer}>
                   {/* Icon with background */}
                   <View
@@ -174,13 +396,18 @@ const ServiceProviderOrderDetail = () => {
                     </Text>
                   </View>
 
-                  {item.completed ? (
-                    <CheckCircle color="green" width={20} height={20} />
-                  ) : (
-                    <Circle color="gray" width={20} height={20} />
-                  )}
+                  {/* Clickable Circle */}
+                  <TouchableOpacity
+                    onPress={() => updateOrderStatus(item.status, index)}
+                    style={styles.circleContainer}>
+                    {item.completed ? (
+                      <CheckCircle color="green" width={20} height={20} />
+                    ) : (
+                      <Circle color="gray" width={20} height={20} />
+                    )}
+                  </TouchableOpacity>
 
-                  {index !== trackingSteps.length - 1 && (
+                  {index !== trackingProgress.length - 1 && (
                     <View style={styles.progressLine} />
                   )}
                 </View>
@@ -203,7 +430,7 @@ const styles = StyleSheet.create({
   },
   space: {
     paddingHorizontal: Platform.select({
-      ios: wp(6), // Slightly more padding on iOS
+      ios: wp(6),
       android: wp(5),
     }),
   },
@@ -213,7 +440,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: hp(2.5),
     padding: wp(5),
     paddingHorizontal: Platform.select({
-      ios: wp(6), // Slightly more padding on iOS
+      ios: wp(6),
       android: wp(5),
     }),
   },
@@ -240,7 +467,7 @@ const styles = StyleSheet.create({
   },
   progressLine: {
     position: 'absolute',
-    right: wp(2.2),
+    right: wp(3.7),
     top: Platform.OS === 'ios' ? wp(10) : wp(11.5),
     width: 2,
     height: Platform.OS === 'ios' ? hp(7.5) : hp(9),
@@ -254,6 +481,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: wp(3),
+  },
+  circleContainer: {
+    padding: 5, // Add padding to make the clickable area larger
   },
   cards: {
     flexDirection: 'row',

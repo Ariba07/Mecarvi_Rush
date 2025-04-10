@@ -18,7 +18,6 @@ import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
 import Header from '../../components/common/header/Header';
 import Rate from '../../assets/images/Rate.svg';
-import ServiceList from '../../components/helperUtils/profile/ServiceList';
 import AboutUs from '../../components/helperUtils/profile/AboutUs';
 import Work from '../../components/helperUtils/profile/Work';
 import Reviews from '../../components/helperUtils/profile/Reviews';
@@ -28,7 +27,7 @@ import {useSelector} from 'react-redux';
 import {selectServiceProviderUuid} from '../../slice/Slice';
 
 const tabs = [
-  {label: 'Services'},
+  // {label: 'Services'},
   {label: 'About'},
   {label: 'Work'},
   {label: 'Reviews'},
@@ -140,7 +139,7 @@ const ServiceProviderProfile = () => {
         </View>
         {/* Tab Content */}
         <View style={styles.contentContainer}>
-          {selectedTab === 'Services' && <ServiceList />}
+          {/* {selectedTab === 'Services' && <ServiceList />} */}
           {selectedTab === 'About' && <AboutUs />}
           {selectedTab === 'Work' && <Work />}
           {selectedTab === 'Reviews' && <Reviews />}
@@ -196,7 +195,7 @@ const styles = StyleSheet.create({
   ratingText: {color: '#ffffff', fontSize: wp(3.5)},
   tabContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'space-around',
     alignItems: 'center',
     width: '100%',
     paddingVertical: hp(2),

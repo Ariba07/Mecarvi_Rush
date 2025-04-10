@@ -28,7 +28,7 @@ export const trackingSteps = [
   {
     id: '1',
     status: 'Order is accepted.',
-    time: '11 Mar 2025 at 7:00 PM',
+    time: '',
     icon: <Successful width={wp(9)} height={wp(9)} />,
     bgColor: '#B3EACD', // Light green
     completed: true,
@@ -36,7 +36,7 @@ export const trackingSteps = [
   {
     id: '2',
     status: 'Order is being Pickup.',
-    time: '11 Mar 2025 at 7:00 PM',
+    time: '',
     icon: <Track width={wp(9)} height={wp(9)} />,
     bgColor: '#FFD59E', // Light orange
     completed: true,
@@ -44,7 +44,7 @@ export const trackingSteps = [
   {
     id: '3',
     status: 'Order is on the way.',
-    time: '11 Mar 2025 at 7:00 PM',
+    time: '',
     icon: <Delivery width={wp(9)} height={wp(9)} />,
     bgColor: '#B3D9FF', // Light blue
     completed: false,
@@ -52,7 +52,7 @@ export const trackingSteps = [
   {
     id: '4',
     status: 'Order will be delivered soon.',
-    time: '11 Mar 2025 at 7:00 PM',
+    time: '',
     icon: <Courier width={wp(9)} height={wp(9)} />,
     bgColor: '#FFC2C2', // Light red
     completed: false,

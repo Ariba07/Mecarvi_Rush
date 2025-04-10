@@ -9,7 +9,7 @@ import {
   Image,
   Alert,
 } from 'react-native';
-import React, {useContext} from 'react';
+import React, {useContext, useState} from 'react';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -32,6 +32,7 @@ import {
   selectSourceType,
 } from '../../slice/Slice';
 import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
+import CardPaymentBottomSheet from '../../components/cardPayment/CardPaymentModal';
 
 interface PaymentOption {
   id: string;
@@ -53,6 +54,10 @@ const Checkout: React.FC = () => {
   const addressId = useSelector(selectAddressId);
   const dispatch = useDispatch();
 
+  const [selectedPayment, setSelectedPayment] = useState<string>('paypal');
+  const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+  const [orderUuid, setOrderUuid] = useState<string | null>(null);
+
   // Function to convert "4:00 PM" to "16:00" format
   const convertTo24HourFormat = (timeStr: string) => {
     const [time, period] = timeStr.split(' ');
@@ -72,15 +77,17 @@ const Checkout: React.FC = () => {
     try {
       // Convert time to 24-hour format
       const formattedTime = Time ? convertTo24HourFormat(Time) : '';
+
       // Validate user_address_id for delivery
       if (addressType === 'delivery' && !addressId) {
         console.error('Error: User address ID is required for delivery.');
         Alert.alert('Please select a delivery address before proceeding.');
-        return; // Exit the function if validation fails
+        throw new Error('User address ID is required for delivery');
       }
+
       const orderData = {
         items: cart.map(item => ({
-          product_id: item.id, // Changed from id to productUuid
+          product_id: item.id,
           quantity: item.quantity,
           price: item.price,
           name: item.name,
@@ -88,31 +95,79 @@ const Checkout: React.FC = () => {
         })),
         fulfillment_type: addressType,
         source_type: sourceType,
-        fulfillment_time: formattedTime, // Use converted time
+        fulfillment_time: formattedTime,
         fulfillment_date: date,
         user_address_id: addressType === 'delivery' ? addressId : undefined,
-        // payment_method: selectedPayment, // Uncommented this as it might be needed
       };
 
       console.log('Order Data:', orderData);
 
-      const response = await apiHelper({
+      const response = (await apiHelper({
         method: 'POST',
         endpoint: 'orders/cart/',
         data: orderData,
-      });
+      })) as {data: {order_uuid: string}};
 
-      if (response) {
-        navigation.navigate('Receipt');
-        dispatch(clearCart());
+      if (response.data.order_uuid) {
+        setOrderUuid(response.data.order_uuid); // Store order_uuid
+        return response.data.order_uuid; // Return order_uuid for further processing
+      } else {
+        throw new Error('No valid order_uuid in response');
       }
     } catch (error) {
       console.error('Error creating order:', error);
+      Alert.alert('Error', 'Failed to create order. Please try again.');
+      throw error; // Re-throw to handle in the calling function
     }
   };
 
-  const [selectedPayment, setSelectedPayment] =
-    React.useState<string>('paypal');
+  const createPayment = async (paymentId: string) => {
+    if (!orderUuid) {
+      console.error('Error: orderUuid is not set');
+      Alert.alert('Error', 'Order UUID is missing. Payment cannot proceed.');
+      return;
+    }
+
+    try {
+      await apiHelper({
+        method: 'POST',
+        endpoint: `orders/${orderUuid}/stripe-payment`,
+        data: {payment_method_id: paymentId},
+      });
+      navigation.navigate('Receipt'); // Navigate to Receipt after payment
+      dispatch(clearCart());
+    } catch (error) {
+      console.error('Error creating payment:', error);
+      Alert.alert('Error', 'Payment failed. Please try again.');
+    }
+  };
+
+  const handlePayNow = async () => {
+    try {
+      const orderUuidFromCreation = await createOrder(); // Create order first
+      if (orderUuidFromCreation) {
+        if (selectedPayment === 'stripe') {
+          setIsModalVisible(true); // Open CardPaymentBottomSheet for Stripe after order creation
+        } else {
+          // Handle other payment methods (e.g., PayPal, Wallet)
+          navigation.navigate('Receipt');
+          dispatch(clearCart());
+        }
+      }
+    } catch (error) {
+      // Error already handled in createOrder
+    }
+  };
+
+  const handleStripePaymentSubmit = async (paymentMethodId: string) => {
+    try {
+      if (orderUuid) {
+        await createPayment(paymentMethodId); // Create payment with existing orderUuid
+      }
+    } catch (error) {
+      // Error already handled in createPayment
+    }
+  };
 
   const paymentOptions: PaymentOption[] = [
     {
@@ -201,10 +256,18 @@ const Checkout: React.FC = () => {
             </TouchableOpacity>
           ))}
         </View>
+
         {/* Pay Now Button */}
         <View style={styles.payButton}>
-          <CustomButton title="Pay Now" onPress={createOrder} />
+          <CustomButton title="Pay Now" onPress={handlePayNow} />
         </View>
+
+        {/* Stripe Card Payment Bottom Sheet */}
+        <CardPaymentBottomSheet
+          isVisible={isModalVisible}
+          onClose={() => setIsModalVisible(false)}
+          onSubmit={handleStripePaymentSubmit}
+        />
       </View>
     </SafeAreaView>
   );
