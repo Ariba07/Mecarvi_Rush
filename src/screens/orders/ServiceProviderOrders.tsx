@@ -23,8 +23,6 @@ import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 const tabs = [
   {label: 'All Orders', filter: 'All'},
   {label: 'Active', filter: 'Processing'},
-  {label: 'Pending', filter: 'Pending'},
-  {label: 'Declined', filter: 'Decline'},
   {label: 'Completed', filter: 'Completed'},
   {label: 'Cancelled', filter: 'Cancelled'},
   {label: 'Disputes', filter: 'Dispute'},
