@@ -49,7 +49,7 @@ const ProductPrice = () => {
         const product = response?.data || [];
         setProductData(product); // Set product data
       } catch (error) {
-        console.error('Error fetching products:', error);
+        console.warn('Error fetching products:', error);
       }
     };
     fetchProducts();
@@ -66,7 +66,7 @@ const ProductPrice = () => {
       });
       navigation.goBack();
     } catch (error) {
-      console.error('Error updating Price:', error);
+      console.warn('Error updating Price:', error);
     }
   };
 

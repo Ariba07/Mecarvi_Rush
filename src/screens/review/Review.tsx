@@ -14,7 +14,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
-import {useNavigation} from '@react-navigation/native';
+import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
 import Header from '../../components/common/header/Header';
@@ -22,22 +22,47 @@ import {Svg, Path} from 'react-native-svg';
 import CustomButton from '../../components/common/buttons/CustomButton';
 import {TouchableWithoutFeedback} from 'react-native';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
+import {useSelector} from 'react-redux';
+import {selectUserId} from '../../slice/Slice';
+type ReviewRouteProp = RouteProp<RootStackParamList, 'Review'>;
 
 const Review = () => {
+  const route = useRoute<ReviewRouteProp>();
+  const {order_id} = route.params;
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [rating, setRating] = useState<number>(0);
   const [reviewText, setReviewText] = useState<string>('');
   const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
+  const userId = useSelector(selectUserId);
 
   const handleStarPress = (index: number) => {
     setRating(index);
   };
 
-  const handleSubmit = () => {
-    console.log('Rating:', rating);
-    console.log('Review:', reviewText);
-    // Implement API call or storage logic here
+  const handleSubmit = async () => {
+    try {
+      const review = {
+        order_id: order_id,
+        user_id: userId,
+        rating: rating,
+        comment: reviewText,
+      };
+
+      const response = await apiHelper({
+        method: 'POST',
+        endpoint: 'review/create',
+        data: review,
+      });
+
+      console.log('Profile updated successfully:', response);
+      navigation.navigate('Orders'); // Navigate to the Orders screen after submission
+
+      // Refetch the profile data after a successful update
+    } catch (error) {
+      console.warn('Error updating profile:', error);
+    }
   };
 
   return (

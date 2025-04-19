@@ -22,7 +22,10 @@ import {TouchableWithoutFeedback} from 'react-native';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 import {useSelector} from 'react-redux';
-import {selectUserUuidId} from '../../slice/Slice';
+import {selectUserName, selectUserUuidId} from '../../slice/Slice';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const STORAGE_KEY = '@login_credentials';
 
 const Profile = () => {
   const navigation =
@@ -32,8 +35,37 @@ const Profile = () => {
   const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [loading, setLoading] = useState(true);
-
+  const reduxUserName = useSelector(selectUserName);
   const user_uuid = useSelector(selectUserUuidId);
+  const [userUuid, setUserId] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string | null>(null);
+
+  useEffect(() => {
+    const getUserId = async () => {
+      try {
+        const credentials = await AsyncStorage.getItem(STORAGE_KEY);
+        if (credentials) {
+          const parsedCredentials = JSON.parse(credentials);
+          if (parsedCredentials.name) {
+            setUserName(parsedCredentials.name);
+            setUserId(parsedCredentials.userUuid);
+
+            return;
+          }
+        }
+        // Fallback to Redux if AsyncStorage doesn't have userId
+        setUserName(reduxUserName ?? null);
+        setUserId(user_uuid ?? null);
+      } catch (error) {
+        console.warn('Error retrieving user ID from AsyncStorage:', error);
+        // Fallback to Redux on error
+        setUserName(reduxUserName ?? null);
+        setUserId(user_uuid ?? null);
+      }
+    };
+
+    getUserId();
+  }, [reduxUserName, user_uuid]);
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -41,7 +73,7 @@ const Profile = () => {
         setLoading(true); // Show loading while fetching
         const response = await apiHelper({
           method: 'GET',
-          endpoint: `customers/${user_uuid}`,
+          endpoint: `customers/${userUuid}`,
         });
         const profile = (
           response as {
@@ -55,13 +87,13 @@ const Profile = () => {
           setPhoneNumber(profile.phone_number || '');
         }
       } catch (error) {
-        console.error('Error fetching profile:', error);
+        console.warn('Error fetching profile:', error);
       } finally {
         setLoading(false);
       }
     };
     fetchProfileData();
-  }, [user_uuid]);
+  }, [userUuid]);
 
   const handleUpdate = async () => {
     try {
@@ -81,7 +113,7 @@ const Profile = () => {
 
       // Refetch the profile data after a successful update
     } catch (error) {
-      console.error('Error updating profile:', error);
+      console.warn('Error updating profile:', error);
     }
   };
 
@@ -106,7 +138,7 @@ const Profile = () => {
               style={styles.profileImage}
             />
             <Text style={[styles.storeName, {color: theme.text}]}>
-              {fullName || 'Your name'}
+              {userName}
             </Text>
           </View>
 

@@ -22,7 +22,7 @@ const Header: React.FC<HeaderProps> = ({title, onBackPress}) => {
           <Icon
             name="chevron-left"
             size={wp(5)}
-            color={theme.header}
+            color={theme.input}
             type="feather"
           />
         </TouchableOpacity>

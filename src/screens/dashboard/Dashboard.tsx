@@ -66,7 +66,7 @@ const Dashboard: React.FC = () => {
         const fetchedProduct = response?.data || [];
         setProducts(fetchedProduct);
       } catch (error) {
-        console.error('Error fetching products:', error);
+        console.warn('Error fetching products:', error);
       }
     };
     fetchProducts();
@@ -85,7 +85,7 @@ const Dashboard: React.FC = () => {
         });
         setCategories(response.data.data || []);
       } catch (error) {
-        console.error('Error fetching categories:', error);
+        console.warn('Error fetching categories:', error);
       }
     };
     fetchCategories();

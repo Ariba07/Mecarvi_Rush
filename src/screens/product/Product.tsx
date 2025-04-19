@@ -57,7 +57,7 @@ const Product = () => {
         });
         setProductData(response.data);
       } catch (error) {
-        console.error('Error fetching product:', error);
+        console.warn('Error fetching product:', error);
       } finally {
         setLoading(false);
       }

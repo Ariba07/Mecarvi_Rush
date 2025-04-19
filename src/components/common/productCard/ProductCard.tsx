@@ -47,20 +47,21 @@ const ProductCard: React.FC<ProductCardProps> = ({
         <Text style={[styles.name, {color: theme.text}]}>{name}</Text>
 
         {/* Ratings */}
-        <View style={styles.ratingContainer}>
+        {/* <View style={styles.ratingContainer}>
           {Array(5)
             .fill(0)
             .map((_, index) => (
               <Icon key={index} name="star" size={wp('4%')} color="#FFD700" />
             ))}
           <Text style={[styles.rating, {color: theme.text}]}>5.0</Text>
-        </View>
+        </View> */}
 
         {/* Add to Cart Button */}
         <TouchableOpacity
           style={styles.cartButton}
           onPress={() => {
-            navigation.navigate('Cart');
+            navigation.navigate('Product');
+            dispatch(setProductUuid(productUuid)); // Use productUuid instead of key
           }}>
           <Icon name="cart" size={wp('4%')} color="white" />
           <Text style={styles.cartText}>Add to cart</Text>

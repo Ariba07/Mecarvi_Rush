@@ -35,7 +35,7 @@ interface BusinessProvider {
   price: string;
 }
 
-const MarketPlace: React.FC = () => {
+const BidList: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute<Prop>();
@@ -74,13 +74,18 @@ const MarketPlace: React.FC = () => {
     fetchProviders();
   }, [productId]);
 
+  const handleAccept = (providerId: number) => {
+    console.log(`Accepted provider with ID: ${providerId}`);
+    navigation.navigate('Checkout');
+  };
+
   const renderProviderItem = ({item}: {item: BusinessProvider}) => (
     <TouchableOpacity
       style={[styles.providerCard, {backgroundColor: theme.backgroundColor}]}
       onPress={() => {
         if (item.service_provider_user_uuid) {
           navigation.navigate('ShopProfile', {
-            fromBid: false,
+            fromBid: true,
             providerId: item.service_provider_user_uuid,
           });
         } else {
@@ -104,6 +109,14 @@ const MarketPlace: React.FC = () => {
 
         <View style={styles.row}>
           <Text style={[styles.price, {color: theme.input}]}>{item.price}</Text>
+
+          <TouchableOpacity
+            style={styles.acceptButton}
+            onPress={() => {
+              handleAccept(item.id);
+            }}>
+            <Text style={styles.acceptButtonText}>Accept</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </TouchableOpacity>
@@ -112,7 +125,7 @@ const MarketPlace: React.FC = () => {
   return (
     <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
       <View style={styles.container}>
-        <Header title={'MarketPlace'} onBackPress={() => navigation.goBack()} />
+        <Header title={'Bids List'} onBackPress={() => navigation.goBack()} />
 
         <View style={styles.subtitleContainer}>
           <Icon name="store" size={wp(5)} color="#666" />
@@ -232,4 +245,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default MarketPlace;
+export default BidList;

@@ -197,6 +197,33 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
     dispatch(setSourceType('quote'));
   };
 
+  const handleMarketplace = () => {
+    if (!productUuid || !productData) {
+      return;
+    }
+
+    const cartItem: CartItem = {
+      id: productData.id,
+      productUuid,
+      name: productData.name || 'Unnamed Product',
+      price: productData.price || 0,
+      quantity: quantity || 1, // Ensure quantity has a default
+      selectedColor: selectedColor ? getHexColor(selectedColor) : undefined,
+      frontFile: frontFile ? {uri: frontFile.uri} : undefined,
+      backFile: backFile ? {uri: backFile.uri} : undefined,
+      orderNotes: reviewText || undefined,
+      attributes: attributeValues,
+    };
+
+    console.log('Dispatching cartItem:', cartItem);
+    navigation.navigate('MarketPlace', {
+      fromProduct: true,
+      productId: productData.id,
+    });
+    dispatch(setSourceType('marketplace'));
+    dispatch(addToCart(cartItem));
+  };
+
   return (
     <View style={styles.attributeContainer}>
       {attributes.map(attr => (
@@ -336,11 +363,7 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
         <TouchableOpacity
           style={[styles.button, styles.fullWidthButton]}
           onPress={() => {
-            navigation.navigate('MarketPlace', {
-              fromProduct: true,
-              productId: productData.id,
-            });
-            dispatch(setSourceType('marketplace'));
+            handleMarketplace();
           }}>
           <Text style={[styles.buttonText, {color: theme.backgroundColor}]}>
             Add Marketplace

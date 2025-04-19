@@ -10,7 +10,10 @@ import {
 import React, {useState, useEffect, useContext} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {Productss, RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
+import {
+  Productss,
+  RootStackParamList,
+} from '../../components/types/screenTypes/ScreenTypes';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -19,7 +22,7 @@ import Header from '../../components/common/header/Header';
 import ProductCard from '../../components/common/productCard/ProductCard';
 import {Icon} from 'react-native-elements';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
-import { selectServiceUuid} from '../../slice/Slice';
+import {selectServiceUuid} from '../../slice/Slice';
 import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 import {useSelector} from 'react-redux';
 
@@ -49,7 +52,7 @@ const Products: React.FC = () => {
         setFetchedProducts(products); // Set source data
         setFilteredProducts(products); // Initialize filtered data
       } catch (error) {
-        console.error('Error fetching products:', error);
+        console.warn('Error fetching products:', error);
       }
     };
     fetchProducts();

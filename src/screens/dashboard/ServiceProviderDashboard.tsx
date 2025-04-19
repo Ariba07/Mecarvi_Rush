@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useContext} from 'react';
+import React, {useCallback, useContext, useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Platform,
+  RefreshControl,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {DrawerNavigationProp} from '@react-navigation/drawer';
@@ -19,13 +20,146 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import SideMenu from '../../assets/images/SideMenu.svg';
 import PieChart from 'react-native-pie-chart';
-import OrderCard from '../../components/common/orderCard/OrderCard';
-import {orders} from '../../components/helperUtils/orderTypes/Types';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {useSelector} from 'react-redux';
+import {selectId, selectUserName} from '../../slice/Slice';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
+import RecentOrderCard from '../../components/common/orderCard/OrderCard';
+
+const STORAGE_KEY = '@login_credentials';
+
+// Define Order interface for type safety
+interface OrderDetail {
+  id: number;
+  product_name: string;
+  price: string | number;
+  quantity: number;
+}
+
+export interface Order {
+  id: number;
+  order_uuid: string;
+  total_price: string | number;
+  created_at: string;
+  payment_status?: string;
+  order_details: OrderDetail[];
+}
 
 const ServiceProviderDashboard = () => {
   const navigation = useNavigation<DrawerNavigationProp<RootStackParamList>>();
-  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
+  const {theme} = useContext(ThemeContext);
+  const reduxUserName = useSelector(selectUserName);
+  const reduxUserId = useSelector(selectId);
+  const [userName, setUserName] = useState<string | null>(null);
+  const [userId, setUserId] = useState<number | null>(null);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [trackingStatuses, setTrackingStatuses] = useState<{
+    [key: string]: {
+      status: string;
+      order_id?: number;
+      order_tracking_uuid?: string;
+    };
+  }>({});
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Fetch userName and userId from AsyncStorage or Redux
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const credentials = await AsyncStorage.getItem(STORAGE_KEY);
+        if (credentials) {
+          const parsedCredentials = JSON.parse(credentials);
+          setUserName(parsedCredentials.name ?? reduxUserName ?? null);
+          setUserId(parsedCredentials.id ?? reduxUserId ?? null);
+        } else {
+          setUserName(reduxUserName ?? null);
+          setUserId(reduxUserId ?? null);
+        }
+      } catch (error) {
+        console.warn('Error retrieving user data from AsyncStorage:', error);
+        setUserName(reduxUserName ?? null);
+        setUserId(reduxUserId ?? null);
+      }
+    };
+
+    fetchUserData();
+  }, [reduxUserName, reduxUserId]);
+
+  // Fetch orders
+  const fetchOrders = useCallback(async () => {
+    if (userId === null) {
+      return;
+    }
+    try {
+      const endpoint = `orders?service_provider_id=${userId}`;
+      const response = (await apiHelper({
+        method: 'GET',
+        endpoint,
+      })) as {data: Order[]};
+      setOrders(response.data.slice(0, 5)); // Limit to 5 orders
+    } catch (error) {
+      console.warn('Error fetching orders:', error);
+    }
+  }, [userId]);
+
+  // Fetch tracking statuses
+  const fetchTrackingStatuses = useCallback(async () => {
+    if (orders.length === 0) {
+      return;
+    }
+    try {
+      const trackingPromises = orders.map(async order => {
+        const response = (await apiHelper({
+          method: 'GET',
+          endpoint: `order-tracking/order/${order.order_uuid}`,
+        })) as {status: number; data: any[]};
+        return {
+          order_uuid: order.order_uuid,
+          status: response.data[0].status,
+          order_id: response.data[0].order_id,
+          order_tracking_uuid: response.data[0].order_tracking_uuid,
+        };
+      });
+
+      const results = await Promise.all(trackingPromises);
+      const statusMap = results.reduce(
+        (acc, {order_uuid, status, order_id, order_tracking_uuid}) => {
+          acc[order_uuid] = {status, order_id, order_tracking_uuid};
+          return acc;
+        },
+        {} as {
+          [key: string]: {
+            status: string;
+            order_id?: number;
+            order_tracking_uuid?: string;
+          };
+        },
+      );
+
+      setTrackingStatuses(statusMap);
+    } catch (error) {
+      console.warn('Error fetching tracking statuses:', error);
+    }
+  }, [orders]);
+
+  // Pull-to-refresh handler
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchOrders();
+    await fetchTrackingStatuses();
+    setRefreshing(false);
+  };
+
+  // Fetch orders on mount or userId change
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
+
+  // Fetch tracking statuses when orders change
+  useEffect(() => {
+    fetchTrackingStatuses();
+  }, [fetchTrackingStatuses]);
 
   const summaryData = [
     {title: 'Total Orders', value: '1,250 Orders', icon: 'cart-outline'},
@@ -58,6 +192,15 @@ const ServiceProviderDashboard = () => {
     },
   ];
 
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+  };
+
   return (
     <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
       <View style={styles.container}>
@@ -69,7 +212,7 @@ const ServiceProviderDashboard = () => {
             </TouchableOpacity>
             <View>
               <Text style={[styles.userName, {color: theme.text}]}>
-                Hi Chris,
+                Hi {userName},
               </Text>
               <Text style={[styles.welcomeText, {color: theme.text}]}>
                 Welcome Back
@@ -84,7 +227,15 @@ const ServiceProviderDashboard = () => {
         </View>
         <ScrollView
           contentContainerStyle={styles.scrollViewContent}
-          showsVerticalScrollIndicator={false}>
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={['#03A7A7']}
+              tintColor={'#03A7A7'}
+            />
+          }>
           {/* Summary Section */}
           <View style={styles.summaryContainer}>
             {summaryData.map((item, index) => (
@@ -92,8 +243,8 @@ const ServiceProviderDashboard = () => {
                 key={index}
                 style={[
                   styles.card,
-                  (index + 1) % 2 === 0 && styles.cardLastInRow, // Remove right border for second card in each row
-                  index >= 2 && styles.cardLastRow, // Remove bottom border for last two cards
+                  (index + 1) % 2 === 0 && styles.cardLastInRow,
+                  index >= 2 && styles.cardLastRow,
                   {backgroundColor: theme.backgroundColor},
                 ]}>
                 <Icon name={item.icon} size={24} color={'#03A7A7'} />
@@ -122,7 +273,6 @@ const ServiceProviderDashboard = () => {
               }))}
               cover={0.6}
             />
-
             <View style={styles.legendContainer}>
               {chartData.map((item, index) => (
                 <View key={index} style={styles.legendItem}>
@@ -150,16 +300,21 @@ const ServiceProviderDashboard = () => {
               <Text style={styles.seeAllText}>See All</Text>
             </TouchableOpacity>
           </View>
-          {orders.slice(0, 5).map(item => (
-            <OrderCard
-              key={item.id}
-              name={item.name}
-              price={item.price}
-              image={item.image}
-              status={item.status}
-              color={item.color}
-            />
-          ))}
+          {orders.length === 0 ? (
+            <Text style={[styles.noOrdersText, {color: theme.text}]}>
+              No recent orders
+            </Text>
+          ) : (
+            orders.map(order => (
+              <RecentOrderCard
+                key={order.id}
+                order={order}
+                theme={theme}
+                trackingStatuses={trackingStatuses}
+                formatDate={formatDate}
+              />
+            ))
+          )}
         </ScrollView>
       </View>
     </SafeAreaView>
@@ -174,7 +329,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: Platform.select({
-      ios: wp(6), // Slightly more padding on iOS
+      ios: wp(6),
       android: wp(5),
     }),
     paddingBottom: Platform.select({
@@ -207,31 +362,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     backgroundColor: '#ffffff',
-    overflow: 'hidden', // Prevents overflow beyond border
+    overflow: 'hidden',
     borderRadius: wp(2.5),
   },
-
   card: {
     backgroundColor: '#fff',
-    width: '50%', // 2 columns layout
+    width: '50%',
     padding: wp(4),
     alignItems: 'center',
     justifyContent: 'center',
-    borderBottomWidth: 1, // Default bottom border
-    borderRightWidth: 1, // Right border for left column
+    borderBottomWidth: 1,
+    borderRightWidth: 1,
     borderColor: '#A9A9A9',
   },
-
-  // Remove the right border for the second card in each row
   cardLastInRow: {
     borderRightWidth: 0,
   },
-
-  // Remove the bottom border for the last two cards
   cardLastRow: {
     borderBottomWidth: 0,
   },
-
   cardTitle: {fontSize: wp(3.5), color: '#333', fontWeight: 'bold'},
   cardValue: {fontSize: wp(3.5), color: '#666', marginTop: hp(0.5)},
   sectionTitle: {
@@ -279,7 +428,13 @@ const styles = StyleSheet.create({
     color: '#9c9c9c',
   },
   scrollViewContent: {
-    paddingBottom: hp(8), // Ensures space at the bottom
+    paddingBottom: hp(8),
+  },
+  noOrdersText: {
+    fontSize: wp(4),
+    color: '#333',
+    textAlign: 'center',
+    marginTop: hp(2),
   },
 });
 

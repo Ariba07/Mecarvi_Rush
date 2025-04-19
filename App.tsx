@@ -27,8 +27,6 @@ import Service from './src/screens/service/Service';
 import Search from './src/screens/search/Search';
 import Address from './src/screens/address/Address';
 import Message from './src/screens/message/Message';
-import Tracking from './src/screens/tracking/Tracking';
-import OrderDetails from './src/screens/orderDetail/OrderDetails';
 import Review from './src/screens/review/Review';
 import Support from './src/screens/support/Support';
 import Profile from './src/screens/profile/Profile';
@@ -38,7 +36,6 @@ import Product from './src/screens/product/Product';
 import Quote from './src/screens/quote/Quote';
 import ServicesProducts from './src/screens/services/ServicesProducts';
 import ProductPrice from './src/screens/productPrice/ProductPrice';
-import ServiceProviderOrderDetail from './src/screens/orderDetail/ServiceProviderOrderDetail';
 import ServiceProviderProfile from './src/screens/profile/ServiceProviderProfile';
 import Wallet from './src/screens/wallet/Wallet';
 import Withdraw from './src/screens/withdraw/Withdraw';
@@ -54,11 +51,26 @@ import ShopProfile from './src/screens/shop/ShopProfile';
 import {ThemeProvider} from './src/components/helperUtils/theme/ThemeContext';
 import OrderIndex from './src/screens/orders/OrderIndex';
 import ServiceProviderOrderDecision from './src/screens/quote/ServiceProviderQuoteDecision';
+import BidList from './src/screens/marketPlace/BidList';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const STRIPE_KEY =
   'pk_test_51R2R3sQGkbRqDEDibvMt3ZizRgvwrFvgYMYsxSUEM6PEBv0adSrxBLdvJWgG5bvOHUwhZcAX3QeKTXxO06dvfTSH00KrElXiGO';
+
+const linking = {
+  prefixes: ['mecarvirush://', 'https://www.mecarvirush.com'],
+  config: {
+    screens: {
+      Checkout: {
+        path: 'cancel', // myapp://cancel or https://www.yourdomain.com/paypal/cancel
+      },
+      Receipt: {
+        path: 'success', // myapp://success or https://www.yourdomain.com/paypal/success
+      },
+    },
+  },
+};
 
 const AppContent: React.FC = () => {
   return (
@@ -104,8 +116,6 @@ const AppContent: React.FC = () => {
       <Stack.Screen name="Products" component={Products} />
       <Stack.Screen name="Address" component={Address} />
       <Stack.Screen name="Message" component={Message} />
-      <Stack.Screen name="Tracking" component={Tracking} />
-      <Stack.Screen name="OrderDetails" component={OrderDetails} />
       <Stack.Screen name="Review" component={Review} />
       <Stack.Screen name="Points" component={Points} />
       <Stack.Screen name="Profile" component={Profile} />
@@ -114,10 +124,6 @@ const AppContent: React.FC = () => {
       <Stack.Screen name="Quote" component={Quote} />
       <Stack.Screen name="Services" component={ServicesProducts} />
       <Stack.Screen name="ProductPrice" component={ProductPrice} />
-      <Stack.Screen
-        name="ServiceProviderOrderDetail"
-        component={ServiceProviderOrderDetail}
-      />
       <Stack.Screen
         name="ServiceProviderProfile"
         component={ServiceProviderProfile}
@@ -138,6 +144,7 @@ const AppContent: React.FC = () => {
       <Stack.Screen name="MarketPlace" component={MarketPlace} />
       <Stack.Screen name="ShopProfile" component={ShopProfile} />
       <Stack.Screen name="Orders" component={OrderIndex} />
+      <Stack.Screen name="BidList" component={BidList} />
     </Stack.Navigator>
   );
 };
@@ -148,7 +155,7 @@ const App: React.FC = () => {
       <PersistGate loading={null} persistor={persistor}>
         <StripeProvider publishableKey={STRIPE_KEY}>
           <ThemeProvider>
-            <NavigationContainer>
+            <NavigationContainer linking={linking}>
               <StatusBar
                 translucent
                 backgroundColor="transparent"

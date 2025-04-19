@@ -28,7 +28,7 @@ async function requestNotificationPermission(): Promise<boolean> {
 
     return enabled;
   } catch (error) {
-    console.error('Error requesting notification permission:', error);
+    console.warn('Error requesting notification permission:', error);
     return false;
   }
 }

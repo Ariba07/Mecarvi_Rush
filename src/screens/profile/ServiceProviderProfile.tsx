@@ -24,7 +24,8 @@ import Reviews from '../../components/helperUtils/profile/Reviews';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 import {useSelector} from 'react-redux';
-import {selectServiceProviderUuid} from '../../slice/Slice';
+import {selectServiceProviderUuid, selectUserName} from '../../slice/Slice';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const tabs = [
   // {label: 'Services'},
@@ -33,10 +34,12 @@ const tabs = [
   {label: 'Reviews'},
 ];
 
+const STORAGE_KEY = '@login_credentials';
+
 const ServiceProviderProfile = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const [selectedTab, setSelectedTab] = useState('Services');
+  const [selectedTab, setSelectedTab] = useState('About');
   const {theme} = useContext(ThemeContext);
   const user_uuid = useSelector(selectServiceProviderUuid);
   interface ProfileData {
@@ -45,17 +48,44 @@ const ServiceProviderProfile = () => {
     address: string;
     logo: string;
   }
-
-  console.log(user_uuid);
-
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
+  const [userUuid, setUserId] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string | null>(null);
+  const reduxUserName = useSelector(selectUserName);
+
+  useEffect(() => {
+    const getUserId = async () => {
+      try {
+        const credentials = await AsyncStorage.getItem(STORAGE_KEY);
+        if (credentials) {
+          const parsedCredentials = JSON.parse(credentials);
+          if (parsedCredentials.name) {
+            setUserName(parsedCredentials.name);
+            setUserId(parsedCredentials.userUuid);
+
+            return;
+          }
+        }
+        // Fallback to Redux if AsyncStorage doesn't have userId
+        setUserName(reduxUserName ?? null);
+        setUserId(user_uuid ?? null);
+      } catch (error) {
+        console.warn('Error retrieving user ID from AsyncStorage:', error);
+        // Fallback to Redux on error
+        setUserName(reduxUserName ?? null);
+        setUserId(user_uuid ?? null);
+      }
+    };
+
+    getUserId();
+  }, [reduxUserName, user_uuid]);
 
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
         const response = (await apiHelper({
           method: 'GET',
-          endpoint: `service-provider/${user_uuid}`,
+          endpoint: `service-provider/${userUuid}`,
         })) as {
           data: {
             user: any;
@@ -66,13 +96,11 @@ const ServiceProviderProfile = () => {
         };
         setProfileData(response.data);
       } catch (error) {
-        console.error('Error fetching profile:', error);
+        console.warn('Error fetching profile:', error);
       }
     };
     fetchProfileData();
-  }, [user_uuid]);
-
-  console.log(profileData);
+  }, [userUuid]);
 
   if (!profileData) {
     return (
@@ -82,7 +110,7 @@ const ServiceProviderProfile = () => {
     );
   }
 
-  const {service_provider_name, address, logo} = profileData;
+  const {address, logo} = profileData;
 
   return (
     <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
@@ -97,7 +125,7 @@ const ServiceProviderProfile = () => {
             resizeMode="cover"
           />
           <Text style={[styles.storeName, {color: theme.input}]}>
-            {service_provider_name}
+            {userName}
           </Text>
           <Text style={[styles.label, {color: theme.text}]}>{address}</Text>
           <View style={styles.ratings}>

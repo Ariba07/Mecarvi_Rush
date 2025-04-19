@@ -83,7 +83,7 @@ const ServiceProviderRegister = () => {
         setShowSuggestions(false);
       }
     } catch (error) {
-      console.error('Error fetching address suggestions:', error);
+      console.warn('Error fetching address suggestions:', error);
       setAddressSuggestions([]);
       setShowSuggestions(false);
     }
@@ -107,7 +107,7 @@ const ServiceProviderRegister = () => {
         throw new Error('Unable to geocode address');
       }
     } catch (error) {
-      console.error('Geocoding Error:', error);
+      console.warn('Geocoding Error:', error);
       Alert.alert('Error', 'Failed to get coordinates for the address');
       return null;
     }
@@ -381,12 +381,12 @@ const ServiceProviderRegister = () => {
                       )}
 
                       {/* Optional: Display latitude and longitude for debugging */}
-                      {coordinates.lat && coordinates.lng && (
+                      {/* {coordinates.lat && coordinates.lng && (
                         <Text style={[styles.label, {color: theme.text}]}>
                           Latitude: {coordinates.lat}, Longitude:{' '}
                           {coordinates.lng}
                         </Text>
-                      )}
+                      )} */}
 
                       <Text style={[styles.label, {color: theme.text}]}>
                         Company Phone Number

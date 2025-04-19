@@ -86,7 +86,7 @@ const Subscription = () => {
       Alert.alert('Success', 'Subscription created successfully!');
       setIsModalVisible(false); // Close modal on success
     } catch (error: any) {
-      console.error('Error creating subscription:', error);
+      console.warn('Error creating subscription:', error);
       setErrorMessage(
         error.message ||
           'An error occurred while creating your subscription. Please try again.',

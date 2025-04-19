@@ -7,7 +7,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
-  Alert,
   Dimensions,
 } from 'react-native';
 import {Formik} from 'formik';
@@ -28,24 +27,56 @@ import {setUser} from '../../slice/Slice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 import {auth} from '../../../FirebaseConfig';
-import {signInWithCustomToken} from 'firebase/auth';
+import {signInWithCustomToken} from '@react-native-firebase/auth';
 import {initializeFCM} from '../../components/helperUtils/notifications/FCMTokenManager';
+import CustomErrorModal from '../../components/common/errorModal/CustomErrorModal';
 
 const {width, height} = Dimensions.get('window');
 
+// Validation schema
 const loginValidationSchema = Yup.object().shape({
   email: Yup.string().email('Invalid email').required('Email is required'),
   password: Yup.string().required('Password is required'),
 });
 
+// AsyncStorage keys
 const STORAGE_KEY = '@login_credentials';
 const TOKEN_KEY = 'userToken';
 
+// TypeScript interfaces
+interface UserData {
+  role: string;
+  userId: number;
+  token: string;
+  firebaseUid: string;
+  username: string;
+  serviceProviderUuid?: string;
+  servicesOffered?: string[];
+  user_uuid?: string;
+  id?: number;
+}
+
+interface ApiResponse {
+  data: {
+    user?: {id: number; roles: string[]; user_uuid: string};
+    id?: number;
+    roles?: string[];
+    full_name?: string;
+    service_provider_name?: string;
+    service_provider_uuid?: string;
+    services_offered?: string[];
+    user_uuid?: string;
+  };
+  meta: {token: string; firebase_token: string};
+}
+
 const Login: React.FC = () => {
-  const [isChecked, setIsChecked] = useState(false);
+  const [isChecked, setIsChecked] = useState<boolean>(false);
   const [unsubscribeFCM, setUnsubscribeFCM] = useState<(() => void) | null>(
     null,
   );
+  const [modalVisible, setModalVisible] = useState<boolean>(false); // Modal state
+  const [errorMessage, setErrorMessage] = useState<string>(''); // Error message state
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const dispatch = useDispatch();
@@ -57,16 +88,20 @@ const Login: React.FC = () => {
 
   // Check for stored credentials to auto-login
   useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY)
-      .then(credentials => {
+    const checkCredentials = async () => {
+      try {
+        const credentials = await AsyncStorage.getItem(STORAGE_KEY);
         if (credentials) {
           navigation.replace('Subscription');
         }
-      })
-      .catch(error => console.log('Error checking credentials:', error));
+      } catch (error: unknown) {
+        console.log('Error checking credentials:', error);
+      }
+    };
+    checkCredentials();
   }, [navigation]);
 
-  // Cleanup FCM listeners when the component unmounts
+  // Cleanup FCM listeners
   useEffect(() => {
     return () => {
       if (unsubscribeFCM) {
@@ -78,21 +113,31 @@ const Login: React.FC = () => {
 
   const handleLogin = async (values: {email: string; password: string}) => {
     try {
-      const response = await apiHelper({
+      const response = await apiHelper<ApiResponse>({
         method: 'POST',
         endpoint: 'authentication/login/',
         data: values,
       });
-      const {data, meta} = response as {
-        data: {
-          user?: {id: number; roles: string[]};
-          id?: number;
-          roles?: string[];
-          service_provider_uuid?: string;
-          services_offered?: string[];
-        };
-        meta: {token: string; firebase_token: string};
-      };
+
+      const {data, meta} = response;
+      console.log('Login response:', response);
+
+      // Determine user role
+      const isCustomer = data.roles?.includes('customer');
+      const roles = isCustomer ? data.roles : data.user?.roles;
+
+      // Check if the role is service_provider
+      if (roles?.includes('service_provider')) {
+        setErrorMessage('Invalid credentials.');
+        setModalVisible(true); // Show modal instead of Alert
+        return;
+      }
+
+      // Proceed with Firebase authentication
+      console.log('Firebase token:', meta.firebase_token);
+      if (!meta.firebase_token) {
+        throw new Error('No Firebase token received from backend');
+      }
 
       await AsyncStorage.setItem(TOKEN_KEY, meta.token);
 
@@ -102,18 +147,21 @@ const Login: React.FC = () => {
       );
       const firebaseUid = userCredential.user.uid;
 
-      const isCustomer = data.roles?.includes('customer');
       const userId = isCustomer ? data.id : data.user?.id;
-      const roles = isCustomer ? data.roles : data.user?.roles;
+      const name = isCustomer ? data.full_name : data.service_provider_name;
+      const userUuid = isCustomer ? data.user_uuid : data.user?.user_uuid;
 
-      const userData = {
+      const userData: UserData = {
         role: roles?.[0] || 'unknown',
         userId: userId || 0,
         token: meta.token,
         firebaseUid,
+        username: name || '',
+        user_uuid: userUuid || '',
         ...(roles?.includes('service_provider') && {
           serviceProviderUuid: data.service_provider_uuid,
           servicesOffered: data.services_offered,
+          id: data.id,
         }),
       };
 
@@ -127,9 +175,12 @@ const Login: React.FC = () => {
           userId,
           role: roles?.[0],
           user_uuid: firebaseUid,
+          userUuid: userUuid,
+          name,
           ...(roles?.includes('service_provider') && {
             serviceProviderUuid: data.service_provider_uuid,
             servicesOffered: data.services_offered,
+            id: data.id,
           }),
         };
         await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(storageData));
@@ -137,19 +188,35 @@ const Login: React.FC = () => {
         await AsyncStorage.removeItem(STORAGE_KEY);
       }
 
-      // Initialize FCM after successful login
+      // Initialize FCM
       const unsubscribe = initializeFCM(isChecked, navigation, dispatch);
-      setUnsubscribeFCM(() => unsubscribe); // Store the unsubscribe function in state
+      setUnsubscribeFCM(() => unsubscribe);
 
       navigation.replace('Subscription');
-    } catch (error: any) {
-      console.error('Login error:', error.response?.data || error.message);
-      Alert.alert(
-        'Error',
-        error.message === 'Firebase sign-in failed'
-          ? 'Firebase authentication failed.'
-          : 'Login failed.',
-      );
+    } catch (error: unknown) {
+      console.warn('Login error:', error);
+      let localErrorMessage = 'Login failed. Please check your credentials.';
+      if ((error as any).code) {
+        switch ((error as any).code) {
+          case 'auth/invalid-custom-token':
+            localErrorMessage =
+              'Invalid authentication token. Please try again.';
+            break;
+          case 'auth/network-request-failed':
+            localErrorMessage = 'Network error. Please check your connection.';
+            break;
+          case 'auth/internal-error':
+            localErrorMessage =
+              'Firebase internal error. Please contact support.';
+            break;
+          default:
+            localErrorMessage = `Firebase error: ${(error as any).message}`;
+        }
+      } else if ((error as any).message) {
+        localErrorMessage = (error as any).message;
+      }
+      setErrorMessage(localErrorMessage);
+      setModalVisible(true); // Show modal for other errors
     }
   };
 
@@ -239,6 +306,14 @@ const Login: React.FC = () => {
           </View>
         </View>
       </ImageBackground>
+
+      {/* Render Custom Error Modal */}
+      <CustomErrorModal
+        visible={modalVisible}
+        message={errorMessage}
+        onClose={() => setModalVisible(false)}
+        theme={theme}
+      />
     </View>
   );
 };

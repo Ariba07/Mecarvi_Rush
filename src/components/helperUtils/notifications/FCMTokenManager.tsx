@@ -83,7 +83,7 @@ async function sendFCMTokenToBackend(isChecked: boolean): Promise<void> {
 
     await sendTokenToBackend(token, isChecked);
   } catch (error) {
-    console.error('Error sending FCM token to backend:', error);
+    console.warn('Error sending FCM token to backend:', error);
     throw error;
   }
 }
@@ -96,7 +96,7 @@ function setupTokenRefreshListener(isChecked: boolean): () => void {
     try {
       await sendTokenToBackend(newToken, isChecked);
     } catch (error) {
-      console.error('Error sending refreshed FCM token to backend:', error);
+      console.warn('Error sending refreshed FCM token to backend:', error);
     }
   });
 }
@@ -108,7 +108,7 @@ async function handleNotification(
   dispatch: Dispatch, // Add dispatch parameter
 ) {
   if (!navigation) {
-    console.error('Navigation object is not available');
+    console.warn('Navigation object is not available');
     return;
   }
 
@@ -140,7 +140,7 @@ async function handleNotification(
     console.log(`Navigating to ${targetScreen} with UUID: ${uuid}`);
     navigation.navigate(targetScreen);
   } catch (error) {
-    console.error('Error during navigation:', error);
+    console.warn('Error during navigation:', error);
   }
 }
 
@@ -154,7 +154,7 @@ export function initializeFCM(
 
   // Get and send the initial token
   sendFCMTokenToBackend(isChecked).catch(error => {
-    console.error('Initial FCM token setup failed:', error);
+    console.warn('Initial FCM token setup failed:', error);
   });
 
   // Only set up notification listeners if navigation is provided
@@ -187,7 +187,7 @@ export function initializeFCM(
     //     }
     //   })
     //   .catch(error => {
-    //     console.error('Error checking initial notification:', error);
+    //     console.warn('Error checking initial notification:', error);
     //   });
   } else {
     console.warn('Navigation object not provided to initializeFCM');
@@ -215,6 +215,6 @@ export async function clearFCMToken(): Promise<void> {
       'FCM token deleted from Firebase and cleared from AsyncStorage.',
     );
   } catch (error) {
-    console.error('Error clearing FCM token:', error);
+    console.warn('Error clearing FCM token:', error);
   }
 }

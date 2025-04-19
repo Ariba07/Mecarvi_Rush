@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-inline-styles */
 import React, {useContext} from 'react';
 import {View, Text, StyleSheet, Platform} from 'react-native';
 import {
@@ -7,9 +8,10 @@ import {
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Watch from '../../../assets/images/Watch.svg';
 import {ThemeContext} from '../theme/ThemeContext';
+import CustomButton from '../../common/buttons/CustomButton';
 
 const AboutUs = () => {
-  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
+  const {theme} = useContext(ThemeContext);
 
   return (
     <View style={styles.container}>
@@ -51,6 +53,10 @@ const AboutUs = () => {
             Saturday - Sunday
           </Text>
         </View>
+      </View>
+
+      <View style={{bottom: hp(5), position: 'absolute', alignSelf: 'center'}}>
+        <CustomButton title="Add new service" onPress={() => {}} />
       </View>
     </View>
   );

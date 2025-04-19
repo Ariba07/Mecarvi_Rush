@@ -38,7 +38,7 @@ const persistor = persistStore(store, null, () => {
 //   console.log('State updated:', state);
 //   AsyncStorage.getItem('persist:auth')
 //     .then(data => console.log('Persisted state in AsyncStorage:', data))
-//     .catch(err => console.error('Error reading AsyncStorage:', err));
+//     .catch(err => console.warn('Error reading AsyncStorage:', err));
 // });
 
 export {store, persistor};

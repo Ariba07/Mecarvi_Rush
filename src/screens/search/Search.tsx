@@ -47,7 +47,7 @@ const Search: React.FC = () => {
         setFetchedProducts(product); // Set source data
         setFilteredProducts(product); // Initialize filtered data
       } catch (error) {
-        console.error('Error fetching products:', error);
+        console.warn('Error fetching products:', error);
       }
     };
     fetchProducts();

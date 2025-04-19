@@ -29,6 +29,7 @@ import {
   selectCart,
   selectDeliveryDate,
   selectDeliveryTime,
+  selectDispatchId,
   selectSourceType,
 } from '../../slice/Slice';
 import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
@@ -53,10 +54,10 @@ const Checkout: React.FC = () => {
   const date = useSelector(selectDeliveryDate);
   const addressId = useSelector(selectAddressId);
   const dispatch = useDispatch();
-
   const [selectedPayment, setSelectedPayment] = useState<string>('paypal');
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
   const [orderUuid, setOrderUuid] = useState<string | null>(null);
+  const serviceProviderId = useSelector(selectDispatchId);
 
   // Function to convert "4:00 PM" to "16:00" format
   const convertTo24HourFormat = (timeStr: string) => {
@@ -75,12 +76,10 @@ const Checkout: React.FC = () => {
 
   const createOrder = async () => {
     try {
-      // Convert time to 24-hour format
       const formattedTime = Time ? convertTo24HourFormat(Time) : '';
 
-      // Validate user_address_id for delivery
       if (addressType === 'delivery' && !addressId) {
-        console.error('Error: User address ID is required for delivery.');
+        console.warn('Error: User address ID is required for delivery.');
         Alert.alert('Please select a delivery address before proceeding.');
         throw new Error('User address ID is required for delivery');
       }
@@ -100,30 +99,49 @@ const Checkout: React.FC = () => {
         user_address_id: addressType === 'delivery' ? addressId : undefined,
       };
 
+      const marketOrderData = {
+        items: cart.map(item => ({
+          product_id: item.id,
+          quantity: item.quantity,
+          price: item.price,
+          name: item.name,
+          attributes: item.attributes || {},
+        })),
+        fulfillment_type: addressType,
+        source_type: sourceType,
+        fulfillment_time: formattedTime,
+        fulfillment_date: date,
+        user_address_id: addressType === 'delivery' ? addressId : undefined,
+        service_provider_id: serviceProviderId,
+      };
       console.log('Order Data:', orderData);
+
+      let endpoint =
+        sourceType === 'cart' ? 'orders/cart/' : 'orders/marketplace/';
+      let data = sourceType === 'cart' ? orderData : marketOrderData;
 
       const response = (await apiHelper({
         method: 'POST',
-        endpoint: 'orders/cart/',
-        data: orderData,
+        endpoint: endpoint,
+        data: data,
       })) as {data: {order_uuid: string}};
 
       if (response.data.order_uuid) {
-        setOrderUuid(response.data.order_uuid); // Store order_uuid
-        return response.data.order_uuid; // Return order_uuid for further processing
+        setOrderUuid(response.data.order_uuid);
+        return response.data.order_uuid;
       } else {
         throw new Error('No valid order_uuid in response');
       }
     } catch (error) {
-      console.error('Error creating order:', error);
+      console.warn('Error creating order:', error);
       Alert.alert('Error', 'Failed to create order. Please try again.');
-      throw error; // Re-throw to handle in the calling function
+      throw error;
     }
   };
 
   const createPayment = async (paymentId: string) => {
     if (!orderUuid) {
-      console.error('Error: orderUuid is not set');
+      console.warn('Error: orderUuid is not set');
       Alert.alert('Error', 'Order UUID is missing. Payment cannot proceed.');
       return;
     }
@@ -134,22 +152,50 @@ const Checkout: React.FC = () => {
         endpoint: `orders/${orderUuid}/stripe-payment`,
         data: {payment_method_id: paymentId},
       });
-      navigation.navigate('Receipt'); // Navigate to Receipt after payment
+      navigation.navigate('Receipt');
       dispatch(clearCart());
     } catch (error) {
-      console.error('Error creating payment:', error);
+      console.warn('Error creating payment:', error);
       Alert.alert('Error', 'Payment failed. Please try again.');
     }
   };
 
   const handlePayNow = async () => {
     try {
-      const orderUuidFromCreation = await createOrder(); // Create order first
+      const orderUuidFromCreation = await createOrder();
       if (orderUuidFromCreation) {
         if (selectedPayment === 'stripe') {
-          setIsModalVisible(true); // Open CardPaymentBottomSheet for Stripe after order creation
+          setIsModalVisible(true);
+          // } else if (selectedPayment === 'paypal') {
+          //   try {
+          //     const response = (await apiHelper({
+          //       method: 'POST',
+          //       endpoint: `orders/${orderUuidFromCreation}/paypal-payment`,
+          //       data: {
+          //         return_url: 'https://www.mecarvirush.com/paypal/success',
+          //         cancel_url: 'https://www.mecarvirush.com/paypal/cancel',
+          //       },
+          //     })) as {data: {links: {rel: string; href: string}[]}};
+
+          //     // Assuming the response contains a PayPal approval URL
+          //     const approvalUrl = response?.data?.links?.find(
+          //       (link: {rel: string; href: string}) => link.rel === 'approve',
+          //     )?.href;
+
+          //     if (approvalUrl) {
+          //       // Open the PayPal approval URL in the device's browser
+          //       await Linking.openURL(approvalUrl);
+          //     } else {
+          //       throw new Error('No approval URL found in PayPal response');
+          //     }
+          //   } catch (error) {
+          //     console.warn('Error initiating PayPal payment:', error);
+          //     Alert.alert(
+          //       'Error',
+          //       'Failed to initiate PayPal payment. Please try again.',
+          //     );
+          //   }
         } else {
-          // Handle other payment methods (e.g., PayPal, Wallet)
           navigation.navigate('Receipt');
           dispatch(clearCart());
         }
@@ -162,7 +208,7 @@ const Checkout: React.FC = () => {
   const handleStripePaymentSubmit = async (paymentMethodId: string) => {
     try {
       if (orderUuid) {
-        await createPayment(paymentMethodId); // Create payment with existing orderUuid
+        await createPayment(paymentMethodId);
       }
     } catch (error) {
       // Error already handled in createPayment
@@ -273,7 +319,7 @@ const Checkout: React.FC = () => {
   );
 };
 
-// Styles remain the same
+// Styles
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,

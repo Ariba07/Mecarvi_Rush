@@ -28,10 +28,14 @@ export type RootStackParamList = {
   Search: undefined;
   Products: undefined;
   Address: {forDelivery?: boolean};
-  Message: {chatId: string; chatName: string};
-  Tracking: undefined;
+  Message: {
+    chatId: string;
+    chatName: string;
+    participantNames: {[uuid: string]: string};
+  };
+  Tracking: {order_uuid: string};
   OrderDetails: undefined;
-  Review: undefined;
+  Review: {order_id: number};
   Support: undefined;
   Profile: undefined;
   Points: undefined;
@@ -52,8 +56,9 @@ export type RootStackParamList = {
   Booking: undefined;
   Checkout: undefined;
   Receipt: undefined;
-  MarketPlace: {fromProduct: boolean; productId: number};
+  MarketPlace: {productId: number};
   ShopProfile: {fromBid: boolean; providerId: string};
+  BidList: undefined;
 };
 export interface Productss {
   id: number;

@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useContext} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -17,9 +17,75 @@ import Edit from '../../assets/images/Edit.svg';
 import Points from '../../assets/images/Points.svg';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 import Settings from '../settings/Settings';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {useSelector} from 'react-redux';
+import {selectRole, selectUserName} from '../../slice/Slice';
+import {useNavigation} from '@react-navigation/native';
+import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
+
+const STORAGE_KEY = '@login_credentials';
 
 const SideMenu: React.FC = () => {
   const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
+  const [userName, setUserName] = useState<string | null>(null);
+  const reduxUserName = useSelector(selectUserName);
+  const reduxRole = useSelector(selectRole);
+  const [role, setRole] = useState<string | null>(null);
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+  useEffect(() => {
+    const getUserId = async () => {
+      try {
+        const credentials = await AsyncStorage.getItem(STORAGE_KEY);
+        if (credentials) {
+          const parsedCredentials = JSON.parse(credentials);
+
+          if (parsedCredentials.name) {
+            setUserName(parsedCredentials.name);
+
+            return;
+          }
+        }
+        // Fallback to Redux if AsyncStorage doesn't have userId
+        setUserName(reduxUserName ?? null);
+      } catch (error) {
+        console.warn('Error retrieving user ID from AsyncStorage:', error);
+        // Fallback to Redux on error
+        setUserName(reduxUserName ?? null);
+      }
+    };
+
+    getUserId();
+  }, [reduxUserName]);
+
+  // Fetch role from AsyncStorage or Redux
+  useEffect(() => {
+    const fetchRoleFromStorage = async () => {
+      try {
+        const savedCredentials = await AsyncStorage.getItem(STORAGE_KEY);
+        if (savedCredentials) {
+          const {role: storedRole} = JSON.parse(savedCredentials);
+          if (storedRole) {
+            setRole(storedRole);
+          } else {
+            setRole(reduxRole);
+          }
+        } else {
+          setRole(reduxRole);
+        }
+      } catch (error) {
+        console.log(
+          'Error fetching role from AsyncStorage:',
+          (error as any)?.message,
+        );
+        setRole(reduxRole);
+      }
+    };
+
+    fetchRoleFromStorage();
+  }, [reduxRole]);
 
   return (
     <SafeAreaView
@@ -32,7 +98,7 @@ const SideMenu: React.FC = () => {
           />
           <View style={styles.profileTextContainer}>
             <Text style={[styles.profileName, {color: theme.text}]}>
-              Chris Adam
+              {userName}
             </Text>
             <View style={{flexDirection: 'row', alignItems: 'center'}}>
               <Points />
@@ -42,7 +108,13 @@ const SideMenu: React.FC = () => {
               </Text>
             </View>
           </View>
-          <TouchableOpacity style={styles.editIcon}>
+          <TouchableOpacity
+            style={styles.editIcon}
+            onPress={() => {
+              role === 'customer'
+                ? navigation.navigate('Profile')
+                : navigation.navigate('ServiceProviderProfile');
+            }}>
             <Edit />
           </TouchableOpacity>
         </View>

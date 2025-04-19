@@ -54,7 +54,7 @@ const Address = () => {
         setAddresses(data.data);
       }
     } catch (error) {
-      console.error('Error fetching addresses:', error);
+      console.warn('Error fetching addresses:', error);
     }
   };
 
@@ -168,7 +168,7 @@ const Address = () => {
         }),
       );
     } catch (error: any) {
-      console.error('Error updating default address:', error);
+      console.warn('Error updating default address:', error);
       let errorMessage = 'An error occurred while updating the default address';
       if (error.response?.status === 422) {
         const errors = error.response?.data?.errors;

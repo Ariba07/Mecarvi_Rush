@@ -58,7 +58,7 @@ const AddressCreate: React.FC<AddressCreateProps> = ({visible, onClose}) => {
         throw new Error('Unable to geocode address');
       }
     } catch (error) {
-      console.error('Geocoding Error:', error);
+      console.warn('Geocoding Error:', error);
       Alert.alert('Error', 'Failed to get coordinates for the address');
       return null;
     }
@@ -116,7 +116,7 @@ const AddressCreate: React.FC<AddressCreateProps> = ({visible, onClose}) => {
         Alert.alert('Error', response.message || 'Failed to add address');
       }
     } catch (error: any) {
-      console.error('API Error:', error.message);
+      console.warn('API Error:', error.message);
       Alert.alert('Error', 'An error occurred while adding the address');
     } finally {
       setLoading(false);

@@ -38,7 +38,7 @@ const Service: React.FC = () => {
         });
         setCategories(response?.data?.data || []); // Ensure response data is valid
       } catch (error) {
-        console.error('Error fetching categories:', error);
+        console.warn('Error fetching categories:', error);
       }
     };
     fetchCategories();

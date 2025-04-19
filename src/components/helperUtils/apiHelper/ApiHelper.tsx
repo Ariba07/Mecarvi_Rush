@@ -1,7 +1,7 @@
 import axios, {AxiosRequestConfig, AxiosResponse} from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export const API_BASE_URL = 'http://192.168.1.19:8000/api/';
+export const API_BASE_URL = 'http://192.168.1.28:8000/api/';
 
 if (!API_BASE_URL) {
   throw new Error('API_BASE_URL is not defined in the environment variables.');
@@ -46,7 +46,7 @@ export const apiHelper = async <T,>({
     return response.data;
   } catch (error: any) {
     if (error.response) {
-      console.error(`API Error [${method} ${endpoint}]:`, {
+      console.warn(`API Error [${method} ${endpoint}]:`, {
         status: error.response.status,
         data: error.response.data,
         headers: error.response.headers,
@@ -55,11 +55,11 @@ export const apiHelper = async <T,>({
         console.warn('Unauthorized request - token may be invalid or expired');
       }
     } else if (error.request) {
-      console.error(
+      console.warn(
         `Network Error [${method} ${endpoint}]: No response received`,
       );
     } else {
-      console.error(`Request Error [${method} ${endpoint}]:`, error.message);
+      console.warn(`Request Error [${method} ${endpoint}]:`, error.message);
     }
     throw error; // Re-throw for caller to handle
   }

@@ -9,6 +9,7 @@ import {
   ScrollView,
   TextInput,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import React, {useContext, useEffect, useState} from 'react';
 import {
@@ -69,7 +70,7 @@ const ServiceProviderOrderDecision = () => {
           setLoading(false);
         }, 3000);
       } catch (error) {
-        console.error('Error fetching product:', error);
+        console.warn('Error fetching product:', error);
         setTimeout(() => {
           setLoading(false);
         }, 3000);
@@ -98,9 +99,9 @@ const ServiceProviderOrderDecision = () => {
         endpoint: 'quote-bids/',
         data: {bid_price: price, quote_request_uuid: uuid},
       });
-      navigation.navigate('BottomTabs');
+      Alert.alert('Bid Created');
     } catch (error) {
-      console.error('Error creating Bid:', error);
+      console.warn('Error creating Bid:', error);
     }
   };
 

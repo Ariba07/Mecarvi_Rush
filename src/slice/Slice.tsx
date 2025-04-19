@@ -70,6 +70,10 @@ export interface AuthState {
   deliveryDate: string | null; // Store date in YYYY-MM-DD format
   deliveryTime: string | null;
   totalPrice?: number;
+  username?: string;
+  userUuid?: string;
+  id?: number;
+  dispatchId?: number;
 }
 
 export const initialState: AuthState = {
@@ -102,6 +106,10 @@ export const initialState: AuthState = {
   deliveryDate: null,
   deliveryTime: null,
   totalPrice: 0,
+  username: '',
+  userUuid: '',
+  id: 0,
+  dispatchId: 0,
 };
 
 const authSlice = createSlice({
@@ -187,6 +195,9 @@ const authSlice = createSlice({
     setServiceUuid: (state, action: PayloadAction<string>) => {
       state.service_uuid = action.payload;
     },
+    setDispatchId: (state, action: PayloadAction<number>) => {
+      state.dispatchId = action.payload;
+    },
     setProductUuid: (state, action: PayloadAction<string>) => {
       state.product_uuid = action.payload;
     },
@@ -211,6 +222,9 @@ const authSlice = createSlice({
         firebaseUid: string;
         serviceProviderUuid?: string; // Optional, only for service providers
         servicesOffered?: string[]; // Optional, only for service providers
+        username?: string; // Optional, only for service providers
+        userUuid?: string; // Optional, only for service providers
+        id?: number; // Optional, only for service providers
       }>,
     ) => {
       state.role = action.payload.role;
@@ -219,6 +233,9 @@ const authSlice = createSlice({
       state.user_uuid = action.payload.firebaseUid;
       state.service_provider_uuid = action.payload.serviceProviderUuid || '';
       state.servicesOffered = action.payload.servicesOffered || [];
+      state.username = action.payload.username || '';
+      state.userUuid = action.payload.userUuid || '';
+      state.id = action.payload.id || 0;
     },
     setUserUuid: (state, action: PayloadAction<string>) => {
       state.user_uuid = action.payload;
@@ -236,6 +253,8 @@ const authSlice = createSlice({
       state.sourceType = '';
       state.addressType = '';
       state.addressId = undefined;
+      state.userUuid = '';
+      state.username = '';
     },
     addToCart: (state, action: PayloadAction<CartItem>) => {
       const existingItemIndex = state.cart.findIndex(
@@ -336,7 +355,11 @@ export const selectTotalPrice = (state: {auth: AuthState}) =>
   state.auth.totalPrice;
 export const selectOption = (state: {auth: AuthState}) => state.auth.option;
 export const selectRole = (state: {auth: AuthState}) => state.auth.role;
+export const selectUserName = (state: {auth: AuthState}) => state.auth.username;
+
 export const selectUserId = (state: {auth: AuthState}) => state.auth.user_id;
+export const selectId = (state: {auth: AuthState}) => state.auth.id;
+
 export const selectUserUuidId = (state: {auth: AuthState}) =>
   state.auth.user_uuid;
 export const selectToken = (state: {auth: AuthState}) => state.auth.token;
@@ -365,6 +388,8 @@ export const selectDeliveryCountry = (state: {auth: AuthState}) =>
   state.auth.deliveryCountry;
 export const selectAddressId = (state: {auth: AuthState}) =>
   state.auth.addressId;
+export const selectDispatchId = (state: {auth: AuthState}) =>
+  state.auth.dispatchId;
 export const selectDeliveryDate = (state: {auth: AuthState}) =>
   state.auth.deliveryDate;
 export const selectDeliveryTime = (state: {auth: AuthState}) =>
@@ -397,6 +422,7 @@ export const {
   setAddressType,
   setAddressId,
   setTotalPrice,
+  setDispatchId,
 } = authSlice.actions;
 
 export default authSlice.reducer;

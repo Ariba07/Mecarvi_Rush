@@ -27,7 +27,7 @@ export const registerValidationSchema = Yup.object().shape({
     .required('Legal Structure of Business is required'),
 
   yearEstablished: Yup.string()
-    .matches(/^\d{4}$/, 'Enter a valid year (e.g., 2000)')
+    .matches(/^\d{4}-\d{2}-\d{2}$/, 'Enter a valid year (e.g., 2000-01-01)')
     .required('Year Established is required'),
 
   address: Yup.string()
@@ -75,8 +75,15 @@ export const registerValidationSchema1 = Yup.object().shape({
     .required('Confirm Password is required'),
 });
 export const registerValidationSchema2 = Yup.object().shape({
-  serviceOffered: Yup.string().trim().required('Service Offered is required'),
-
+  serviceOffered: Yup.array()
+    .of(
+      Yup.object().shape({
+        id: Yup.number().required(),
+        name: Yup.string().required(),
+      }),
+    )
+    .min(1, 'At least one service must be selected')
+    .required('Service Offered is required'),
   productionCapacity: Yup.string()
     .trim()
     .required('Production Capacity is required'),
@@ -98,7 +105,11 @@ export const registerValidationSchema3 = Yup.object().shape({
   documentVerification: Yup.string().trim().notRequired(),
   onboardingAvailability: Yup.string()
     .trim()
-    .required('Onboarding availability is required'),
+    .matches(
+      /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/,
+      'Onboarding availability must be in the format YYYY-MM-DD HH:mm:ss (e.g., 2024-05-10 14:30:00)',
+    ),
+  // .required('Onboarding availability is required'),
 });
 
 export const registerCustomerValidationSchema = Yup.object().shape({
@@ -120,8 +131,6 @@ export const registerCustomerValidationSchema = Yup.object().shape({
   password: Yup.string()
     .min(6, 'Password must be at least 6 characters')
     .required('Password is required'),
-
-  address: Yup.string().required('Address is required'),
 
   confirmPassword: Yup.string()
     .oneOf([Yup.ref('password')], 'Passwords must match')

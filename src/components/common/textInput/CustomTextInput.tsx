@@ -68,7 +68,7 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
         }));
         setCategories(categoryData);
       } catch (error) {
-        console.error('Error fetching categories:', error);
+        console.warn('Error fetching categories:', error);
         setCategories([]);
       }
     };

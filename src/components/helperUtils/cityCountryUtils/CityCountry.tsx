@@ -14,7 +14,7 @@ const fetchCitiesWithCountries = (): CityWithCountry[] => {
   const usa = countries.find(country => country.isoCode === 'US');
 
   if (!usa) {
-    console.error('USA not found in country list');
+    console.warn('USA not found in country list');
     return [];
   }
 

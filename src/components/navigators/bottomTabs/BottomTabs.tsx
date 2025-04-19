@@ -1,5 +1,5 @@
 /* eslint-disable react/no-unstable-nested-components */
-import React, {useContext} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {Platform, ViewStyle} from 'react-native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import OrderIndex from '../../../screens/orders/OrderIndex';
@@ -13,9 +13,12 @@ import Index from '../../../screens/dashboard/Index';
 import {ThemeContext} from '../../helperUtils/theme/ThemeContext';
 import Cart from '../../../screens/cart/Cart';
 import {useSelector} from 'react-redux';
-import {selectCart} from '../../../slice/Slice';
+import {selectCart, selectRole} from '../../../slice/Slice';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Tab = createBottomTabNavigator();
+
+const STORAGE_KEY = '@login_credentials';
 
 type TabBarIconProps = {
   routeName: string;
@@ -46,6 +49,34 @@ const BottomTabs: React.FC = () => {
 
   // Number of unique items in the cart
   const cartLength = cartItems.length;
+
+  const reduxRole = useSelector(selectRole);
+  const [role, setRole] = useState<string | null>(null);
+  useEffect(() => {
+    const fetchRoleFromStorage = async () => {
+      try {
+        const savedCredentials = await AsyncStorage.getItem(STORAGE_KEY);
+        if (savedCredentials) {
+          const {role: storedRole} = JSON.parse(savedCredentials);
+          if (storedRole) {
+            setRole(storedRole);
+          } else {
+            setRole(reduxRole);
+          }
+        } else {
+          setRole(reduxRole);
+        }
+      } catch (error) {
+        console.log(
+          'Error fetching role from AsyncStorage:',
+          (error as any)?.message,
+        );
+        setRole(reduxRole);
+      }
+    };
+
+    fetchRoleFromStorage();
+  }, [reduxRole]);
 
   const tabBarStyle: ViewStyle = {
     backgroundColor: theme.bottom,
@@ -79,18 +110,20 @@ const BottomTabs: React.FC = () => {
       <Tab.Screen name="Dashboard" component={Index} />
       <Tab.Screen name="Orders" component={OrderIndex} />
       <Tab.Screen name="Chats" component={Chats} />
-      <Tab.Screen
-        name="Cart"
-        component={Cart}
-        options={{
-          tabBarBadge: cartLength > 0 ? cartLength : undefined,
-          tabBarBadgeStyle: {
-            backgroundColor: '#FF0000',
-            color: '#FFFFFF',
-            fontSize: 13,
-          },
-        }}
-      />
+      {role !== 'service_provider' && (
+        <Tab.Screen
+          name="Cart"
+          component={Cart}
+          options={{
+            tabBarBadge: cartLength > 0 ? cartLength : undefined,
+            tabBarBadgeStyle: {
+              backgroundColor: '#FF0000',
+              color: '#FFFFFF',
+              fontSize: 13,
+            },
+          }}
+        />
+      )}
     </Tab.Navigator>
   );
 };

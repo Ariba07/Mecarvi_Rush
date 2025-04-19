@@ -48,7 +48,7 @@ const ServicesProducts = () => {
         const fetchedProducts = response?.data || [];
         setProducts(fetchedProducts);
       } catch (error) {
-        console.error('Error fetching products:', error);
+        console.warn('Error fetching products:', error);
       }
     };
 

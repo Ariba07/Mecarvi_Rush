@@ -241,8 +241,6 @@ const VerifyScreen: React.FC<VerifyScreenProps> = ({
           }
         }
 
-        console.log(serviceData.serviceOffered);
-
         // Function to handle both images & PDF uploads
         const appendFile = (
           fieldName: string,
@@ -303,15 +301,15 @@ const VerifyScreen: React.FC<VerifyScreenProps> = ({
         console.log('Upload successful:', response);
         navigation.replace('Verify');
       } catch (error: any) {
-        console.error('Upload error:', error);
+        console.warn('Upload error:', error);
         if (error.response) {
-          console.error('Server Response Data:', error.response.data);
-          console.error('Server Response Status:', error.response.status);
-          console.error('Server Response Headers:', error.response.headers);
+          console.warn('Server Response Data:', error.response.data);
+          console.warn('Server Response Status:', error.response.status);
+          console.warn('Server Response Headers:', error.response.headers);
         } else if (error.request) {
-          console.error('No response received:', error.request);
+          console.warn('No response received:', error.request);
         } else {
-          console.error('Error Message:', error.message);
+          console.warn('Error Message:', error.message);
         }
       }
     }
