@@ -83,7 +83,7 @@ const Verify = () => {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View style={{flex: 1, backgroundColor: '#ffffff'}}>
+      <View style={{flex: 1, backgroundColor: theme.backgroundColor}}>
         <ImageBackground style={styles.background} source={backgroundImage}>
           {/* Logo */}
           <View style={styles.logoView}>

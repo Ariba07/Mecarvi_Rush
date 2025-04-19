@@ -23,7 +23,7 @@ import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
 import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 import {useDispatch} from 'react-redux';
-import {setUser} from '../../slice/Slice';
+import {setOption, setUser} from '../../slice/Slice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 import {auth} from '../../../FirebaseConfig';
@@ -300,7 +300,11 @@ const Login: React.FC = () => {
             <Text style={[styles.footerText, {color: theme.text}]}>
               Don’t have an account?{' '}
             </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Options')}>
+            <TouchableOpacity
+              onPress={() => {
+                navigation.navigate('Register');
+                dispatch(setOption('customer'));
+              }}>
               <Text style={styles.registerText}>Register here</Text>
             </TouchableOpacity>
           </View>
