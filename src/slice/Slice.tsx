@@ -74,6 +74,7 @@ export interface AuthState {
   userUuid?: string;
   id?: number;
   dispatchId?: number;
+  marketplace_uuid?: string;
 }
 
 export const initialState: AuthState = {
@@ -200,6 +201,9 @@ const authSlice = createSlice({
     },
     setProductUuid: (state, action: PayloadAction<string>) => {
       state.product_uuid = action.payload;
+    },
+    setMarketPlaceUuid: (state, action: PayloadAction<string>) => {
+      state.marketplace_uuid = action.payload;
     },
     setNotifyUuid: (state, action: PayloadAction<string>) => {
       state.notifyUuid = action.payload;
@@ -369,6 +373,8 @@ export const selectAddressType = (state: {auth: AuthState}) =>
   state.auth.addressType;
 export const selectServiceUuid = (state: {auth: AuthState}) =>
   state.auth.service_uuid;
+export const selectMarketplaceUuid = (state: {auth: AuthState}) =>
+  state.auth.marketplace_uuid;
 export const selectProductUuid = (state: {auth: AuthState}) =>
   state.auth.product_uuid;
 export const selectNotifyUuid = (state: {auth: AuthState}) =>
@@ -423,6 +429,7 @@ export const {
   setAddressId,
   setTotalPrice,
   setDispatchId,
+  setMarketPlaceUuid,
 } = authSlice.actions;
 
 export default authSlice.reducer;

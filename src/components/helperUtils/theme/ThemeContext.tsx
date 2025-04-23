@@ -69,7 +69,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({children}) => {
       bottom: '#ffffff',
     },
     dark: {
-      backgroundColor: '#000000',
+      backgroundColor: '#0D0D0D',
       button: '#161F26',
       text: '#737070',
       header: '#737070',

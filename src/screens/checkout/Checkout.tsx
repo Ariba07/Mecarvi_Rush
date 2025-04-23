@@ -30,6 +30,7 @@ import {
   selectDeliveryDate,
   selectDeliveryTime,
   selectDispatchId,
+  selectMarketplaceUuid,
   selectSourceType,
 } from '../../slice/Slice';
 import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
@@ -58,6 +59,7 @@ const Checkout: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
   const [orderUuid, setOrderUuid] = useState<string | null>(null);
   const serviceProviderId = useSelector(selectDispatchId);
+  const marketPlaceUuid = useSelector(selectMarketplaceUuid);
 
   // Function to convert "4:00 PM" to "16:00" format
   const convertTo24HourFormat = (timeStr: string) => {
@@ -117,7 +119,9 @@ const Checkout: React.FC = () => {
       console.log('Order Data:', orderData);
 
       let endpoint =
-        sourceType === 'cart' ? 'orders/cart/' : 'orders/marketplace/';
+        sourceType === 'cart'
+          ? 'orders/cart/'
+          : `orders/marketplace/${marketPlaceUuid}/`;
       let data = sourceType === 'cart' ? orderData : marketOrderData;
 
       const response = (await apiHelper({
@@ -125,6 +129,7 @@ const Checkout: React.FC = () => {
         endpoint: endpoint,
         data: data,
       })) as {data: {order_uuid: string}};
+      console.log('Order Response:', response);
 
       if (response.data.order_uuid) {
         setOrderUuid(response.data.order_uuid);

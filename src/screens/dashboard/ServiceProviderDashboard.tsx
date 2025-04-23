@@ -44,6 +44,8 @@ export interface Order {
   created_at: string;
   payment_status?: string;
   order_details: OrderDetail[];
+  points?: number;
+  is_redeemed?: boolean;
 }
 
 const ServiceProviderDashboard = () => {

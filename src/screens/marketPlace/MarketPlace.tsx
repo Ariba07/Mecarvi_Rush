@@ -20,19 +20,20 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 import {useDispatch} from 'react-redux';
-import {setServiceProviderUuid} from '../../slice/Slice';
+import {setMarketPlaceUuid, setServiceProviderUuid} from '../../slice/Slice';
 
 type Prop = RouteProp<RootStackParamList, 'MarketPlace'>;
 
 // Define the type for our provider based on the actual API response
 interface BusinessProvider {
-  service_provider_uuid: string; // marketplace_uuid from response
-  service_provider_user_uuid: string; // marketplace_uuid from response
+  service_provider_uuid: string;
+  service_provider_user_uuid: string;
   id: number;
   service_provider_name: string;
   logo: string;
   address: string;
   price: string;
+  marketplace_uuid: string;
 }
 
 const MarketPlace: React.FC = () => {
@@ -56,13 +57,14 @@ const MarketPlace: React.FC = () => {
         // Map API response to our required format
         const mappedProviders = (response as {data: any[]}).data.map(
           (item: any) => ({
-            service_provider_uuid: item.service_provider_uuid, // Use marketplace_uuid as service_provider_uuid
+            service_provider_uuid: item.service_provider_uuid,
+            marketplace_uuid: item.marketplace_uuid,
             id: item.id,
             service_provider_name: item.service_provider_name,
             logo: item.logo,
             address: item.address,
-            price: `$${parseFloat(item.price).toFixed(2)}`, // Format price with $
-            service_provider_user_uuid: item.service_provider_user_uuid, // Use marketplace_uuid as service_provider_uuid
+            price: `$ ${parseFloat(item.price).toFixed(2)}`,
+            service_provider_user_uuid: item.service_provider_user_uuid,
           }),
         );
 
@@ -83,6 +85,7 @@ const MarketPlace: React.FC = () => {
             fromBid: false,
             providerId: item.service_provider_user_uuid,
           });
+          dispatch(setMarketPlaceUuid(item.marketplace_uuid));
         } else {
           console.warn('Provider ID is undefined');
         }
