@@ -54,7 +54,7 @@ const Booking: React.FC = () => {
 
   const [pickupDate, setLocalPickupDate] = useState<number | null>(null);
   const [deliveryDate, setLocalDeliveryDate] = useState<number | null>(null);
-  const [pickupTime, setLocalPickupTime] = useState<string | null>('2:00 PM');
+  const [pickupTime, setLocalPickupTime] = useState<string | null>('');
   const [deliveryTime, setLocalDeliveryTime] = useState<string | null>(null);
   const [selectedTab, setSelectedTab] = useState<'pickup' | 'delivery'>(
     'pickup',

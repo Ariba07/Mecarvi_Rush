@@ -10,6 +10,14 @@ export interface ImageData {
   height?: number;
 }
 
+// Define the type for accepted bid details
+export interface AcceptedBid {
+  product_id: number;
+  quantity: number;
+  bid_price: number;
+  servicer_id: number;
+}
+
 export interface AuthState {
   // Customer Fields
   fullName?: string;
@@ -56,7 +64,7 @@ export interface AuthState {
   product_uuid: string;
   cart: CartItem[];
   service_provider_uuid: string;
-  servicesOffered?: string[]; // Added for service providers
+  servicesOffered?: string[];
   latitude?: number;
   longitude?: number;
   defaultCity: string | null;
@@ -67,7 +75,7 @@ export interface AuthState {
   sourceType?: string;
   addressType?: string;
   addressId?: number;
-  deliveryDate: string | null; // Store date in YYYY-MM-DD format
+  deliveryDate: string | null;
   deliveryTime: string | null;
   totalPrice?: number;
   username?: string;
@@ -75,6 +83,12 @@ export interface AuthState {
   id?: number;
   dispatchId?: number;
   marketplace_uuid?: string;
+  walletBalance?: number;
+  pointsEarned?: number;
+  pointsUsed?: number;
+  subscriptionStatus?: string;
+  acceptedBids: AcceptedBid[]; // Updated to store an array of accepted bids
+  quote_uuid?: string;
 }
 
 export const initialState: AuthState = {
@@ -93,7 +107,7 @@ export const initialState: AuthState = {
   cart: [],
   user_uuid: '',
   service_provider_uuid: '',
-  servicesOffered: [], // Initialize as empty array
+  servicesOffered: [],
   latitude: 0,
   longitude: 0,
   defaultCity: null,
@@ -111,6 +125,11 @@ export const initialState: AuthState = {
   userUuid: '',
   id: 0,
   dispatchId: 0,
+  walletBalance: 0,
+  pointsEarned: 0,
+  pointsUsed: 0,
+  acceptedBids: [], // Initialize as an empty array
+  quote_uuid: '',
 };
 
 const authSlice = createSlice({
@@ -208,6 +227,12 @@ const authSlice = createSlice({
     setNotifyUuid: (state, action: PayloadAction<string>) => {
       state.notifyUuid = action.payload;
     },
+    setSubscriptionStatus: (state, action: PayloadAction<string>) => {
+      state.subscriptionStatus = action.payload;
+    },
+    setQuoteUuid: (state, action: PayloadAction<string>) => {
+      state.quote_uuid = action.payload;
+    },
     setServiceProviderUuid: (state, action: PayloadAction<string>) => {
       state.service_provider_uuid = action.payload;
     },
@@ -217,6 +242,24 @@ const authSlice = createSlice({
     setDeliveryTime(state, action: PayloadAction<string | null>) {
       state.deliveryTime = action.payload;
     },
+    setAcceptedBidDetails: (state, action: PayloadAction<AcceptedBid>) => {
+      const existingBidIndex = state.acceptedBids.findIndex(
+        bid =>
+          bid.product_id === action.payload.product_id &&
+          bid.servicer_id === action.payload.servicer_id,
+      );
+      if (existingBidIndex !== -1) {
+        // If the bid for this product_id and servicer_id exists, increment the quantity
+        state.acceptedBids[existingBidIndex].quantity +=
+          action.payload.quantity;
+      } else {
+        // Otherwise, add the new bid details to the array
+        state.acceptedBids.push({
+          ...action.payload,
+          quantity: action.payload.quantity || 1,
+        });
+      }
+    },
     setUser: (
       state,
       action: PayloadAction<{
@@ -224,11 +267,15 @@ const authSlice = createSlice({
         userId: number;
         token: string;
         firebaseUid: string;
-        serviceProviderUuid?: string; // Optional, only for service providers
-        servicesOffered?: string[]; // Optional, only for service providers
-        username?: string; // Optional, only for service providers
-        userUuid?: string; // Optional, only for service providers
-        id?: number; // Optional, only for service providers
+        serviceProviderUuid?: string;
+        servicesOffered?: string[];
+        username?: string;
+        userUuid?: string;
+        id?: number;
+        walletBalance?: number;
+        pointsEarned?: number;
+        pointsUsed?: number;
+        subscriptionStatus?: string;
       }>,
     ) => {
       state.role = action.payload.role;
@@ -240,6 +287,10 @@ const authSlice = createSlice({
       state.username = action.payload.username || '';
       state.userUuid = action.payload.userUuid || '';
       state.id = action.payload.id || 0;
+      state.walletBalance = action.payload.walletBalance || 0;
+      state.pointsEarned = action.payload.pointsEarned || 0;
+      state.pointsUsed = action.payload.pointsUsed || 0;
+      state.subscriptionStatus = action.payload.subscriptionStatus || '';
     },
     setUserUuid: (state, action: PayloadAction<string>) => {
       state.user_uuid = action.payload;
@@ -259,6 +310,11 @@ const authSlice = createSlice({
       state.addressId = undefined;
       state.userUuid = '';
       state.username = '';
+      state.walletBalance = 0;
+      state.pointsEarned = 0;
+      state.pointsUsed = 0;
+      state.acceptedBids = []; // Reset the accepted bids array
+      state.quote_uuid = '';
     },
     addToCart: (state, action: PayloadAction<CartItem>) => {
       const existingItemIndex = state.cart.findIndex(
@@ -270,7 +326,7 @@ const authSlice = createSlice({
       } else {
         state.cart.push({
           ...action.payload,
-          quantity: action.payload.quantity || 1, // Use provided quantity, fallback to 1
+          quantity: action.payload.quantity || 1,
         });
       }
     },
@@ -360,10 +416,8 @@ export const selectTotalPrice = (state: {auth: AuthState}) =>
 export const selectOption = (state: {auth: AuthState}) => state.auth.option;
 export const selectRole = (state: {auth: AuthState}) => state.auth.role;
 export const selectUserName = (state: {auth: AuthState}) => state.auth.username;
-
 export const selectUserId = (state: {auth: AuthState}) => state.auth.user_id;
 export const selectId = (state: {auth: AuthState}) => state.auth.id;
-
 export const selectUserUuidId = (state: {auth: AuthState}) =>
   state.auth.user_uuid;
 export const selectToken = (state: {auth: AuthState}) => state.auth.token;
@@ -379,6 +433,8 @@ export const selectProductUuid = (state: {auth: AuthState}) =>
   state.auth.product_uuid;
 export const selectNotifyUuid = (state: {auth: AuthState}) =>
   state.auth.notifyUuid;
+export const selectQuoteUuid = (state: {auth: AuthState}) =>
+  state.auth.quote_uuid;
 export const selectServiceProviderUuid = (state: {auth: AuthState}) =>
   state.auth.service_provider_uuid;
 export const selectCart = (state: {auth: AuthState}) => state.auth.cart;
@@ -392,14 +448,24 @@ export const selectDeliveryCity = (state: {auth: AuthState}) =>
   state.auth.deliveryCity;
 export const selectDeliveryCountry = (state: {auth: AuthState}) =>
   state.auth.deliveryCountry;
+export const selectSubscriptionStatus = (state: {auth: AuthState}) =>
+  state.auth.subscriptionStatus;
 export const selectAddressId = (state: {auth: AuthState}) =>
   state.auth.addressId;
 export const selectDispatchId = (state: {auth: AuthState}) =>
   state.auth.dispatchId;
+export const selectWalletBalance = (state: {auth: AuthState}) =>
+  state.auth.walletBalance;
+export const selectPointsEarned = (state: {auth: AuthState}) =>
+  state.auth.pointsEarned;
+export const selectPointsUsed = (state: {auth: AuthState}) =>
+  state.auth.pointsUsed;
 export const selectDeliveryDate = (state: {auth: AuthState}) =>
   state.auth.deliveryDate;
 export const selectDeliveryTime = (state: {auth: AuthState}) =>
   state.auth.deliveryTime;
+export const selectAcceptedBidDetails = (state: {auth: AuthState}) =>
+  state.auth.acceptedBids; // Updated to return the array
 
 export const {
   setDeliveryDate,
@@ -430,6 +496,9 @@ export const {
   setTotalPrice,
   setDispatchId,
   setMarketPlaceUuid,
+  setAcceptedBidDetails,
+  setQuoteUuid,
+  setSubscriptionStatus,
 } = authSlice.actions;
 
 export default authSlice.reducer;

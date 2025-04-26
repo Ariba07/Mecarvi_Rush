@@ -23,6 +23,7 @@ import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
 import {useSelector} from 'react-redux';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 
 const {width, height} = Dimensions.get('window'); // Get screen dimensions
 
@@ -58,9 +59,23 @@ const Verify = () => {
     return () => backHandler.remove();
   }, [navigation]);
 
-  const handleLogin = () => {
-    console.log('Login button pressed');
-    navigation.navigate('Login');
+  const handleVerify = async () => {
+    try {
+      const verify = {
+        phone_number: number,
+        verification_code: parseInt(code.join(''), 10),
+      };
+
+      await apiHelper({
+        method: 'POST',
+        endpoint: 'verify-otp',
+        data: verify,
+      });
+
+      navigation.navigate('Login');
+    } catch (error) {
+      console.warn('Error updating profile:', error);
+    }
   };
 
   const handleInputChange = (value: string, index: number) => {
@@ -124,7 +139,7 @@ const Verify = () => {
               ))}
             </View>
             {/* Verify Button */}
-            <CustomButton title="Verify" onPress={handleLogin} />
+            <CustomButton title="Verify" onPress={handleVerify} />
           </View>
         </ImageBackground>
       </View>

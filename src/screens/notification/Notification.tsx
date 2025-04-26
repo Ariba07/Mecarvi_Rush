@@ -4,10 +4,9 @@ import {
   FlatList,
   SafeAreaView,
   StyleSheet,
-  Image,
   Platform,
 } from 'react-native';
-import React, {useContext} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import Header from '../../components/common/header/Header';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
@@ -18,77 +17,127 @@ import {
 } from 'react-native-responsive-screen';
 import {TouchableOpacity} from 'react-native';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {Icon} from 'react-native-elements';
+import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
+import {useDispatch, useSelector} from 'react-redux';
+import {selectToken, setNotifyUuid} from '../../slice/Slice';
 
-const notifications = [
-  {
-    id: '1',
-    title: 'Successfully Ordered. You will receive...',
-    date: 'Yesterday at 10:00 AM',
-    icon: require('../../assets/images/success.png'),
-    bgColor: '#2ECC71',
-  },
-  {
-    id: '2',
-    title: 'Sale! Enjoy up to 70% off at New Year...',
-    date: '12 March 2024 at 10:00 AM',
-    icon: require('../../assets/images/success.png'),
-    bgColor: '#3498DB',
-  },
-  {
-    id: '3',
-    title: 'Order is on the way.',
-    date: '01 January 2025 at 10:00 AM',
-    icon: require('../../assets/images/success.png'),
-    bgColor: '#F39C12',
-  },
-  {
-    id: '4',
-    title: 'Grab now New Year 2025 discount ...',
-    date: '12 March 2024 at 10:00 AM',
-    icon: require('../../assets/images/success.png'),
-    bgColor: '#3498DB',
-  },
-];
+type NotificationItem = {
+  id: string;
+  message: string;
+  icon: string;
+  iconType: string;
+  bgColor: string;
+  data?: {
+    quote_request_uuid: string;
+    tag?: string;
+  };
+};
 
 const Notification: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
+  const {theme} = useContext(ThemeContext);
+  const token = useSelector(selectToken);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    const getNotifications = async () => {
+      try {
+        const response = await apiHelper({
+          method: 'GET',
+          endpoint: 'notifications',
+          token: token,
+        });
+
+        const {data} = response as {data: any[]};
+        const fetchedNotifications: NotificationItem[] = data.map(
+          notification => ({
+            id: notification.id,
+            message: notification.data.message,
+            icon:
+              notification.data.tag === 'AcceptBid'
+                ? 'cart'
+                : 'information-circle',
+            iconType: 'ionicon',
+            bgColor:
+              notification.data.tag === 'AcceptBid' ? '#2ECC71' : '#3498DB',
+            data: {
+              quote_request_uuid: notification.data.data?.quote_request_uuid,
+              tag: notification.data.tag,
+            },
+          }),
+        );
+
+        setNotifications(fetchedNotifications);
+      } catch (error: any) {
+        console.warn('Error fetching notifications:', error);
+        setErrorMessage('Failed to load notifications. Please try again.');
+      }
+    };
+
+    getNotifications();
+  }, [token]);
 
   return (
     <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
       <View style={styles.container}>
         <Header title="Notification" onBackPress={() => navigation.goBack()} />
-        <FlatList
-          data={notifications}
-          keyExtractor={item => item.id}
-          renderItem={({item}) => (
-            <TouchableOpacity
-              style={[
-                styles.notificationCard,
-                {backgroundColor: theme.backgroundColor},
-              ]}
-              onPress={() => {
-                navigation.navigate('MarketPlace', {fromProduct: false});
-              }}>
-              <View
-                style={[styles.iconContainer, {backgroundColor: item.bgColor}]}>
-                <Image source={item.icon} style={styles.icon} />
-              </View>
-              <View style={styles.textContainer}>
-                <Text
-                  style={[styles.title, {color: theme.text}]}
-                  numberOfLines={1}>
-                  {item.title}
-                </Text>
-                <Text style={[styles.date, {color: theme.text}]}>
-                  {item.date}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          )}
-          showsVerticalScrollIndicator={false}
-        />
+        {errorMessage ? (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{errorMessage}</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={notifications}
+            keyExtractor={item => item.id}
+            renderItem={({item}) => (
+              <TouchableOpacity
+                onPress={() => {
+                  if (item.data?.quote_request_uuid) {
+                    dispatch(setNotifyUuid(item.data.quote_request_uuid));
+                    navigation.navigate('AcceptBid');
+                  } else {
+                    console.warn(
+                      'No quote_request_uuid found for notification',
+                    );
+                  }
+                }}
+                style={[
+                  styles.notificationCard,
+                  {backgroundColor: theme.backgroundColor},
+                ]}>
+                <View
+                  style={[
+                    styles.iconContainer,
+                    {backgroundColor: item.bgColor},
+                  ]}>
+                  <Icon
+                    name={item.icon}
+                    type={item.iconType}
+                    size={wp(5)}
+                    color="white"
+                  />
+                </View>
+                <View style={styles.textContainer}>
+                  <Text
+                    style={[styles.message, {color: theme.text}]}
+                    numberOfLines={2}>
+                    {item.message}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            )}
+            showsVerticalScrollIndicator={false}
+            ListEmptyComponent={
+              <Text style={[styles.errorText, {color: theme.text}]}>
+                No notifications available.
+              </Text>
+            }
+          />
+        )}
       </View>
     </SafeAreaView>
   );
@@ -102,12 +151,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: Platform.select({
-      ios: wp(6), // Slightly more padding on iOS
+      ios: wp(6),
       android: wp(5),
     }),
     paddingBottom: Platform.select({
       ios: hp(4),
-      android: hp(8),
+      android: hp(4),
     }),
   },
   notificationCard: {
@@ -126,23 +175,24 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: wp(3),
   },
-  icon: {
-    width: wp(5),
-    height: wp(5),
-    resizeMode: 'contain',
-  },
   textContainer: {
     flex: 1,
   },
-  title: {
+  message: {
     fontSize: wp(4),
-    fontWeight: 'bold',
     color: '#333',
   },
-  date: {
+  errorContainer: {
+    backgroundColor: '#FFE6E6',
+    padding: wp(3),
+    borderRadius: wp(2),
+    marginVertical: hp(2),
+    alignItems: 'center',
+  },
+  errorText: {
+    color: '#FF3333',
     fontSize: wp(3.5),
-    color: '#777',
-    marginTop: hp(0.5),
+    textAlign: 'center',
   },
 });
 

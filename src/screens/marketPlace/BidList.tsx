@@ -6,144 +6,295 @@ import {
   TouchableOpacity,
   FlatList,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import React, {useContext, useEffect, useState} from 'react';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
-import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
+import {
+  ApiResponse,
+  RootStackParamList,
+} from '../../components/types/screenTypes/ScreenTypes';
 import Header from '../../components/common/header/Header';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {useDispatch, useSelector} from 'react-redux';
+import {
+  selectNotifyUuid,
+  setServiceProviderUuid,
+  setAcceptedBidDetails,
+  setSourceType,
+  setQuoteUuid,
+} from '../../slice/Slice';
 import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
-import {useDispatch} from 'react-redux';
-import {setServiceProviderUuid} from '../../slice/Slice';
 
-type Prop = RouteProp<RootStackParamList, 'MarketPlace'>;
-
-// Define the type for our provider based on the actual API response
-interface BusinessProvider {
-  service_provider_uuid: string; // marketplace_uuid from response
-  service_provider_user_uuid: string; // marketplace_uuid from response
+// Define the type for the bid based on the API response
+interface Bid {
   id: number;
+  quote_bid_uuid: string;
+  service_provider_id: number;
+  bid_price: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  service_provider: {
+    service_provider_id: number;
+    service_provider_name: string;
+    service_provider_logo: string;
+  };
+  quote_request_id: {
+    id: number;
+    quote_request_uuid: string;
+    user_id: number;
+    product_id: number;
+    quantity: number;
+    note: string | null;
+    details: {[key: string]: string};
+    front_image: string;
+    back_image: string;
+    created_at: string;
+    updated_at: string;
+  };
+}
+
+// Define the type for rendering in FlatList
+interface BusinessProvider {
+  id: number;
+  quote_bid_uuid: string;
+  service_provider_id: number;
+  service_provider_uuid?: string;
+  service_provider_user_uuid?: string;
   service_provider_name: string;
   logo: string;
-  address: string;
+  address?: string;
   price: string;
+  product_id: number; // Added for dispatching
+  quantity: number; // Added for dispatching
 }
 
 const BidList: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const route = useRoute<Prop>();
-  const {productId} = route.params;
   const {theme} = useContext(ThemeContext);
-  const [providers, setProviders] = useState<BusinessProvider[]>([]);
   const dispatch = useDispatch();
+  const uuid = useSelector(selectNotifyUuid);
+  const [quoteData, setQuoteData] = useState<BusinessProvider[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Fetch providers when component mounts
   useEffect(() => {
-    const fetchProviders = async () => {
+    const fetchQuote = async () => {
+      if (!uuid) {
+        console.warn('No UUID provided for fetching quote bids');
+        setError('No quote request selected');
+        setLoading(false);
+        return;
+      }
+
       try {
-        const response = await apiHelper({
+        setLoading(true);
+        setError(null);
+
+        // Fetch quote bids
+        const response: ApiResponse = await apiHelper({
           method: 'GET',
-          endpoint: `marketplace/product/${productId}`,
+          endpoint: `quote-bids/quote-request/${uuid}`,
         });
 
-        // Map API response to our required format
-        const mappedProviders = (response as {data: any[]}).data.map(
-          (item: any) => ({
-            service_provider_uuid: item.service_provider_uuid, // Use marketplace_uuid as service_provider_uuid
-            id: item.id,
-            service_provider_name: item.service_provider_name,
-            logo: item.logo,
-            address: item.address,
-            price: `$${parseFloat(item.price).toFixed(2)}`, // Format price with $
-            service_provider_user_uuid: item.service_provider_user_uuid, // Use marketplace_uuid as service_provider_uuid
-          }),
-        );
+        if (response.status === 1 && Array.isArray(response.data)) {
+          // Map bids to BusinessProvider format
+          const providers: BusinessProvider[] = response.data.map(
+            (bid: Bid) => ({
+              id: bid.id,
+              quote_bid_uuid: bid.quote_bid_uuid,
+              service_provider_id: bid.service_provider_id,
+              service_provider_uuid: undefined,
+              service_provider_user_uuid: undefined,
+              service_provider_name: bid.service_provider.service_provider_name,
+              logo:
+                bid.service_provider.service_provider_logo ||
+                'https://via.placeholder.com/150',
+              address: undefined,
+              price: `$${bid.bid_price}`,
+              product_id: bid.quote_request_id.product_id, // Store product_id
+              quantity: bid.quote_request_id.quantity, // Store quantity
+            }),
+          );
 
-        setProviders(mappedProviders);
-      } catch (error) {
-        console.warn('Error fetching providers:', error);
+          setQuoteData(providers);
+          console.log('Fetched and mapped providers:', providers);
+        } else {
+          setError('No bids found for this quote request');
+        }
+
+        // Ensure loading indicator shows for at least 3 seconds
+        setTimeout(() => {
+          setLoading(false);
+        }, 3000);
+      } catch (fetchError) {
+        console.warn('Error fetching quote bids:', fetchError);
+        setError('Failed to load bids. Please try again.');
+        setTimeout(() => {
+          setLoading(false);
+        }, 3000);
       }
     };
-    fetchProviders();
-  }, [productId]);
 
-  const handleAccept = (providerId: number) => {
-    console.log(`Accepted provider with ID: ${providerId}`);
-    navigation.navigate('Checkout');
+    fetchQuote();
+  }, [uuid]);
+
+  const handleAccept = async (item: BusinessProvider) => {
+    try {
+      console.log(`Accepting bid with UUID: ${item.quote_bid_uuid}`);
+      const response: ApiResponse = await apiHelper({
+        method: 'POST',
+        endpoint: `quote-bids/${item.quote_bid_uuid}/accept`,
+      });
+
+      if (response.status === 1) {
+        console.log('Bid accepted successfully:', response);
+        navigation.navigate('Schedule');
+
+        // Dispatch product_id, quantity, and bid_price
+        dispatch(setQuoteUuid(item.quote_bid_uuid));
+        dispatch(
+          setAcceptedBidDetails({
+            product_id: item.product_id,
+            quantity: item.quantity,
+            bid_price: parseFloat(item.price.replace('$', '')),
+            servicer_id: item.service_provider_id,
+          }),
+          dispatch(setSourceType('quote')),
+        );
+      } else {
+        console.warn('Failed to accept bid:', response);
+        setError('Failed to accept bid. Please try again.');
+      }
+    } catch (acceptError) {
+      console.warn('Error accepting bid:', acceptError);
+      setError('Failed to accept bid. Please try again.');
+    }
+  };
+
+  const handleReject = async (quote_bid_uuid: string) => {
+    try {
+      console.log(`Rejecting bid with UUID: ${quote_bid_uuid}`);
+      const response: ApiResponse = await apiHelper({
+        method: 'POST',
+        endpoint: `quote-bids/${quote_bid_uuid}/reject`,
+        data: {},
+      });
+
+      if (response.status === 1) {
+        console.log('Bid rejected successfully:', response);
+        // Remove the rejected bid from quoteData
+        setQuoteData(prevData =>
+          prevData.filter(item => item.quote_bid_uuid !== quote_bid_uuid),
+        );
+      } else {
+        console.warn('Failed to reject bid:', response);
+        setError('Failed to reject bid. Please try again.');
+      }
+    } catch (rejectError) {
+      console.warn('Error rejecting bid:', rejectError);
+      setError('Failed to reject bid. Please try again.');
+    }
   };
 
   const renderProviderItem = ({item}: {item: BusinessProvider}) => (
-    <TouchableOpacity
-      style={[styles.providerCard, {backgroundColor: theme.backgroundColor}]}
-      onPress={() => {
-        if (item.service_provider_user_uuid) {
-          navigation.navigate('ShopProfile', {
-            fromBid: true,
-            providerId: item.service_provider_user_uuid,
-          });
-        } else {
-          console.warn('Provider ID is undefined');
-        }
-        dispatch(setServiceProviderUuid(item.service_provider_uuid));
-        console.log(item.service_provider_user_uuid);
-      }}>
-      <Image
-        source={{uri: item.logo}}
-        style={styles.providerImage}
-        resizeMode="cover"
-      />
-      <View style={styles.providerInfo}>
-        <Text style={[styles.providerName, {color: theme.text}]}>
-          {item.service_provider_name}
-        </Text>
-        <Text style={[styles.address, {color: theme.text}]}>
-          Address: {item.address}
-        </Text>
-
-        <View style={styles.row}>
-          <Text style={[styles.price, {color: theme.input}]}>{item.price}</Text>
-
-          <TouchableOpacity
-            style={styles.acceptButton}
-            onPress={() => {
-              handleAccept(item.id);
-            }}>
-            <Text style={styles.acceptButtonText}>Accept</Text>
-          </TouchableOpacity>
+    <View
+      style={[styles.providerCard, {backgroundColor: theme.backgroundColor}]}>
+      <TouchableOpacity
+        style={styles.rejectButton}
+        onPress={() => handleReject(item.quote_bid_uuid)}>
+        <Icon name="close" size={wp(5)} color={theme.input} />
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.providerContent}
+        onPress={() => {
+          console.warn(
+            'Cannot navigate to ShopProfile: service_provider_user_uuid is undefined',
+          );
+          dispatch(
+            setServiceProviderUuid(
+              item.service_provider_uuid || item.quote_bid_uuid,
+            ),
+          );
+          console.log('Selected bid UUID:', item.quote_bid_uuid);
+        }}>
+        <Image
+          source={{uri: item.logo}}
+          style={styles.providerImage}
+          resizeMode="cover"
+          onError={() =>
+            console.warn(
+              `Failed to load image for ${item.service_provider_name}`,
+            )
+          }
+        />
+        <View style={styles.providerInfo}>
+          <Text style={[styles.providerName, {color: theme.text}]}>
+            {item.service_provider_name}
+          </Text>
+          <Text style={[styles.address, {color: theme.text}]}>
+            Address: {item.address || 'N/A'}
+          </Text>
+          <View style={styles.row}>
+            <Text style={[styles.price, {color: theme.input}]}>
+              {item.price}
+            </Text>
+            <TouchableOpacity
+              style={styles.acceptButton}
+              onPress={() => handleAccept(item)}>
+              <Text style={styles.acceptButtonText}>Accept</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </View>
   );
 
   return (
     <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
       <View style={styles.container}>
-        <Header title={'Bids List'} onBackPress={() => navigation.goBack()} />
+        <Header title="Bids List" onBackPress={() => navigation.goBack()} />
 
         <View style={styles.subtitleContainer}>
           <Icon name="store" size={wp(5)} color="#666" />
           <Text style={styles.subtitle}>
-            Select Your Preferred business provider
+            Select Your Preferred Business Provider
           </Text>
         </View>
 
-        <FlatList
-          data={providers}
-          renderItem={renderProviderItem}
-          keyExtractor={item => item.id.toString()}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.listContainer}
-          ListEmptyComponent={
-            <Text style={styles.emptyText}>No providers found</Text>
-          }
-        />
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={theme.input} />
+            <Text style={[styles.loadingText, {color: theme.text}]}>
+              Loading bids...
+            </Text>
+          </View>
+        ) : error ? (
+          <View style={styles.errorContainer}>
+            <Text style={[styles.errorText, {color: theme.text}]}>{error}</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={quoteData}
+            renderItem={renderProviderItem}
+            keyExtractor={item => item.id.toString()}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.listContainer}
+            ListEmptyComponent={
+              <Text style={[styles.emptyText, {color: theme.text}]}>
+                No providers found
+              </Text>
+            }
+          />
+        )}
       </View>
     </SafeAreaView>
   );
@@ -173,11 +324,14 @@ const styles = StyleSheet.create({
     paddingBottom: hp(2),
   },
   providerCard: {
-    flexDirection: 'row',
     backgroundColor: '#fff',
     borderRadius: 15,
     padding: wp(2),
     marginBottom: hp(2),
+    position: 'relative',
+  },
+  providerContent: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
   providerImage: {
@@ -199,21 +353,6 @@ const styles = StyleSheet.create({
     color: '#666',
     marginTop: hp(0.5),
   },
-  deliveryDate: {
-    fontSize: wp(3),
-    color: '#666',
-    marginTop: hp(0.5),
-  },
-  ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: hp(0.5),
-  },
-  ratingText: {
-    fontSize: wp(3),
-    color: '#666',
-    marginLeft: wp(1),
-  },
   price: {
     fontSize: wp(4),
     fontWeight: 'bold',
@@ -231,6 +370,12 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
   },
+  rejectButton: {
+    position: 'absolute',
+    top: wp(2),
+    right: wp(2),
+    zIndex: 1,
+  },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -242,6 +387,26 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
     marginTop: hp(5),
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: wp(4),
+    color: '#666',
+    marginTop: hp(2),
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    fontSize: wp(4),
+    color: '#FF3333',
+    textAlign: 'center',
   },
 });
 

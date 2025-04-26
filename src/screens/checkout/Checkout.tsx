@@ -9,7 +9,7 @@ import {
   Image,
   Alert,
 } from 'react-native';
-import React, {useContext, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -24,6 +24,7 @@ import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 import {useDispatch, useSelector} from 'react-redux';
 import {
   clearCart,
+  selectAcceptedBidDetails,
   selectAddressId,
   selectAddressType,
   selectCart,
@@ -31,10 +32,17 @@ import {
   selectDeliveryTime,
   selectDispatchId,
   selectMarketplaceUuid,
+  selectQuoteUuid,
   selectSourceType,
+  selectSubscriptionStatus,
+  selectTotalPrice,
+  selectWalletBalance,
 } from '../../slice/Slice';
 import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 import CardPaymentBottomSheet from '../../components/cardPayment/CardPaymentModal';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const STORAGE_KEY = '@login_credentials';
 
 interface PaymentOption {
   id: string;
@@ -60,6 +68,35 @@ const Checkout: React.FC = () => {
   const [orderUuid, setOrderUuid] = useState<string | null>(null);
   const serviceProviderId = useSelector(selectDispatchId);
   const marketPlaceUuid = useSelector(selectMarketplaceUuid);
+  const reduxWallet = useSelector(selectWalletBalance);
+  const [wallet, setWallet] = useState<number>(0);
+  const subscribed = useSelector(selectSubscriptionStatus);
+  const orderPrice = useSelector(selectTotalPrice);
+  const quoteOrder = useSelector(selectAcceptedBidDetails);
+  const quote_uuid = useSelector(selectQuoteUuid);
+
+  useEffect(() => {
+    const getUserId = async () => {
+      try {
+        const credentials = await AsyncStorage.getItem(STORAGE_KEY);
+        if (credentials) {
+          const parsedCredentials = JSON.parse(credentials);
+
+          if (parsedCredentials.walletBalance) {
+            setWallet(parsedCredentials.walletBalance);
+            return;
+          }
+        }
+        setWallet(reduxWallet || 0);
+      } catch (error) {
+        console.warn('Error retrieving user ID from AsyncStorage:', error);
+        // Fallback to Redux on error
+        setWallet(reduxWallet || 0);
+      }
+    };
+
+    getUserId();
+  }, [reduxWallet]);
 
   // Function to convert "4:00 PM" to "16:00" format
   const convertTo24HourFormat = (timeStr: string) => {
@@ -116,13 +153,36 @@ const Checkout: React.FC = () => {
         user_address_id: addressType === 'delivery' ? addressId : undefined,
         service_provider_id: serviceProviderId,
       };
+
+      // Order data for quote
+      const quoteOrderData = {
+        source_type: sourceType, // "quote"
+        service_provider_id: quoteOrder[0].servicer_id,
+        items: quoteOrder.map(item => ({
+          product_id: item.product_id,
+          quantity: item.quantity,
+          price: item.bid_price,
+        })),
+        fulfillment_type: addressType,
+        fulfillment_time: formattedTime,
+        fulfillment_date: date,
+        user_address_id: addressType === 'delivery' ? addressId : undefined,
+      };
+
       console.log('Order Data:', orderData);
 
       let endpoint =
-        sourceType === 'cart'
+        sourceType === 'quote'
+          ? `orders/quote/${quote_uuid}/`
+          : sourceType === 'cart'
           ? 'orders/cart/'
           : `orders/marketplace/${marketPlaceUuid}/`;
-      let data = sourceType === 'cart' ? orderData : marketOrderData;
+      let data =
+        sourceType === 'quote'
+          ? quoteOrderData
+          : sourceType === 'cart'
+          ? orderData
+          : marketOrderData;
 
       const response = (await apiHelper({
         method: 'POST',
@@ -201,8 +261,22 @@ const Checkout: React.FC = () => {
           //     );
           //   }
         } else {
-          navigation.navigate('Receipt');
-          dispatch(clearCart());
+          try {
+            (await apiHelper({
+              method: 'POST',
+              endpoint: `orders/${orderUuidFromCreation}/wallet-payment`,
+              data: {balance: orderPrice},
+            })) as {data: {links: {rel: string; href: string}[]}};
+
+            navigation.navigate('Receipt');
+            dispatch(clearCart());
+          } catch (error) {
+            console.warn('Error initiating PayPal payment:', error);
+            Alert.alert(
+              'Error',
+              'Failed to initiate PayPal payment. Please try again.',
+            );
+          }
         }
       }
     } catch (error) {
@@ -235,13 +309,17 @@ const Checkout: React.FC = () => {
         'https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Stripe_Logo%2C_revised_2016.svg/1200px-Stripe_Logo%2C_revised_2016.svg.png',
       selected: false,
     },
-    {
-      id: 'wallet',
-      label: 'Wallet',
-      logoUrl: 'https://img.icons8.com/color/48/000000/wallet.png',
-      selected: false,
-      balance: '$5.00',
-    },
+    ...(subscribed === 'active'
+      ? [
+          {
+            id: 'wallet',
+            label: 'Wallet',
+            logoUrl: 'https://img.icons8.com/color/48/000000/wallet.png',
+            selected: false,
+            balance: `$ ${wallet || 0}`,
+          },
+        ]
+      : []),
   ];
 
   const handleSelectPayment = (id: string) => {

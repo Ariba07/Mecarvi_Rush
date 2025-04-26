@@ -54,11 +54,26 @@ interface UserData {
   servicesOffered?: string[];
   user_uuid?: string;
   id?: number;
+  walletBalance?: number;
+  pointsEarned?: number;
+  pointsUsed?: number;
+  subscriptionStatus?: string; // New field
 }
 
 interface ApiResponse {
   data: {
-    user?: {id: number; roles: string[]; user_uuid: string};
+    user?: {
+      id: number;
+      roles: string[];
+      user_uuid: string;
+      subscription_status: string; // Add subscription_status
+      wallet: {
+        id: number;
+        balance: number;
+        points_earned: number;
+        points_used: number;
+      };
+    };
     id?: number;
     roles?: string[];
     full_name?: string;
@@ -66,6 +81,13 @@ interface ApiResponse {
     service_provider_uuid?: string;
     services_offered?: string[];
     user_uuid?: string;
+    subscription_status?: string; // Add subscription_status
+    wallet?: {
+      id: number;
+      balance: number;
+      points_earned: number;
+      points_used: number;
+    };
   };
   meta: {token: string; firebase_token: string};
 }
@@ -75,8 +97,8 @@ const Login: React.FC = () => {
   const [unsubscribeFCM, setUnsubscribeFCM] = useState<(() => void) | null>(
     null,
   );
-  const [modalVisible, setModalVisible] = useState<boolean>(false); // Modal state
-  const [errorMessage, setErrorMessage] = useState<string>(''); // Error message state
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>('');
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const dispatch = useDispatch();
@@ -129,7 +151,7 @@ const Login: React.FC = () => {
       // Check if the role is service_provider
       if (roles?.includes('service_provider')) {
         setErrorMessage('Invalid credentials.');
-        setModalVisible(true); // Show modal instead of Alert
+        setModalVisible(true);
         return;
       }
 
@@ -150,6 +172,9 @@ const Login: React.FC = () => {
       const userId = isCustomer ? data.id : data.user?.id;
       const name = isCustomer ? data.full_name : data.service_provider_name;
       const userUuid = isCustomer ? data.user_uuid : data.user?.user_uuid;
+      const subscriptionStatus = isCustomer
+        ? data.subscription_status
+        : data.user?.subscription_status; // Get subscription status
 
       const userData: UserData = {
         role: roles?.[0] || 'unknown',
@@ -157,6 +182,10 @@ const Login: React.FC = () => {
         token: meta.token,
         firebaseUid,
         username: name || '',
+        walletBalance: data.wallet?.balance || 0,
+        pointsEarned: data.wallet?.points_earned || 0,
+        pointsUsed: data.wallet?.points_used || 0,
+        subscriptionStatus: subscriptionStatus || '', // Store subscription status
         user_uuid: userUuid || '',
         ...(roles?.includes('service_provider') && {
           serviceProviderUuid: data.service_provider_uuid,
@@ -176,6 +205,10 @@ const Login: React.FC = () => {
           role: roles?.[0],
           user_uuid: firebaseUid,
           userUuid: userUuid,
+          walletBalance: data.wallet?.balance,
+          pointsEarned: data.wallet?.points_earned,
+          pointsUsed: data.wallet?.points_used,
+          subscriptionStatus: subscriptionStatus, // Store subscription status
           name,
           ...(roles?.includes('service_provider') && {
             serviceProviderUuid: data.service_provider_uuid,
@@ -216,7 +249,7 @@ const Login: React.FC = () => {
         localErrorMessage = (error as any).message;
       }
       setErrorMessage(localErrorMessage);
-      setModalVisible(true); // Show modal for other errors
+      setModalVisible(true);
     }
   };
 

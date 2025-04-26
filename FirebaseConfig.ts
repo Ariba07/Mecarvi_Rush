@@ -4,6 +4,11 @@ import {initializeAuth} from '@react-native-firebase/auth';
 import messaging from '@react-native-firebase/messaging';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Platform} from 'react-native';
+import {LogBox} from 'react-native';
+
+LogBox.ignoreLogs([
+  'This method is deprecated (as well as all React Native Firebase namespaced API)',
+]);
 
 const firebaseConfig = {
   apiKey:

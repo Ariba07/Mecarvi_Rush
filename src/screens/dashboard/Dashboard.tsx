@@ -34,12 +34,6 @@ import {
   setServiceUuid,
 } from '../../slice/Slice';
 
-const banners = [
-  {id: '1', image: require('../../assets/images/Banner.png')},
-  {id: '2', image: require('../../assets/images/Banner.png')},
-  {id: '3', image: require('../../assets/images/Banner.png')},
-];
-
 const Dashboard: React.FC = () => {
   const navigation = useNavigation<DrawerNavigationProp<RootStackParamList>>();
   const move = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -48,13 +42,12 @@ const Dashboard: React.FC = () => {
   const dispatch = useDispatch();
   const defaultCity = useSelector(selectDefaultCity);
   const defaultCountry = useSelector(selectDefaultCountry);
-
   const [activeIndex, setActiveIndex] = useState(0);
   const [selectedTab, setSelectedTab] = useState<'prints' | 'rentals'>(
     'prints',
   ); // Track selected tab
-
   const [products, setProducts] = useState<Productss[]>([]); // Type state with Product
+  const [banners, setBanners] = useState<any[]>([]); // State for banners
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -63,17 +56,43 @@ const Dashboard: React.FC = () => {
           method: 'GET',
           endpoint: 'products',
         });
-        const fetchedProduct = response?.data || [];
+        // Ensure response.data is an array
+        const fetchedProduct = Array.isArray(response?.data)
+          ? response.data
+          : [];
+        console.log('Fetched products:', fetchedProduct); // Debug log
         setProducts(fetchedProduct);
       } catch (error) {
         console.warn('Error fetching products:', error);
+        setProducts([]); // Set to empty array on error
       }
     };
     fetchProducts();
   }, []); // Empty
 
+  useEffect(() => {
+    const fetchBanners = async () => {
+      try {
+        const response: {data: any[]} = await apiHelper({
+          method: 'GET',
+          endpoint: 'banners',
+        });
+        setBanners(response.data || []); // Store banners in state
+      } catch (error) {
+        console.warn('Error fetching banners:', error);
+      }
+    };
+    fetchBanners();
+  }, []); // Empty
+
   const renderBanner = ({item}: any) => (
-    <Image source={item.image} style={styles.banner} resizeMode="cover" />
+    <View style={styles.bannerContainer}>
+      <Image
+        source={{uri: item.image_url}} // Use image_url from API
+        style={styles.banner}
+        resizeMode="cover"
+      />
+    </View>
   );
 
   useEffect(() => {
@@ -188,21 +207,27 @@ const Dashboard: React.FC = () => {
           </View>
 
           {/** Banner Section */}
-          <FlatList
-            data={banners}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            keyExtractor={item => item.id}
-            renderItem={renderBanner}
-            onScroll={event => {
-              const index = Math.round(
-                event.nativeEvent.contentOffset.x / wp('100%'),
-              );
-              setActiveIndex(index);
-            }}
-            scrollEventThrottle={16}
-          />
+          <View style={{marginHorizontal: hp('2%')}}>
+            <FlatList
+              data={banners} // Use state instead of hardcoded banners
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              keyExtractor={item => item.id.toString()} // Convert id to string
+              renderItem={renderBanner}
+              onScroll={event => {
+                const index = Math.round(
+                  event.nativeEvent.contentOffset.x /
+                    (wp('90%') + wp('2%') * 2), // Adjust for image width + gap
+                );
+                setActiveIndex(index);
+              }}
+              scrollEventThrottle={16}
+              snapToAlignment="center"
+              decelerationRate="fast"
+            />
+          </View>
+
           <View style={styles.dotContainer}>
             {banners.map((_, index) => (
               <View
@@ -270,15 +295,21 @@ const Dashboard: React.FC = () => {
             <Text style={[styles.sectionTitle, {color: theme.text}]}>
               Recommended
             </Text>
-            {products.slice(0, 5).map(item => (
-              <ProductCard
-                key={item.id} // React key
-                productUuid={item.product_uuid} // Explicit prop for ProductCard
-                name={item.name}
-                price={item.price}
-                image={require('../../assets/images/Orders.png')}
-              />
-            ))}
+            {Array.isArray(products) && products.length > 0 ? (
+              products.slice(0, 5).map(item => (
+                <ProductCard
+                  key={item.id} // React key
+                  productUuid={item.product_uuid} // Explicit prop for ProductCard
+                  name={item.name}
+                  price={item.price}
+                  image={require('../../assets/images/Orders.png')}
+                />
+              ))
+            ) : (
+              <Text style={{color: theme.text, textAlign: 'center'}}>
+                No products available
+              </Text>
+            )}
           </View>
         </ScrollView>
       ) : (
@@ -293,8 +324,13 @@ const Dashboard: React.FC = () => {
 const styles = StyleSheet.create({
   container: {flex: 1},
   title: {fontSize: wp('5%'), fontWeight: 'bold'},
+  bannerContainer: {
+    marginHorizontal: wp('2%'), // Gap between images
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   banner: {
-    width: wp('100%'),
+    width: wp('90%'), // Reduced width to accommodate gaps
     height: hp('20%'),
     borderRadius: 10,
   },
@@ -309,7 +345,7 @@ const styles = StyleSheet.create({
     borderRadius: wp('1%'),
     marginHorizontal: wp('1%'),
   },
-  section: {marginHorizontal: wp('4%'), marginVertical: hp('1S%')},
+  section: {marginHorizontal: wp('4%'), marginVertical: hp('1%')},
   sectionTitle: {
     fontSize: wp('5%'),
     fontWeight: 'bold',

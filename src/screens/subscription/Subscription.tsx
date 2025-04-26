@@ -22,42 +22,65 @@ import CustomButton from '../../components/common/buttons/CustomButton';
 import CardPaymentBottomSheet from '../../components/cardPayment/CardPaymentModal';
 import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
-import {useSelector} from 'react-redux';
-import {selectToken} from '../../slice/Slice';
+import {useDispatch, useSelector} from 'react-redux';
+import {selectToken, setSubscriptionStatus} from '../../slice/Slice';
 
-const plans = [
-  {
-    id: 'free',
-    title: 'Basic Plan',
-    price: '$0.00/month',
-    features: ['Limited orders per month', 'Access to basic features'],
-  },
-  {
-    id: 'paid',
-    title: 'Premium Plan',
-    price: '$29.99/month',
-    features: [
-      '24/7 Priority Support',
-      '30% Discount on Orders',
-      'VIP Features',
-    ],
-  },
-];
+type Plan = {
+  id: string;
+  title: string;
+  price: string;
+  features: string[];
+};
 
 const Subscription = () => {
-  const [selectedPlan, setSelectedPlan] = useState('free');
-  const navigation =
-    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const [selectedPlan, setSelectedPlan] = useState<string>(
+    'price_1R2SJ1QGkbRqDEDijT2rtpTY',
+  ); // Default to Free Plan ID
+  const [plans, setPlans] = useState<Plan[]>([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
+  const {theme} = useContext(ThemeContext);
   const token = useSelector(selectToken);
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const dispatch = useDispatch();
+
   useEffect(() => {
     if (errorMessage) {
       const timer = setTimeout(() => setErrorMessage(null), 2000);
-      return () => clearTimeout(timer); // Cleanup timer on unmount or error change
+      return () => clearTimeout(timer);
     }
   }, [errorMessage]);
+
+  useEffect(() => {
+    const getPackages = async () => {
+      try {
+        const response = await apiHelper({
+          method: 'GET',
+          endpoint: 'packages',
+          token: token, // Include token if required by API
+        });
+
+        const {data} = response as {data: any[]}; // Adjust based on actual response structure
+        const fetchedPlans: Plan[] = data.map(plan => ({
+          id: plan.id,
+          title: plan.product_name,
+          price: `$${plan.plan_price.toFixed(2)}/month`,
+          features:
+            plan.benefits && Object.keys(plan.benefits).length > 0
+              ? (Object.values(plan.benefits) as string[])
+              : ['Limited orders per month', 'Access to basic features'], // Fallback for Free Plan
+        }));
+
+        setPlans(fetchedPlans);
+      } catch (error: any) {
+        console.warn('Error fetching packages:', error);
+        setErrorMessage('Failed to load subscription plans. Please try again.');
+      }
+    };
+
+    getPackages();
+  }, [token]);
 
   const handleSubscriptionSubmit = async (paymentMethodId: string) => {
     if (!paymentMethodId || !selectedPlan) {
@@ -67,16 +90,16 @@ const Subscription = () => {
 
     setErrorMessage(null);
 
+    let plan = selectedPlan === 'Paid Plan' ? 'paid' : 'free';
+
     try {
       const response = await apiHelper({
         method: 'POST',
         endpoint: 'subscribe',
-        data: {plan: selectedPlan, payment_method: paymentMethodId},
-        token: token,
+        data: {plan: plan, payment_method: paymentMethodId},
       });
 
-      // Assuming apiHelper returns a JSON response or an object
-      const result = (await response) as any; // Adjust based on apiHelper return type
+      const result = response as any; // Adjust based on apiHelper return type
       if (result.error) {
         throw new Error(result.error.message || 'Subscription creation failed');
       }
@@ -84,7 +107,8 @@ const Subscription = () => {
       const {subscriptionId} = result;
       console.log('Subscription created:', subscriptionId);
       Alert.alert('Success', 'Subscription created successfully!');
-      setIsModalVisible(false); // Close modal on success
+      dispatch(setSubscriptionStatus('active'));
+      setIsModalVisible(false);
     } catch (error: any) {
       console.warn('Error creating subscription:', error);
       setErrorMessage(
@@ -104,34 +128,38 @@ const Subscription = () => {
           />
           <View>
             <Text style={styles.heading}>Choose Your Plan</Text>
-            {plans.map(plan => (
-              <TouchableOpacity
-                key={plan.id}
-                style={[
-                  styles.card,
-                  selectedPlan === plan.id && styles.selectedCard,
-                  {backgroundColor: theme.backgroundColor},
-                ]}
-                onPress={() => setSelectedPlan(plan.id)}>
-                <View style={styles.cardHeader}>
-                  <Text style={[styles.planTitle, {color: theme.text}]}>
-                    {plan.title}
-                  </Text>
-                  <Text style={styles.planPrice}>{plan.price}</Text>
-                </View>
-                {plan.features.map((feature, index) => (
-                  <View key={index} style={styles.feature}>
-                    <Icon
-                      name="checkbox"
-                      size={wp(4.5)}
-                      color="green"
-                      type="ionicon"
-                    />
-                    <Text style={styles.featureText}>{feature}</Text>
+            {plans.length > 0 ? (
+              plans.map(plan => (
+                <TouchableOpacity
+                  key={plan.id}
+                  style={[
+                    styles.card,
+                    selectedPlan === plan.id && styles.selectedCard,
+                    {backgroundColor: theme.backgroundColor},
+                  ]}
+                  onPress={() => setSelectedPlan(plan.id)}>
+                  <View style={styles.cardHeader}>
+                    <Text style={[styles.planTitle, {color: theme.text}]}>
+                      {plan.title}
+                    </Text>
+                    <Text style={styles.planPrice}>{plan.price}</Text>
                   </View>
-                ))}
-              </TouchableOpacity>
-            ))}
+                  {plan.features.map((feature, index) => (
+                    <View key={index} style={styles.feature}>
+                      <Icon
+                        name="checkbox"
+                        size={wp(4.5)}
+                        color="green"
+                        type="ionicon"
+                      />
+                      <Text style={styles.featureText}>{feature}</Text>
+                    </View>
+                  ))}
+                </TouchableOpacity>
+              ))
+            ) : (
+              <Text style={styles.errorText}>Loading plans...</Text>
+            )}
             {errorMessage && (
               <View style={styles.errorContainer}>
                 <Text style={styles.errorText}>{errorMessage}</Text>
@@ -141,7 +169,7 @@ const Subscription = () => {
         </View>
 
         <CustomButton
-          title={'Choose Plan'}
+          title="Choose Plan"
           onPress={() => setIsModalVisible(true)}
         />
       </View>
@@ -153,7 +181,11 @@ const Subscription = () => {
           planName:
             plans.find(plan => plan.id === selectedPlan)?.title ||
             'Unknown Plan',
-          price: selectedPlan === 'free' ? 0.0 : 29.99,
+          price: parseFloat(
+            plans
+              .find(plan => plan.id === selectedPlan)
+              ?.price.replace('/month', '') || '0.00',
+          ),
           billingFrequency: 'Monthly',
         }}
       />

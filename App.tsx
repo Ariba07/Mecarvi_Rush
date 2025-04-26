@@ -144,7 +144,7 @@ const AppContent: React.FC = () => {
       <Stack.Screen name="MarketPlace" component={MarketPlace} />
       <Stack.Screen name="ShopProfile" component={ShopProfile} />
       <Stack.Screen name="Orders" component={OrderIndex} />
-      <Stack.Screen name="BidList" component={BidList} />
+      <Stack.Screen name="AcceptBid" component={BidList} />
     </Stack.Navigator>
   );
 };

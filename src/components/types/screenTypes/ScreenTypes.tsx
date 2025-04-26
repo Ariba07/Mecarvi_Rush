@@ -58,7 +58,7 @@ export type RootStackParamList = {
   Receipt: undefined;
   MarketPlace: {productId: number};
   ShopProfile: {fromBid: boolean; providerId: string};
-  BidList: undefined;
+  AcceptBid: undefined;
 };
 export interface Productss {
   id: number;

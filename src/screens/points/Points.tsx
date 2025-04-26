@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-inline-styles */
 import React, {useCallback, useContext, useEffect, useState} from 'react';
 import {
   View,
@@ -21,115 +22,181 @@ import * as Progress from 'react-native-progress';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 import {useSelector} from 'react-redux';
 import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
-import {selectUserId, selectRole, selectId} from '../../slice/Slice';
+import {
+  selectUserId,
+  selectRole,
+  selectId,
+  selectPointsEarned,
+  selectPointsUsed,
+} from '../../slice/Slice';
 import {Order} from '../dashboard/ServiceProviderDashboard';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const STORAGE_KEY = '@login_credentials';
 
-const Points = () => {
+const Points: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const totalPoints = 500; // Define the max points required for gold
-  const userPoints = 20; // User's current points
-  const progress = userPoints / totalPoints; // Calculate progress percentage
-  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
+  const reduxPointsEarned = useSelector(selectPointsEarned); // Points earned from Redux
+  const reduxPointsUsed = useSelector(selectPointsUsed); // Points used from Redux
   const reduxUserId = useSelector(selectId); // For service provider
   const reduxCustomerId = useSelector(selectUserId); // For customer
   const reduxRole = useSelector(selectRole);
+  const {theme} = useContext(ThemeContext); // Access theme
   const [role, setRole] = useState<string | null>(null);
   const [userId, setUserId] = useState<number | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [loyaltyPoints, setLoyaltyPoints] = useState<number>(0); // State for loyalty_points
+  const [redeemValue, setRedeemValue] = useState<number>(0); // State for redeem_value
+  const [isLoading, setIsLoading] = useState<boolean>(false); // Loading state
+  const [error, setError] = useState<string | null>(null); // Error state
+  const [totalPoints, setTotalPoints] = useState<number>(0); // Synced total points
+  const [usedPoints, setUsedPoints] = useState<number>(0); // Synced used points
 
-  // Fetch role from AsyncStorage or Redux
+  // Fetch loyalty_points and redeem_value from API
   useEffect(() => {
-    const fetchRoleFromStorage = async () => {
+    const getPoints = async () => {
+      try {
+        const response = (await apiHelper({
+          method: 'GET',
+          endpoint: 'admin-settings',
+        })) as {
+          data: {id: number; setting_name: string; setting_value: string}[];
+        };
+
+        // Find loyalty_points and redeem_value
+        const settings = response.data || [];
+        const loyaltySetting = settings.find(
+          setting => setting.setting_name === 'loyalty_points',
+        );
+        const redeemSetting = settings.find(
+          setting => setting.setting_name === 'redeem_value',
+        );
+
+        // Parse and set values (convert string to number)
+        if (loyaltySetting) {
+          setLoyaltyPoints(parseFloat(loyaltySetting.setting_value) || 0);
+        }
+        if (redeemSetting) {
+          setRedeemValue(parseFloat(redeemSetting.setting_value) || 0);
+        }
+        console.log('Loyalty Points:', loyaltySetting);
+        console.log('Redeem Value:', redeemSetting);
+      } catch (settingsError) {
+        console.warn('Error retrieving settings:', settingsError);
+      }
+    };
+
+    getPoints();
+  }, []);
+
+  // Combined useEffect to fetch role, userId, pointsEarned, and pointsUsed from AsyncStorage and Redux
+  useEffect(() => {
+    const fetchUserData = async () => {
       try {
         const savedCredentials = await AsyncStorage.getItem(STORAGE_KEY);
+        console.log('Saved Credentials:', savedCredentials); // Debug
+        let parsedCredentials = null;
+
         if (savedCredentials) {
-          const {role: storedRole} = JSON.parse(savedCredentials);
-          if (storedRole) {
-            setRole(storedRole);
-          } else {
-            setRole(reduxRole);
-          }
-        } else {
-          setRole(reduxRole);
+          parsedCredentials = JSON.parse(savedCredentials);
         }
-      } catch (error) {
+
+        // Fetch and set role
+        const fetchedRole = parsedCredentials?.role || reduxRole;
+        setRole(fetchedRole);
+
+        // Fetch and set userId based on role
+        let fetchedUserId: number | null = null;
+        if (fetchedRole === 'service_provider') {
+          fetchedUserId = parsedCredentials?.id ?? reduxUserId ?? null;
+        } else if (fetchedRole === 'customer') {
+          fetchedUserId = parsedCredentials?.userId ?? reduxCustomerId ?? null;
+        }
+        setUserId(fetchedUserId);
+        console.log('Role:', fetchedRole, 'UserId:', fetchedUserId); // Debug
+
+        // Fetch and set pointsEarned and pointsUsed
+        const storedPointsEarned = parsedCredentials?.pointsEarned;
+        const storedPointsUsed = parsedCredentials?.pointsUsed;
+
+        const finalPointsEarned =
+          storedPointsEarned !== undefined
+            ? Number(storedPointsEarned)
+            : reduxPointsEarned ?? 0;
+        const finalPointsUsed =
+          storedPointsUsed !== undefined
+            ? Number(storedPointsUsed)
+            : reduxPointsUsed ?? 0;
+
+        setTotalPoints(finalPointsEarned);
+        setUsedPoints(finalPointsUsed);
+
         console.log(
-          'Error fetching role from AsyncStorage:',
-          (error as any)?.message,
+          'Synced Points - Earned:',
+          finalPointsEarned,
+          'Used:',
+          finalPointsUsed,
         );
+      } catch (fetchError) {
+        console.warn('Error fetching user data from AsyncStorage:', fetchError);
+
+        // Fallback to Redux values if AsyncStorage fails
         setRole(reduxRole);
-      }
-    };
-
-    fetchRoleFromStorage();
-  }, [reduxRole]);
-
-  // Fetch user ID based on role
-  useEffect(() => {
-    const getUserId = async () => {
-      try {
-        const credentials = await AsyncStorage.getItem(STORAGE_KEY);
-        if (credentials) {
-          const parsedCredentials = JSON.parse(credentials);
-          if (role === 'service_provider' && parsedCredentials.id) {
-            setUserId(parsedCredentials.id);
-            return;
-          } else if (role === 'customer' && parsedCredentials.userId) {
-            setUserId(parsedCredentials.userId);
-            return;
-          }
-        }
         setUserId(
-          role === 'service_provider'
+          reduxRole === 'service_provider'
             ? reduxUserId ?? null
             : reduxCustomerId ?? null,
         );
-      } catch (error) {
-        console.warn('Error retrieving user ID from AsyncStorage:', error);
-        setUserId(
-          role === 'service_provider'
-            ? reduxUserId ?? null
-            : reduxCustomerId ?? null,
-        );
+        setTotalPoints(reduxPointsEarned ?? 0);
+        setUsedPoints(reduxPointsUsed ?? 0);
       }
     };
 
-    if (role) {
-      getUserId();
-    }
-  }, [role, reduxUserId, reduxCustomerId]);
+    fetchUserData();
+  }, [
+    reduxRole,
+    reduxUserId,
+    reduxCustomerId,
+    reduxPointsEarned,
+    reduxPointsUsed,
+  ]);
 
   // Fetch orders based on role
   const fetchOrders = useCallback(async () => {
     if (userId === null || !role) {
+      console.log('Skipping fetchOrders: userId or role is null', {
+        userId,
+        role,
+      }); // Debug
       return;
     }
 
+    setIsLoading(true);
+    setError(null);
     try {
       const endpoint =
         role === 'service_provider'
           ? `orders?service_provider_id=${userId}&per_page=6&page=1`
           : `orders?customer_id=${userId}&per_page=6&page=1`;
+      console.log('Fetching orders from endpoint:', endpoint); // Debug
       const response = (await apiHelper({
         method: 'GET',
         endpoint,
       })) as {data: Order[]; meta: {pagination: {last_page: number}}};
 
-      if (!response?.data || !response?.meta?.pagination?.last_page) {
-        throw new Error('Invalid API response: Missing data or pagination');
-      }
-
-      setOrders(response.data.sort((a, b) => b.id - a.id)); // Sort by ID descending
-    } catch (error: any) {
-      console.warn('Error fetching orders:', error);
+      console.log('Orders response:', response); // Debug
+      const fetchedOrders = Array.isArray(response?.data) ? response.data : [];
+      setOrders(fetchedOrders.sort((a, b) => b.id - a.id)); // Sort by ID descending
+    } catch (fetchOrdersError: any) {
+      console.warn('Error fetching orders:', fetchOrdersError);
+      setError('Failed to load orders. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   }, [userId, role]);
 
-  // Fetch orders on mount
+  // Fetch orders when userId or role changes
   useEffect(() => {
     fetchOrders();
   }, [fetchOrders]);
@@ -139,13 +206,21 @@ const Points = () => {
       const response = (await apiHelper({
         method: 'POST',
         endpoint: `redeem/${uuid}`,
-      })) as {data: any};
+      })) as {data: Order[]}; // Adjust type based on actual response
 
-      setOrders(response.data);
-    } catch (error: any) {
-      console.warn('Error updating points:', error);
+      console.log('Redeem response:', response); // Debug
+      const updatedOrders = Array.isArray(response.data) ? response.data : [];
+      setOrders(updatedOrders.sort((a, b) => b.id - a.id));
+    } catch (redeemError: any) {
+      console.warn('Error updating points:', redeemError);
     }
   };
+
+  // Calculate progress
+  const progress = (usedPoints ?? 0) / (totalPoints || 1); // Avoid division by zero
+
+  // Calculate points-to-dollar conversion
+  const pointsToDollar = loyaltyPoints * redeemValue;
 
   return (
     <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
@@ -160,11 +235,10 @@ const Points = () => {
           <Container width={'100%'} height={hp(20)} />
           <View style={styles.overlay}>
             <Text style={styles.userName}>Chris Adam</Text>
-            <Text style={styles.pointsText}>✨ 250 Points</Text>
+            <Text style={styles.pointsText}>✨ {totalPoints} Points</Text>
             <Text style={styles.subText}>
               Collect more points to unlock gold
             </Text>
-            {/* Progress Bar */}
             <Progress.Bar
               progress={progress}
               width={wp(80)}
@@ -174,7 +248,9 @@ const Points = () => {
               borderWidth={0}
               borderRadius={8}
             />
-            <Text style={styles.conversionText}>$1 = 100 Points</Text>
+            <Text style={styles.conversionText}>
+              1 Point = ${pointsToDollar.toFixed(2)}
+            </Text>
           </View>
         </View>
 
@@ -187,44 +263,55 @@ const Points = () => {
           <Text style={[styles.rewardsTitle, {color: theme.text}]}>
             Rewards
           </Text>
-          <FlatList
-            data={orders}
-            keyExtractor={item => item.id.toString()}
-            renderItem={({item}) => (
-              <View style={styles.rewardItem}>
-                <GiftBox width={wp(8)} height={wp(8)} />
-                <View style={styles.rewardTextContainer}>
-                  <Text style={[styles.rewardTitle, {color: theme.text}]}>
-                    Order id- #{item.id}
-                  </Text>
-                  <Text style={[styles.rewardPoints, {color: theme.text}]}>
-                    {item.points} points
-                  </Text>
-                </View>
-                <TouchableOpacity
-                  style={[
-                    styles.redeemButton,
-                    item.is_redeemed
-                      ? [
-                          styles.redeemedButton,
-                          {backgroundColor: theme.backgroundColor},
-                        ]
-                      : {backgroundColor: theme.whole},
-                  ]}
-                  onPress={() => handleRedeem(item.order_uuid)}
-                  disabled={item.is_redeemed} // Prevents clicking again
-                >
-                  <Text
+          {isLoading ? (
+            <Text style={[styles.statusText, {color: theme.text}]}>
+              Loading orders...
+            </Text>
+          ) : error ? (
+            <Text style={[styles.statusText, {color: 'red'}]}>{error}</Text>
+          ) : orders.length === 0 ? (
+            <Text style={[styles.statusText, {color: theme.text}]}>
+              No orders available
+            </Text>
+          ) : (
+            <FlatList
+              data={orders}
+              keyExtractor={item => item.id.toString()}
+              renderItem={({item}) => (
+                <View style={styles.rewardItem}>
+                  <GiftBox width={wp(8)} height={wp(8)} />
+                  <View style={styles.rewardTextContainer}>
+                    <Text style={[styles.rewardTitle, {color: theme.text}]}>
+                      Order id- #{item.id}
+                    </Text>
+                    <Text style={[styles.rewardPoints, {color: theme.text}]}>
+                      {item.points} points
+                    </Text>
+                  </View>
+                  <TouchableOpacity
                     style={[
-                      styles.redeemText,
-                      item.is_redeemed && styles.redeemedText,
-                    ]}>
-                    {item.is_redeemed ? 'Redeemed' : 'Redeem'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          />
+                      styles.redeemButton,
+                      item.is_redeemed
+                        ? [
+                            styles.redeemedButton,
+                            {backgroundColor: theme.backgroundColor},
+                          ]
+                        : {backgroundColor: theme.whole},
+                    ]}
+                    onPress={() => handleRedeem(item.order_uuid)}
+                    disabled={!!item.is_redeemed}>
+                    <Text
+                      style={[
+                        styles.redeemText,
+                        item.is_redeemed && styles.redeemedText,
+                      ]}>
+                      {item.is_redeemed ? 'Redeemed' : 'Redeem'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            />
+          )}
         </View>
       </View>
     </SafeAreaView>
@@ -266,18 +353,6 @@ const styles = StyleSheet.create({
     fontSize: wp(3),
     color: '#fff',
     marginBottom: hp(1),
-  },
-  progressBarContainer: {
-    width: '100%',
-    height: hp(1),
-    backgroundColor: '#D3D3D3',
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  progressBar: {
-    width: '50%',
-    height: '100%',
-    backgroundColor: '#FF007A',
   },
   conversionText: {
     fontSize: wp(4),
@@ -332,6 +407,11 @@ const styles = StyleSheet.create({
   },
   redeemedText: {
     color: '#03A7A7',
+  },
+  statusText: {
+    fontSize: wp(4),
+    textAlign: 'center',
+    marginVertical: hp(2),
   },
 });
 
