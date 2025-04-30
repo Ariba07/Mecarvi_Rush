@@ -71,7 +71,7 @@ const Checkout: React.FC = () => {
   const reduxWallet = useSelector(selectWalletBalance);
   const [wallet, setWallet] = useState<number>(0);
   const subscribed = useSelector(selectSubscriptionStatus);
-  const orderPrice = useSelector(selectTotalPrice);
+  const orderPrice = useSelector(selectTotalPrice) || 0;
   const quoteOrder = useSelector(selectAcceptedBidDetails);
   const quote_uuid = useSelector(selectQuoteUuid);
 
@@ -123,13 +123,19 @@ const Checkout: React.FC = () => {
         throw new Error('User address ID is required for delivery');
       }
 
+      // Log state for debugging
+      console.log('sourceType:', sourceType);
+      console.log('quoteOrder:', quoteOrder);
+
       const orderData = {
         items: cart.map(item => ({
-          product_id: item.id,
+          product_id: item.id.toString(), // Convert to string
           quantity: item.quantity,
-          price: item.price,
+          price: item.price.toString(), // Convert to string
           name: item.name,
-          attributes: item.attributes || {},
+          ...(item.attributes && Object.keys(item.attributes).length > 0
+            ? {attributes: item.attributes}
+            : {}), // Omit attributes if empty
         })),
         fulfillment_type: addressType,
         source_type: sourceType,
@@ -140,11 +146,13 @@ const Checkout: React.FC = () => {
 
       const marketOrderData = {
         items: cart.map(item => ({
-          product_id: item.id,
+          product_id: item.id.toString(), // Convert to string
           quantity: item.quantity,
-          price: item.price,
+          price: item.price.toString(), // Convert to string
           name: item.name,
-          attributes: item.attributes || {},
+          ...(item.attributes && Object.keys(item.attributes).length > 0
+            ? {attributes: item.attributes}
+            : {}), // Omit attributes if empty
         })),
         fulfillment_type: addressType,
         source_type: sourceType,
@@ -154,52 +162,75 @@ const Checkout: React.FC = () => {
         service_provider_id: serviceProviderId,
       };
 
-      // Order data for quote
       const quoteOrderData = {
-        source_type: sourceType, // "quote"
-        service_provider_id: quoteOrder[0].servicer_id,
-        items: quoteOrder.map(item => ({
-          product_id: item.product_id,
-          quantity: item.quantity,
-          price: item.bid_price,
-        })),
+        source_type: sourceType,
+        service_provider_id:
+          quoteOrder && quoteOrder.length > 0 && quoteOrder[0]?.servicer_id
+            ? quoteOrder[0].servicer_id
+            : undefined,
+        items:
+          quoteOrder && quoteOrder.length > 0
+            ? quoteOrder.map(item => ({
+                product_id: item.product_id.toString(), // Convert to string
+                quantity: item.quantity,
+                price: item.bid_price.toString(), // Convert to string
+              }))
+            : [],
         fulfillment_type: addressType,
         fulfillment_time: formattedTime,
         fulfillment_date: date,
         user_address_id: addressType === 'delivery' ? addressId : undefined,
       };
 
-      console.log('Order Data:', orderData);
+      let endpoint;
+      let data;
 
-      let endpoint =
-        sourceType === 'quote'
-          ? `orders/quote/${quote_uuid}/`
-          : sourceType === 'cart'
-          ? 'orders/cart/'
-          : `orders/marketplace/${marketPlaceUuid}/`;
-      let data =
-        sourceType === 'quote'
-          ? quoteOrderData
-          : sourceType === 'cart'
-          ? orderData
-          : marketOrderData;
+      // Determine endpoint and data based on sourceType
+      if (sourceType === 'quote') {
+        if (!quoteOrder || quoteOrder.length === 0) {
+          throw new Error('No valid quote order data available');
+        }
+        endpoint = `orders/quote/${quote_uuid}/`;
+        data = quoteOrderData;
+      } else if (sourceType === 'cart') {
+        endpoint = 'orders/cart/';
+        data = orderData;
+      } else {
+        endpoint = `orders/marketplace/${marketPlaceUuid}/`;
+        data = marketOrderData;
+      }
+
+      console.log('Sending Order Data:', JSON.stringify(data, null, 2));
+      console.log('Endpoint:', endpoint);
 
       const response = (await apiHelper({
         method: 'POST',
         endpoint: endpoint,
         data: data,
-      })) as {data: {order_uuid: string}};
+      })) as {data: {order_uuid: string; id?: number}};
       console.log('Order Response:', response);
 
       if (response.data.order_uuid) {
         setOrderUuid(response.data.order_uuid);
+
         return response.data.order_uuid;
       } else {
         throw new Error('No valid order_uuid in response');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.warn('Error creating order:', error);
-      Alert.alert('Error', 'Failed to create order. Please try again.');
+      if (error.response?.status === 500) {
+        console.log('Server Error Details:', error.response.data);
+        Alert.alert(
+          'Server Error',
+          'An error occurred on the server while creating your order. Please try again later or contact support.',
+        );
+      } else {
+        Alert.alert(
+          'Error',
+          error.message || 'Failed to create order. Please try again.',
+        );
+      }
       throw error;
     }
   };
@@ -218,6 +249,7 @@ const Checkout: React.FC = () => {
         data: {payment_method_id: paymentId},
       });
       navigation.navigate('Receipt');
+
       dispatch(clearCart());
     } catch (error) {
       console.warn('Error creating payment:', error);
@@ -231,50 +263,22 @@ const Checkout: React.FC = () => {
       if (orderUuidFromCreation) {
         if (selectedPayment === 'stripe') {
           setIsModalVisible(true);
-          // } else if (selectedPayment === 'paypal') {
-          //   try {
-          //     const response = (await apiHelper({
-          //       method: 'POST',
-          //       endpoint: `orders/${orderUuidFromCreation}/paypal-payment`,
-          //       data: {
-          //         return_url: 'https://www.mecarvirush.com/paypal/success',
-          //         cancel_url: 'https://www.mecarvirush.com/paypal/cancel',
-          //       },
-          //     })) as {data: {links: {rel: string; href: string}[]}};
-
-          //     // Assuming the response contains a PayPal approval URL
-          //     const approvalUrl = response?.data?.links?.find(
-          //       (link: {rel: string; href: string}) => link.rel === 'approve',
-          //     )?.href;
-
-          //     if (approvalUrl) {
-          //       // Open the PayPal approval URL in the device's browser
-          //       await Linking.openURL(approvalUrl);
-          //     } else {
-          //       throw new Error('No approval URL found in PayPal response');
-          //     }
-          //   } catch (error) {
-          //     console.warn('Error initiating PayPal payment:', error);
-          //     Alert.alert(
-          //       'Error',
-          //       'Failed to initiate PayPal payment. Please try again.',
-          //     );
-          //   }
         } else {
           try {
-            (await apiHelper({
+            await apiHelper({
               method: 'POST',
               endpoint: `orders/${orderUuidFromCreation}/wallet-payment`,
               data: {balance: orderPrice},
-            })) as {data: {links: {rel: string; href: string}[]}};
+            });
 
             navigation.navigate('Receipt');
+
             dispatch(clearCart());
           } catch (error) {
-            console.warn('Error initiating PayPal payment:', error);
+            console.warn('Error initiating wallet payment:', error);
             Alert.alert(
               'Error',
-              'Failed to initiate PayPal payment. Please try again.',
+              'Failed to initiate wallet payment. Please try again.',
             );
           }
         }
@@ -353,8 +357,10 @@ const Checkout: React.FC = () => {
                 styles.paymentOption,
                 selectedPayment === option.id && styles.selectedPaymentOption,
                 {backgroundColor: theme.backgroundColor},
+                option.id === 'wallet' && wallet < orderPrice && {opacity: 0.5},
               ]}
-              onPress={() => handleSelectPayment(option.id)}>
+              onPress={() => handleSelectPayment(option.id)}
+              disabled={option.id === 'wallet' && wallet < orderPrice}>
               <View
                 style={[
                   styles.radioCircle,

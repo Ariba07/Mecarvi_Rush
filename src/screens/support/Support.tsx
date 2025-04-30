@@ -36,7 +36,8 @@ const Support = () => {
           <SupportIcon width={wp(35)} height={wp(35)} />
         </View>
         <TouchableOpacity
-          style={[styles.button, {backgroundColor: theme.backgroundColor}]}>
+          style={[styles.button, {backgroundColor: theme.backgroundColor}]}
+          onPress={() => navigation.navigate('AllTicket')}>
           <View style={styles.buttonContent}>
             <MailIcon width={wp(5)} height={wp(5)} />
             <Text style={[styles.buttonText, {color: theme.text}]}>

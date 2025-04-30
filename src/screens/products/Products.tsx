@@ -39,22 +39,40 @@ const Products: React.FC = () => {
   const [filteredProducts, setFilteredProducts] = useState<Productss[]>([]); // Filtered data
   const {theme} = useContext(ThemeContext);
   const serviceId = useSelector(selectServiceUuid);
+  // Use featured_image if available, otherwise fall back to a dummy image
 
   // Fetch products when serviceId changes
   useEffect(() => {
     const fetchProducts = async () => {
+      if (!serviceId) {
+        console.warn('No serviceId available to fetch products.');
+        setFetchedProducts([]);
+        setFilteredProducts([]);
+        return;
+      }
+
       try {
+        // Format category_id as an array (category_id[]=value)
+        const queryString = `category_id[]=${serviceId}`;
+        const endpoint = `products?${queryString}`;
+
+        console.log('Fetching products with endpoint:', endpoint);
+
         const response: ApiResponse = await apiHelper({
           method: 'GET',
-          endpoint: `products?category_id=${serviceId}`,
+          endpoint: endpoint, // e.g., products?category_id[]=83
         });
+
         const products = response?.data || [];
         setFetchedProducts(products); // Set source data
         setFilteredProducts(products); // Initialize filtered data
-      } catch (error) {
-        console.warn('Error fetching products:', error);
+      } catch (error: any) {
+        console.warn('Error fetching products:', error.message || error);
+        setFetchedProducts([]);
+        setFilteredProducts([]);
       }
     };
+
     fetchProducts();
   }, [serviceId]);
 
@@ -67,7 +85,8 @@ const Products: React.FC = () => {
   }, [searchQuery, fetchedProducts]); // Depend on searchQuery and fetchedProducts
 
   return (
-    <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
+    <SafeAreaView
+      style={[styles.safeArea, {backgroundColor: theme.whole || '#F5F7FA'}]}>
       <View style={styles.container}>
         <Header title="Search" onBackPress={() => navigation.goBack()} />
 
@@ -76,13 +95,13 @@ const Products: React.FC = () => {
           <View
             style={[
               styles.inputWrapper,
-              {backgroundColor: theme.backgroundColor},
+              {backgroundColor: theme.backgroundColor || '#fff'},
             ]}>
-            <Icon name="search" size={20} color={theme.text} />
+            <Icon name="search" size={20} color={theme.text || '#888'} />
             <TextInput
-              style={[styles.searchInput, {color: theme.input}]}
+              style={[styles.searchInput, {color: theme.input || '#333'}]}
               placeholder="Search products..."
-              placeholderTextColor="#888"
+              placeholderTextColor={theme.text ? theme.text + '80' : '#888'}
               value={searchQuery}
               onChangeText={text => setSearchQuery(text)}
             />
@@ -93,15 +112,23 @@ const Products: React.FC = () => {
         <FlatList
           data={filteredProducts}
           keyExtractor={item => item.product_uuid}
-          renderItem={({item}) => (
-            <ProductCard
-              key={item.id}
-              name={item.name}
-              price={item.price}
-              image={require('../../assets/images/Orders.png')}
-              productUuid={item.product_uuid}
-            />
-          )}
+          renderItem={({item}) => {
+            // Use featured_image if available, otherwise fall back to a dummy image
+            const imageSource = item.featured_image
+              ? {uri: item.featured_image}
+              : {
+                  uri: 'https://media.istockphoto.com/id/1147544807/vector/thumbnail-image-vector-graphic.jpg?s=612x612&w=0&k=20&c=rnCKVbdxqkjlcs3xH87-9gocETqpspHFXu5dIGB4wuM=',
+                };
+            return (
+              <ProductCard
+                key={item.id}
+                name={item.name}
+                price={item.price}
+                image={imageSource}
+                productUuid={item.product_uuid}
+              />
+            );
+          }}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View style={styles.noResults}>

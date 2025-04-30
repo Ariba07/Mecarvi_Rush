@@ -21,6 +21,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useSelector} from 'react-redux';
 import {
   selectPointsEarned,
+  selectProfileImage,
   selectRole,
   selectUserName,
 } from '../../slice/Slice';
@@ -40,6 +41,7 @@ const SideMenu: React.FC = () => {
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const reduxtotalPoints = useSelector(selectPointsEarned); // Define the max points required for gold
   const [totalPoints, setTotalPoints] = useState<number>(0);
+  const profileImage = useSelector(selectProfileImage);
 
   useEffect(() => {
     const getUserId = async () => {
@@ -77,20 +79,40 @@ const SideMenu: React.FC = () => {
 
   return (
     <SafeAreaView
-      style={[styles.safeArea, {backgroundColor: theme.backgroundColor}]}>
+      style={[
+        styles.safeArea,
+        {backgroundColor: theme.backgroundColor || '#fff'},
+      ]}>
       <View style={styles.container}>
         <View style={styles.profileContainer}>
           <Image
-            source={require('../../assets/images/s1.png')}
+            source={
+              profileImage
+                ? {uri: profileImage}
+                : {
+                    uri: 'https://media.istockphoto.com/id/1147544807/vector/thumbnail-image-vector-graphic.jpg?s=612x612&w=0&k=20&c=rnCKVbdxqkjlcs3xH87-9gocETqpspHFXu5dIGB4wuM=',
+                  } // Fallback to default image
+            }
             style={styles.profileImage}
+            resizeMode="cover"
+            onError={error =>
+              console.warn(
+                'Error loading profile image:',
+                error.nativeEvent.error,
+              )
+            }
           />
           <View style={styles.profileTextContainer}>
-            <Text style={[styles.profileName, {color: theme.text}]}>
-              {userName}
+            <Text style={[styles.profileName, {color: theme.text || '#333'}]}>
+              {userName || 'Unknown User'}
             </Text>
             <View style={{flexDirection: 'row', alignItems: 'center'}}>
               <Points />
-              <Text style={styles.loyaltyText}>
+              <Text
+                style={[
+                  styles.loyaltyText,
+                  {color: theme.text ? theme.text + '80' : '#666'},
+                ]}>
                 {' '}
                 Loyalty Points:{' '}
                 <Text style={styles.loyaltyPoints}>{totalPoints}</Text>

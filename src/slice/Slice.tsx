@@ -89,6 +89,7 @@ export interface AuthState {
   subscriptionStatus?: string;
   acceptedBids: AcceptedBid[]; // Updated to store an array of accepted bids
   quote_uuid?: string;
+  profileImage: string | null; // Add this field
 }
 
 export const initialState: AuthState = {
@@ -130,6 +131,7 @@ export const initialState: AuthState = {
   pointsUsed: 0,
   acceptedBids: [], // Initialize as an empty array
   quote_uuid: '',
+  profileImage: null, // Initialize as null
 };
 
 const authSlice = createSlice({
@@ -241,6 +243,10 @@ const authSlice = createSlice({
     },
     setDeliveryTime(state, action: PayloadAction<string | null>) {
       state.deliveryTime = action.payload;
+    },
+    setProfileImage: (state, action: PayloadAction<string | null>) => {
+      // New reducer
+      state.profileImage = action.payload;
     },
     setAcceptedBidDetails: (state, action: PayloadAction<AcceptedBid>) => {
       const existingBidIndex = state.acceptedBids.findIndex(
@@ -466,7 +472,8 @@ export const selectDeliveryTime = (state: {auth: AuthState}) =>
   state.auth.deliveryTime;
 export const selectAcceptedBidDetails = (state: {auth: AuthState}) =>
   state.auth.acceptedBids; // Updated to return the array
-
+export const selectProfileImage = (state: {auth: AuthState}) =>
+  state.auth.profileImage; // New selector
 export const {
   setDeliveryDate,
   setDeliveryTime,
@@ -499,6 +506,7 @@ export const {
   setAcceptedBidDetails,
   setQuoteUuid,
   setSubscriptionStatus,
+  setProfileImage,
 } = authSlice.actions;
 
 export default authSlice.reducer;

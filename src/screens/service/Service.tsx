@@ -32,11 +32,11 @@ const Service: React.FC = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response: {data: {data: any[]}} = await apiHelper({
+        const response = (await apiHelper({
           method: 'GET',
-          endpoint: 'categories/?parent_only=1',
-        });
-        setCategories(response?.data?.data || []); // Ensure response data is valid
+          endpoint: 'admin/categories/?parent_only=1',
+        })) as any;
+        setCategories(response.data || []); // Ensure response data is valid
       } catch (error) {
         console.warn('Error fetching categories:', error);
       }

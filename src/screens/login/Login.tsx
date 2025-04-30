@@ -23,7 +23,7 @@ import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
 import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 import {useDispatch} from 'react-redux';
-import {setOption, setUser} from '../../slice/Slice';
+import {setOption, setUser, setProfileImage} from '../../slice/Slice'; // Added setProfileImage
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 import {auth} from '../../../FirebaseConfig';
@@ -57,7 +57,7 @@ interface UserData {
   walletBalance?: number;
   pointsEarned?: number;
   pointsUsed?: number;
-  subscriptionStatus?: string; // New field
+  subscriptionStatus?: string;
 }
 
 interface ApiResponse {
@@ -66,7 +66,7 @@ interface ApiResponse {
       id: number;
       roles: string[];
       user_uuid: string;
-      subscription_status: string; // Add subscription_status
+      subscription_status: string;
       wallet: {
         id: number;
         balance: number;
@@ -81,13 +81,14 @@ interface ApiResponse {
     service_provider_uuid?: string;
     services_offered?: string[];
     user_uuid?: string;
-    subscription_status?: string; // Add subscription_status
+    subscription_status?: string;
     wallet?: {
       id: number;
       balance: number;
       points_earned: number;
       points_used: number;
     };
+    image?: string; // Added image field
   };
   meta: {token: string; firebase_token: string};
 }
@@ -174,7 +175,7 @@ const Login: React.FC = () => {
       const userUuid = isCustomer ? data.user_uuid : data.user?.user_uuid;
       const subscriptionStatus = isCustomer
         ? data.subscription_status
-        : data.user?.subscription_status; // Get subscription status
+        : data.user?.subscription_status;
 
       const userData: UserData = {
         role: roles?.[0] || 'unknown',
@@ -185,7 +186,7 @@ const Login: React.FC = () => {
         walletBalance: data.wallet?.balance || 0,
         pointsEarned: data.wallet?.points_earned || 0,
         pointsUsed: data.wallet?.points_used || 0,
-        subscriptionStatus: subscriptionStatus || '', // Store subscription status
+        subscriptionStatus: subscriptionStatus || '',
         user_uuid: userUuid || '',
         ...(roles?.includes('service_provider') && {
           serviceProviderUuid: data.service_provider_uuid,
@@ -196,6 +197,11 @@ const Login: React.FC = () => {
 
       dispatch(setUser(userData));
       console.log('User data:', userData);
+
+      // Dispatch the profile image to Redux
+      const profileImage = data.image || null; // Extract image from response
+      dispatch(setProfileImage(profileImage));
+      console.log('Profile image dispatched:', profileImage);
 
       if (isChecked) {
         const storageData = {
@@ -208,7 +214,7 @@ const Login: React.FC = () => {
           walletBalance: data.wallet?.balance,
           pointsEarned: data.wallet?.points_earned,
           pointsUsed: data.wallet?.points_used,
-          subscriptionStatus: subscriptionStatus, // Store subscription status
+          subscriptionStatus: subscriptionStatus,
           name,
           ...(roles?.includes('service_provider') && {
             serviceProviderUuid: data.service_provider_uuid,
@@ -254,7 +260,7 @@ const Login: React.FC = () => {
   };
 
   return (
-    <View style={{flex: 1, backgroundColor: theme.backgroundColor}}>
+    <View style={{flex: 1, backgroundColor: theme.backgroundColor || '#fff'}}>
       <ImageBackground source={backgroundImage} style={styles.background}>
         <View style={styles.logoView}>
           <Image
@@ -270,7 +276,9 @@ const Login: React.FC = () => {
             onSubmit={handleLogin}>
             {({handleChange, handleSubmit, values, errors, touched}) => (
               <View>
-                <Text style={[styles.label, {color: theme.text}]}>Email</Text>
+                <Text style={[styles.label, {color: theme.text || '#333'}]}>
+                  Email
+                </Text>
                 <CustomTextInput
                   placeholder="Email"
                   value={values.email}
@@ -280,7 +288,7 @@ const Login: React.FC = () => {
                   <Text style={styles.errorText}>{errors.email}</Text>
                 )}
 
-                <Text style={[styles.label, {color: theme.text}]}>
+                <Text style={[styles.label, {color: theme.text || '#333'}]}>
                   Password
                 </Text>
                 <CustomTextInput
@@ -313,13 +321,21 @@ const Login: React.FC = () => {
                         />
                       )}
                     </View>
-                    <Text style={[styles.rememberText, {color: theme.text}]}>
+                    <Text
+                      style={[
+                        styles.rememberText,
+                        {color: theme.text || '#333'},
+                      ]}>
                       Remember me
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={() => navigation.navigate('Forget')}>
-                    <Text style={[styles.forgotText, {color: theme.text}]}>
+                    <Text
+                      style={[
+                        styles.forgotText,
+                        {color: theme.text || '#333'},
+                      ]}>
                       Forgot Password?
                     </Text>
                   </TouchableOpacity>
@@ -330,7 +346,7 @@ const Login: React.FC = () => {
             )}
           </Formik>
           <View style={styles.footer}>
-            <Text style={[styles.footerText, {color: theme.text}]}>
+            <Text style={[styles.footerText, {color: theme.text || '#333'}]}>
               Don’t have an account?{' '}
             </Text>
             <TouchableOpacity

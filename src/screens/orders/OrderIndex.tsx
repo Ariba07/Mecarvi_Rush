@@ -44,6 +44,7 @@ interface Order {
   created_at: string;
   payment_status?: string;
   order_details: OrderDetail[];
+  order_proofs: number;
   order_tracking?: {
     id: number;
     order_tracking_uuid: string;
@@ -461,6 +462,16 @@ const Orders = () => {
                   navigation.navigate('Review', {order_id: item.id})
                 }>
                 <Text style={styles.ratingButtonText}>Rate Order</Text>
+              </TouchableOpacity>
+            )}
+          {trackingStatuses[item.order_uuid]?.status === 'Processing' &&
+            item.order_proofs > 0 && (
+              <TouchableOpacity
+                style={styles.feedbackButton}
+                onPress={() =>
+                  navigation.navigate('Feedback', {order_id: item.id})
+                }>
+                <Text style={styles.feedbackButtonText}>View Feedback</Text>
               </TouchableOpacity>
             )}
           {role === 'service_provider' && (
@@ -916,6 +927,19 @@ const styles = StyleSheet.create({
   retryButtonText: {
     color: 'white',
     fontSize: wp(4),
+    fontWeight: '600',
+  },
+  feedbackButton: {
+    backgroundColor: '#00A19D',
+    paddingVertical: wp(2),
+    paddingHorizontal: wp(5),
+    borderRadius: wp(2),
+    alignSelf: 'flex-start',
+    marginTop: hp(0.5),
+  },
+  feedbackButtonText: {
+    color: 'white',
+    fontSize: wp(3.8),
     fontWeight: '600',
   },
 });

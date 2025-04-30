@@ -108,15 +108,23 @@ const Search: React.FC = () => {
         <FlatList
           data={displayedProducts} // Use prioritized displayed products
           keyExtractor={item => item.id.toString()}
-          renderItem={({item}) => (
-            <ProductCard
-              key={item.id}
-              productUuid={item.product_uuid}
-              name={item.name}
-              price={item.price}
-              image={require('../../assets/images/Orders.png')}
-            />
-          )}
+          renderItem={({item}) => {
+            // Use featured_image if available, otherwise fall back to a dummy image
+            const imageSource = item.featured_image
+              ? {uri: item.featured_image}
+              : {
+                  uri: 'https://media.istockphoto.com/id/1147544807/vector/thumbnail-image-vector-graphic.jpg?s=612x612&w=0&k=20&c=rnCKVbdxqkjlcs3xH87-9gocETqpspHFXu5dIGB4wuM=',
+                };
+            return (
+              <ProductCard
+                key={item.id}
+                name={item.name}
+                price={item.price}
+                image={imageSource}
+                productUuid={item.product_uuid}
+              />
+            );
+          }}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View style={styles.noResults}>

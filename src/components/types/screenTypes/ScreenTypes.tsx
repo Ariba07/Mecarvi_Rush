@@ -59,6 +59,10 @@ export type RootStackParamList = {
   MarketPlace: {productId: number};
   ShopProfile: {fromBid: boolean; providerId: string};
   AcceptBid: undefined;
+  Ticket: {ticketId: number, ticketUuid: string};
+  Feedback: {order_id: number};
+  AllTicket: undefined;
+  CreateTicket: undefined;
 };
 export interface Productss {
   id: number;
@@ -83,6 +87,7 @@ export interface Productss {
   type: string;
   created_at: string;
   updated_at: string;
+  featured_image?: string | null;
 }
 export interface Products {
   id: number;

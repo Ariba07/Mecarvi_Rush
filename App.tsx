@@ -52,6 +52,10 @@ import {ThemeProvider} from './src/components/helperUtils/theme/ThemeContext';
 import OrderIndex from './src/screens/orders/OrderIndex';
 import ServiceProviderOrderDecision from './src/screens/quote/ServiceProviderQuoteDecision';
 import BidList from './src/screens/marketPlace/BidList';
+import Ticket from './src/screens/ticketSupport/Ticket';
+import Feedback from './src/screens/feedback/Feedback';
+import AllTicket from './src/screens/ticketSupport/AllTicket';
+import CreateTicket from './src/screens/ticketSupport/CreateTicket';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -145,6 +149,10 @@ const AppContent: React.FC = () => {
       <Stack.Screen name="ShopProfile" component={ShopProfile} />
       <Stack.Screen name="Orders" component={OrderIndex} />
       <Stack.Screen name="AcceptBid" component={BidList} />
+      <Stack.Screen name="Ticket" component={Ticket} />
+      <Stack.Screen name="Feedback" component={Feedback} />
+      <Stack.Screen name="AllTicket" component={AllTicket} />
+      <Stack.Screen name="CreateTicket" component={CreateTicket} />
     </Stack.Navigator>
   );
 };

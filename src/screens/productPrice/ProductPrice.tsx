@@ -60,7 +60,7 @@ const ProductPrice = () => {
     try {
       await apiHelper({
         method: 'POST',
-        endpoint: 'marketplace',
+        endpoint: '/service-provider/marketplace',
         data: {price: price, product_id: id},
         token: token,
       });
