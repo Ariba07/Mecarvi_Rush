@@ -15,41 +15,42 @@ const ImageSlider: React.FC<ImageSliderProps> = ({
   currentIndex,
   setCurrentIndex,
 }) => {
+  // Combine featured_image and additional_images into a single array
+  const images = [
+    productData?.featured_image,
+    ...(productData?.additional_images?.map((img: any) => img.file_url) || []),
+  ].filter(Boolean); // Filter out any undefined/null values
+
   const goToNextImage = () => {
-    setCurrentIndex(
-      currentIndex < (productData?.size_variations.length || 0) - 1
-        ? currentIndex + 1
-        : 0,
-    );
+    setCurrentIndex(currentIndex < images.length - 1 ? currentIndex + 1 : 0);
   };
 
   const goToPreviousImage = () => {
-    setCurrentIndex(
-      currentIndex > 0
-        ? currentIndex - 1
-        : (productData?.size_variations.length || 0) - 1,
-    );
+    setCurrentIndex(currentIndex > 0 ? currentIndex - 1 : images.length - 1);
   };
 
   return (
     <View style={styles.imageSliderContainer}>
       <TouchableOpacity
         style={styles.navigationButton}
-        onPress={goToPreviousImage}>
+        onPress={goToPreviousImage}
+        disabled={images.length <= 1}>
         <Icon name="chevron-back" size={wp(5)} color={'grey'} type="ionicon" />
       </TouchableOpacity>
       <Image
         source={
-          // productData && productData.size_variations.length > 0
-          //   ? {uri: productData.size_variations[currentIndex]?.size_name}
-          //   : {
-          {
-            uri: 'https://media.istockphoto.com/id/1147544807/vector/thumbnail-image-vector-graphic.jpg?s=612x612&w=0&k=20&c=rnCKVbdxqkjlcs3xH87-9gocETqpspHFXu5dIGB4wuM=',
-          }
+          images.length > 0
+            ? {uri: images[currentIndex]}
+            : {
+                uri: 'https://media.istockphoto.com/id/1147544807/vector/thumbnail-image-vector-graphic.jpg?s=612x612&w=0&k=20&c=rnCKVbdxqkjlcs3xH87-9gocETqpspHFXu5dIGB4wuM=',
+              }
         }
         style={styles.productImage}
       />
-      <TouchableOpacity style={styles.navigationButton} onPress={goToNextImage}>
+      <TouchableOpacity
+        style={styles.navigationButton}
+        onPress={goToNextImage}
+        disabled={images.length <= 1}>
         <Icon
           name="chevron-forward"
           size={wp(5)}

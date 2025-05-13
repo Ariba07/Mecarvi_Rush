@@ -200,9 +200,6 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
             value={value as string}
             onChangeText={onChangeText}
             placeholderTextColor={'#999'}
-            keyboardType={
-              placeholder === 'Phone Number' ? 'numeric' : 'default'
-            }
           />
           {placeholder.includes('Password') && (
             <TouchableOpacity

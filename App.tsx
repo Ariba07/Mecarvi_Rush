@@ -15,7 +15,6 @@ import Reset from './src/screens/password/Reset';
 import Verify from './src/screens/verification/Verify';
 import Options from './src/screens/registerOption/Options';
 import Register from './src/screens/register/Register';
-import Upload, {Card, Photo} from './src/screens/upload/Upload';
 import ServiceProviderRegister from './src/screens/register/ServiceProviderRegister';
 import ServiceProviderRegister3 from './src/screens/register/ServiceProviderRegister3';
 import ServiceProviderRegister2 from './src/screens/register/ServiceProviderRegister2';
@@ -56,6 +55,13 @@ import Ticket from './src/screens/ticketSupport/Ticket';
 import Feedback from './src/screens/feedback/Feedback';
 import AllTicket from './src/screens/ticketSupport/AllTicket';
 import CreateTicket from './src/screens/ticketSupport/CreateTicket';
+import Childcategories from './src/screens/service/Childcategories';
+import SubChildCategories from './src/screens/service/SubChildCategories';
+import Disputes from './src/screens/disputes/Disputes';
+import DisputeChat from './src/screens/disputes/DisputeChat';
+import {Card} from './src/screens/upload/Card';
+import Upload from './src/screens/upload/Upload';
+import {Photo} from './src/screens/upload/Photo';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -153,6 +159,10 @@ const AppContent: React.FC = () => {
       <Stack.Screen name="Feedback" component={Feedback} />
       <Stack.Screen name="AllTicket" component={AllTicket} />
       <Stack.Screen name="CreateTicket" component={CreateTicket} />
+      <Stack.Screen name="ChildCategories" component={Childcategories} />
+      <Stack.Screen name="SubChildCategories" component={SubChildCategories} />
+      <Stack.Screen name="Disputes" component={Disputes} />
+      <Stack.Screen name="DisputeChat" component={DisputeChat} />
     </Stack.Navigator>
   );
 };

@@ -1,11 +1,5 @@
-import {
-  View,
-  Platform,
-  StyleSheet,
-  SafeAreaView,
-  FlatList,
-  Text,
-} from 'react-native';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import {View, Platform, StyleSheet, SafeAreaView} from 'react-native';
 import React, {useContext, useEffect, useState} from 'react';
 import {
   widthPercentageToDP as wp,
@@ -18,7 +12,6 @@ import {
   Productss,
   RootStackParamList,
 } from '../../components/types/screenTypes/ScreenTypes';
-import OrderCard from '../../components/common/orderCard/OrderCard';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 import {selectServicesOffered} from '../../slice/Slice';
@@ -62,7 +55,7 @@ const ServicesProducts = () => {
     <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
       <View style={styles.container}>
         <Header title="My Products" onBackPress={() => navigation.goBack()} />
-        <FlatList
+        {/* <FlatList
           showsVerticalScrollIndicator={false}
           data={products}
           keyExtractor={item => item.product_uuid}
@@ -84,7 +77,7 @@ const ServicesProducts = () => {
               No products found for the selected services
             </Text>
           }
-        />
+        /> */}
       </View>
     </SafeAreaView>
   );

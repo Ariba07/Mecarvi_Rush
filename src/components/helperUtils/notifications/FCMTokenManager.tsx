@@ -21,7 +21,7 @@ async function isUserLoggedIn(): Promise<boolean> {
   return !!token;
 }
 
-// Function to request notification permissions (required for iOS, optional for Android < 13)
+// Function to request notification permissions
 async function requestNotificationPermission(): Promise<boolean> {
   const messaging = getMessaging();
   const authStatus = await messaging.requestPermission();
@@ -42,25 +42,44 @@ async function sendTokenToBackend(
   token: string,
   isChecked: boolean,
 ): Promise<void> {
-  const storedToken = await AsyncStorage.getItem(FCM_TOKEN_KEY);
-  if (storedToken === token) {
-    console.log('FCM token unchanged, skipping backend update.');
-    return;
-  }
+  try {
+    const storedToken = await AsyncStorage.getItem(FCM_TOKEN_KEY);
+    if (storedToken === token) {
+      console.log('FCM token unchanged, skipping backend update.');
+      return;
+    }
 
-  const formData = new FormData();
-  formData.append('device_token', token);
+    const formData = new FormData();
+    formData.append('device_token', token);
 
-  await apiHelper({
-    method: 'POST',
-    endpoint: 'devices/register',
-    data: formData,
-  });
-  console.log('FCM token sent to backend successfully:', token);
+    await apiHelper({
+      method: 'POST',
+      endpoint: 'devices/register',
+      data: formData,
+    });
+    console.log('FCM token registered on backend:', token);
 
-  if (isChecked) {
-    await AsyncStorage.setItem(FCM_TOKEN_KEY, token);
-    console.log('FCM token stored in AsyncStorage.');
+    if (isChecked) {
+      await AsyncStorage.setItem(FCM_TOKEN_KEY, token);
+      console.log('FCM token stored in AsyncStorage.');
+    }
+  } catch (error: any) {
+    // Handle duplicate token error specifically
+    if (error?.response?.data?.message?.includes('Duplicate entry')) {
+      console.log(
+        'FCM token already exists on backend, skipping registration.',
+      );
+      if (isChecked) {
+        await AsyncStorage.setItem(FCM_TOKEN_KEY, token);
+        console.log('FCM token stored in AsyncStorage despite duplicate.');
+      }
+    } else {
+      console.warn(
+        'Error sending FCM token to backend:',
+        JSON.stringify(error, null, 2),
+      );
+      throw error;
+    }
   }
 }
 
@@ -115,7 +134,6 @@ async function handleNotification(
       return;
     }
 
-    // Check if user is logged in
     const loggedIn = await isUserLoggedIn();
     if (!loggedIn) {
       console.warn(
@@ -124,13 +142,11 @@ async function handleNotification(
       return;
     }
 
-    // Log the full remoteMessage
     console.log(
       'handleNotification: Full remoteMessage:',
       JSON.stringify(remoteMessage, null, 2),
     );
 
-    // Extract data from remoteMessage
     const data = remoteMessage?.data;
     if (!data) {
       console.warn(
@@ -141,17 +157,14 @@ async function handleNotification(
       return;
     }
 
-    // Log notification data
     console.log(
       'handleNotification: Notification data:',
       JSON.stringify(data, null, 2),
     );
 
-    // Log data type and keys for debugging
     console.log('handleNotification: Data type:', typeof data);
     console.log('handleNotification: Data keys:', Object.keys(data));
 
-    // Extract quote_request_uuid
     let uuid: string | null = null;
     if (data.quote_request_uuid) {
       uuid = data.quote_request_uuid;
@@ -161,7 +174,6 @@ async function handleNotification(
       uuid = data.uuid;
     }
 
-    // Handle potential stringified data
     if (!uuid && typeof data === 'string') {
       try {
         const parsedData = JSON.parse(data);
@@ -176,10 +188,8 @@ async function handleNotification(
       }
     }
 
-    // Log extracted UUID
     console.log('handleNotification: Extracted UUID:', uuid);
 
-    // Dispatch the UUID to Redux store
     if (uuid) {
       dispatch(setNotifyUuid(uuid));
       console.log('handleNotification: UUID dispatched to Redux store:', uuid);
@@ -188,7 +198,6 @@ async function handleNotification(
       dispatch(setNotifyUuid(''));
     }
 
-    // Navigate to the appropriate screen
     let targetScreen = 'Notification';
     if (data.tag && navigation.getState()?.routeNames.includes(data.tag)) {
       targetScreen = data.tag;
@@ -215,7 +224,6 @@ export function initializeFCM(
 ): () => void {
   const messaging = getMessaging();
 
-  // Get and send the initial token
   sendFCMTokenToBackend(isChecked).catch(error => {
     console.warn('initializeFCM: Initial FCM token setup failed:', error);
   });
@@ -225,7 +233,6 @@ export function initializeFCM(
   let unsubscribeQuit: () => void = () => {};
 
   if (navigation) {
-    // Foreground message handler
     unsubscribeForeground = onMessage(messaging, async remoteMessage => {
       console.log(
         'initializeFCM: Foreground message received:',
@@ -234,7 +241,6 @@ export function initializeFCM(
       await handleNotification(remoteMessage, navigation, dispatch);
     });
 
-    // Background handler (when app is opened from notification)
     unsubscribeBackground = messaging.onNotificationOpenedApp(
       async remoteMessage => {
         console.log(
@@ -245,7 +251,6 @@ export function initializeFCM(
       },
     );
 
-    // Quit state handler (app opened from notification when closed)
     messaging
       .getInitialNotification()
       .then(async remoteMessage => {
@@ -267,10 +272,8 @@ export function initializeFCM(
     console.warn('initializeFCM: Navigation object not provided');
   }
 
-  // Token refresh listener
   const unsubscribeRefresh = setupTokenRefreshListener(isChecked);
 
-  // Return cleanup function
   return () => {
     unsubscribeForeground();
     unsubscribeBackground();
@@ -284,6 +287,15 @@ export function initializeFCM(
 export async function clearFCMToken(): Promise<void> {
   try {
     const messaging = getMessaging();
+    const token = await AsyncStorage.getItem(FCM_TOKEN_KEY);
+    if (token) {
+      // Notify backend to remove the token
+      await apiHelper({
+        method: 'DELETE',
+        endpoint: `devices/delete?device_token=${encodeURIComponent(token)}`,
+      });
+      console.log('FCM token removed from backend.');
+    }
     await deleteToken(messaging);
     await AsyncStorage.removeItem(FCM_TOKEN_KEY);
     console.log(

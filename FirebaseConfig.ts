@@ -1,14 +1,9 @@
 import {initializeApp, getApps, getApp} from '@react-native-firebase/app';
 import {getFirestore} from '@react-native-firebase/firestore';
 import {initializeAuth} from '@react-native-firebase/auth';
-import messaging from '@react-native-firebase/messaging';
+import {getMessaging} from '@react-native-firebase/messaging';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Platform} from 'react-native';
-import {LogBox} from 'react-native';
-
-LogBox.ignoreLogs([
-  'This method is deprecated (as well as all React Native Firebase namespaced API)',
-]);
 
 const firebaseConfig = {
   apiKey:
@@ -35,7 +30,7 @@ const auth = initializeAuth(app, {
   persistence: AsyncStorage,
 });
 
-// Initialize Messaging (optional, ensures module is loaded)
-messaging();
+// Initialize Messaging
+const messaging = getMessaging(app);
 
-export {app, db, auth};
+export {app, db, auth, messaging};

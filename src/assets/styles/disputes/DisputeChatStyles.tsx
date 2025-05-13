@@ -1,0 +1,128 @@
+import {StyleSheet, Platform} from 'react-native';
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from 'react-native-responsive-screen';
+
+export const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#f0f4f8',
+  },
+  container: {
+    flex: 1,
+    paddingHorizontal: Platform.select({
+      ios: wp(6),
+      android: wp(5),
+    }),
+  },
+  chatContainer: {
+    paddingBottom: hp(15),
+  },
+  messageContainer: {
+    marginBottom: hp(2),
+  },
+  sentMessageContainer: {
+    alignItems: 'flex-end',
+  },
+  receivedMessageContainer: {
+    alignItems: 'flex-start',
+  },
+  messageBubble: {
+    maxWidth: wp(70),
+    padding: wp(3),
+    borderRadius: wp(4),
+  },
+  sentMessageBubble: {
+    backgroundColor: '#00C4B4',
+    borderBottomRightRadius: wp(1),
+  },
+  receivedMessageBubble: {
+    backgroundColor: '#E5E5EA',
+    borderBottomLeftRadius: wp(1),
+  },
+  messageText: {
+    fontSize: wp(4),
+  },
+  imageContainer: {
+    marginTop: hp(1),
+    padding: wp(2),
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    borderRadius: wp(2),
+  },
+  sentImageContainer: {
+    backgroundColor: 'rgba(0, 196, 180, 0.1)',
+  },
+  messageImage: {
+    width: wp(30),
+    height: wp(30),
+    borderRadius: wp(3),
+    marginBottom: hp(1),
+    borderWidth: 1,
+    borderColor: '#ccc',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  timestamp: {
+    fontSize: wp(3),
+    marginTop: hp(0.5),
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: wp(3),
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+  input: {
+    flex: 1,
+    backgroundColor: '#fff',
+    borderRadius: wp(5),
+    padding: wp(2),
+    fontSize: wp(4),
+    maxHeight: hp(10),
+    marginHorizontal: wp(2),
+  },
+  sendButton: {
+    backgroundColor: '#00C4B4',
+    borderRadius: wp(5),
+    padding: wp(2),
+  },
+  attachmentButton: {
+    backgroundColor: '#5C6BC0',
+    borderRadius: wp(5),
+    padding: wp(2),
+  },
+  selectedImagesContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(1),
+    position: 'absolute',
+    bottom: hp(10),
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+  },
+  selectedImagesText: {
+    fontSize: wp(3.5),
+    fontWeight: '500',
+  },
+  clearImagesButton: {
+    backgroundColor: '#FF0000',
+    borderRadius: wp(3),
+    paddingVertical: wp(1),
+    paddingHorizontal: wp(3),
+  },
+  clearImagesButtonText: {
+    color: '#fff',
+    fontSize: wp(3.5),
+    fontWeight: '600',
+  },
+});

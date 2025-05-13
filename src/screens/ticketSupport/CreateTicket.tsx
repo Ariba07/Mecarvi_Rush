@@ -12,23 +12,25 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
-import {useNavigation} from '@react-navigation/native';
+import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
 import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 import Header from '../../components/common/header/Header';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
-type NavigationProp = NativeStackNavigationProp<
-  RootStackParamList,
-  'CreateTicket'
->;
+type TicketRouteProp = RouteProp<RootStackParamList, 'CreateTicket'>;
 
 const CreateTicket = () => {
-  const navigation = useNavigation<NavigationProp>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const route = useRoute<TicketRouteProp>();
+  const {order_id, fromOrders} = route.params || {};
   const [subject, setSubject] = useState<string>('');
   const [message, setMessage] = useState<string>('');
   const {theme} = useContext(ThemeContext);
+  console.log(order_id);
+  console.log(fromOrders);
 
   const handleSubmit = async () => {
     if (!subject.trim()) {
@@ -46,11 +48,26 @@ const CreateTicket = () => {
       formData.append('subject', subject);
       formData.append('message', message);
 
-      console.log('Submitting ticket:', {subject, message});
+      // Include order_id if fromOrders is true and order_id exists
+      if (fromOrders && order_id) {
+        formData.append('order_id', order_id);
+      }
+
+      console.log('Submitting ticket:', {
+        subject,
+        message,
+        order_id: fromOrders ? order_id : undefined,
+      });
+
+      const endpoint = fromOrders
+        ? 'disputes/create'
+        : 'support-tickets/create';
+
+      console.log(endpoint);
 
       const response = (await apiHelper({
         method: 'POST',
-        endpoint: 'support-tickets/create',
+        endpoint,
         data: formData,
       })) as any;
 
@@ -59,6 +76,7 @@ const CreateTicket = () => {
         Alert.alert('Success', 'Ticket created successfully!');
         setSubject('');
         setMessage('');
+        navigation.goBack();
       } else {
         console.warn('Error creating ticket:', response);
         Alert.alert('Error', response?.message || 'Failed to create ticket.');

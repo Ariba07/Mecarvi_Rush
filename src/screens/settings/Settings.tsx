@@ -23,6 +23,7 @@ import Log from '../../assets/images/Log.svg';
 import Service from '../../assets/images/Service.svg';
 import Dollar from '../../assets/images/Dollar.svg';
 import Products from '../../assets/images/Products.svg';
+import Dispute from '../../assets/images/Dispute.svg';
 import Notify from '../../assets/images/Notify.svg';
 import {Icon} from 'react-native-elements';
 import {clearUser, selectRole} from '../../slice/Slice';
@@ -80,20 +81,27 @@ const Settings = () => {
     },
     {
       id: '6',
+      title: 'Disputes',
+      icon: <Dispute width={wp(5)} height={wp(5)} />,
+      bgColor: '#DD0004',
+      route: 'Disputes',
+    },
+    {
+      id: '7',
       title: 'Customer Support',
       icon: <Service width={wp(5)} height={wp(5)} />,
       bgColor: '#42A5F5',
       route: 'Support',
     },
     {
-      id: '7',
+      id: '8',
       title: theme.backgroundColor === '#000000' ? 'Light Theme' : 'Dark Theme',
       icon: <Theme width={wp(5)} height={wp(5)} />,
       bgColor: '#5C6B96',
       // No route here, we'll handle it separately
     },
     {
-      id: '8',
+      id: '9',
       title: 'Log Out',
       icon: <Log width={wp(5)} height={wp(5)} />,
       bgColor: '#5C6BC0',

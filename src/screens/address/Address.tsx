@@ -41,8 +41,7 @@ const Address = () => {
   const {theme} = useContext(ThemeContext);
   const dispatch = useDispatch();
   const route = useRoute<AddressRouteProp>();
-  const {forDelivery} = route.params;
-
+  const forDelivery = route.params?.forDelivery ?? false;
   const fetchAddress = async () => {
     try {
       const response = await apiHelper({

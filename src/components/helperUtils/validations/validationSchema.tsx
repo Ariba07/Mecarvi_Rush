@@ -119,7 +119,6 @@ export const registerCustomerValidationSchema = Yup.object().shape({
     .required('Company Name is required'),
 
   phoneNumber: Yup.string()
-    .matches(/^\d+$/, 'Phone Number must contain only digits')
     .min(10, 'Phone Number must be at least 10 digits')
     .max(12, 'Phone Number must be at most 12 digits')
     .required('Company Phone Number is required'),

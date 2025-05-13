@@ -42,7 +42,7 @@ const Forget = () => {
     try {
       await apiHelper({
         method: 'POST',
-        endpoint: 'authentication/forgot-password/',
+        endpoint: 'authentication/forgot-password',
         data: {email: email},
       });
 

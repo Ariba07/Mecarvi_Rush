@@ -96,7 +96,7 @@ const ServiceProviderOrderDecision = () => {
     try {
       await apiHelper({
         method: 'POST',
-        endpoint: 'quote-bids/',
+        endpoint: 'quote-bids',
         data: {bid_price: price, quote_request_uuid: uuid},
       });
       Alert.alert('Bid Created');

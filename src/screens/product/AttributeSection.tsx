@@ -182,7 +182,7 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
       // Call the apiHelper function
       const result: {success: boolean; [key: string]: any} = await apiHelper({
         method: 'POST',
-        endpoint: 'quote-requests/',
+        endpoint: 'quote-requests',
         data: formData,
       });
 

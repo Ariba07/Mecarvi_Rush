@@ -7,8 +7,9 @@ import {
   StyleSheet,
   TouchableOpacity,
   View,
+  ActivityIndicator,
 } from 'react-native';
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
@@ -26,23 +27,72 @@ const Service: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [categories, setCategories] = useState<any[]>([]);
-  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
+  const [page, setPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const {theme} = useContext(ThemeContext);
   const dispatch = useDispatch();
 
-  useEffect(() => {
-    const fetchCategories = async () => {
+  const perPage = 15;
+
+  const fetchCategories = useCallback(
+    async (pageNum: number) => {
+      if (isLoading || !hasMore) {
+        return;
+      }
+      setIsLoading(true);
       try {
         const response = (await apiHelper({
           method: 'GET',
-          endpoint: 'admin/categories/?parent_only=1',
+          endpoint: `categories/?parent_only=1&per_page=${perPage}&page_id=${pageNum}`,
         })) as any;
-        setCategories(response.data || []); // Ensure response data is valid
+
+        const activeCategories = response.data || [];
+        const totalPages = response.meta?.pagination?.last_page || 1;
+
+        setCategories(prev => {
+          const existingIds = new Set(prev.map(item => item.id));
+          const newCategories = activeCategories.filter(
+            (item: any) => !existingIds.has(item.id),
+          );
+          return [...prev, ...newCategories];
+        });
+
+        if (pageNum >= totalPages) {
+          setHasMore(false);
+        }
       } catch (error) {
         console.warn('Error fetching categories:', error);
+      } finally {
+        setIsLoading(false);
       }
-    };
-    fetchCategories();
-  }, []); // Runs once when the component mounts
+    },
+    [hasMore, isLoading],
+  );
+
+  useEffect(() => {
+    fetchCategories(page);
+  }, [fetchCategories, page]);
+
+  const loadMore = () => {
+    if (!isLoading && hasMore) {
+      setPage(prev => prev + 1);
+    }
+  };
+
+  const handleCategoryPress = (category: any) => {
+    if (category.children > 0) {
+      // Navigate to ChildCategories if there are child categories
+      navigation.navigate('ChildCategories', {
+        categoryId: category.id,
+        categoryName: category.name,
+      });
+    } else {
+      // Navigate to Products if no child categories
+      dispatch(setServiceUuid(category.id));
+      navigation.navigate('Products');
+    }
+  };
 
   return (
     <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
@@ -50,20 +100,17 @@ const Service: React.FC = () => {
         <Header title="Services" onBackPress={() => navigation.goBack()} />
         <FlatList
           data={categories}
-          numColumns={3} // Ensures each row contains 3 items
-          keyExtractor={item => item.id}
+          numColumns={3}
+          keyExtractor={item => item.id.toString()}
           renderItem={({item}) => (
             <TouchableOpacity
               style={[
                 styles.serviceCard,
                 {backgroundColor: theme.backgroundColor},
               ]}
-              onPress={() => {
-                navigation.navigate('Products');
-                dispatch(setServiceUuid(item.id));
-              }}>
+              onPress={() => handleCategoryPress(item)}>
               <Image
-                source={{uri: item.icon}}
+                source={{uri: item.icon || 'https://via.placeholder.com/50'}}
                 style={styles.serviceImage}
                 resizeMode="contain"
               />
@@ -74,6 +121,13 @@ const Service: React.FC = () => {
           )}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContainer}
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={
+            isLoading ? (
+              <ActivityIndicator size="large" color={theme.text} />
+            ) : null
+          }
         />
       </View>
     </SafeAreaView>
@@ -88,7 +142,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: Platform.select({
-      ios: wp(6), // Slightly more padding on iOS
+      ios: wp(6),
       android: wp(5),
     }),
     paddingBottom: Platform.select({
@@ -103,10 +157,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'white',
     borderRadius: wp('1.5%'),
-    width: wp('25%'), // Adjust width for 3 columns
+    width: wp('25%'),
     height: wp('25%'),
     justifyContent: 'center',
-    margin: wp('3.5%'), // Ensure spacing between items
+    margin: wp('3.5%'),
   },
   serviceImage: {
     width: wp('10%'),
@@ -119,7 +173,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     alignSelf: 'center',
     textAlign: 'center',
-    maxWidth: wp('20%'), // Ensure text does not overflow the card
+    maxWidth: wp('20%'),
   },
 });
 

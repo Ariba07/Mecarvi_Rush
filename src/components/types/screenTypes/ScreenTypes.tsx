@@ -59,10 +59,20 @@ export type RootStackParamList = {
   MarketPlace: {productId: number};
   ShopProfile: {fromBid: boolean; providerId: string};
   AcceptBid: undefined;
-  Ticket: {ticketId: number, ticketUuid: string};
+  Ticket: {ticketId: number; ticketUuid: string};
   Feedback: {order_id: number};
   AllTicket: undefined;
-  CreateTicket: undefined;
+  CreateTicket: {order_id: number | null; fromOrders: boolean};
+  ChildCategories: {
+    categoryId: number;
+    categoryName: string;
+  };
+  SubChildCategories: {
+    categoryId: number;
+    categoryName: string;
+  };
+  Disputes: undefined;
+  DisputeChat: {disputeId: number; disputeUuid: string};
 };
 export interface Productss {
   id: number;
@@ -208,4 +218,82 @@ export interface CartItem {
   orderNotes?: string;
   quantity?: number;
   attributes?: {[key: string]: string}; // Added attributes field
+}
+export interface DateSlot {
+  day: string;
+  date: number;
+  fullDate: string; // YYYY-MM-DD
+}
+
+export interface TimeSlot {
+  time: string;
+}
+
+export interface Message {
+  text: string;
+  sender: string;
+  createdAt: any;
+  id?: string;
+  timestamp?: string;
+  isSent?: boolean;
+  images?: string[];
+}
+
+export interface Chat {
+  id: string;
+  name: string;
+  chatId: string;
+  participants: string[];
+  participantNames: {[uuid: string]: string};
+  lastMessage?: Message;
+}
+
+export interface PaymentOption {
+  id: string;
+  label: string;
+  logoUrl: string;
+  selected: boolean;
+  balance?: string;
+}
+
+export interface Bid {
+  id: number;
+  quote_bid_uuid: string;
+  service_provider_id: number;
+  bid_price: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  service_provider: {
+    service_provider_id: number;
+    service_provider_name: string;
+    service_provider_logo: string;
+  };
+  quote_request_id: {
+    id: number;
+    quote_request_uuid: string;
+    user_id: number;
+    product_id: number;
+    quantity: number;
+    note: string | null;
+    details: {[key: string]: string};
+    front_image: string;
+    back_image: string;
+    created_at: string;
+    updated_at: string;
+  };
+}
+
+export interface BusinessProvider {
+  id: number;
+  quote_bid_uuid: string;
+  service_provider_id: number;
+  service_provider_uuid?: string;
+  service_provider_user_uuid?: string;
+  service_provider_name: string;
+  logo: string;
+  address?: string;
+  price: string;
+  product_id: number;
+  quantity: number;
 }

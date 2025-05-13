@@ -63,7 +63,7 @@ const AllTicket = () => {
   }, [fetchTickets]);
 
   const handleCreateTicket = () => {
-    navigation.navigate('CreateTicket');
+    navigation.navigate('CreateTicket', {order_id: 0, fromOrders: false});
   };
 
   const renderTicketItem = ({item}: {item: Ticket}) => (
