@@ -29,12 +29,9 @@ const TabContent: React.FC<TabContentProps> = ({
       </View>
     )}
     {activeTab === 1 && (
-      <Text style={styles.policyText}>
+      <Text style={[styles.policyText, {color: theme.text}]}>
         {refundPolicy || 'No refund policy available.'}
       </Text>
-    )}
-    {activeTab === 2 && (
-      <Text style={styles.contentText}>No Reviews Found</Text>
     )}
   </View>
 );

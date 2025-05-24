@@ -48,11 +48,14 @@ const Cart = () => {
 
   // Calculate totals using quantity from Redux store
   const subtotal = cartItems.reduce(
-    (sum, item) => sum + item.price * (item.quantity ?? 0), // Provide default value
+    (sum, item) => sum + item.price * (item.quantity ?? 0),
     0,
   );
   const loyaltyPoints = 0.0; // Replace with actual logic if needed
-  const delivery = 1.0; // Fixed delivery fee as per screenshot
+  const delivery = cartItems.reduce(
+    (sum, item) => sum + (item.deliveryPrice ?? 0),
+    0,
+  );
   const total = subtotal + delivery + loyaltyPoints;
 
   // Render each cart item
@@ -75,6 +78,11 @@ const Cart = () => {
         {item.orderNotes && (
           <Text style={styles.itemPrice}>Notes: {item.orderNotes}</Text>
         )}
+        {item.deliveryPrice !== undefined && (
+          <Text style={styles.itemPrice}>
+            Delivery: ${item.deliveryPrice.toFixed(2)}
+          </Text>
+        )}
       </View>
       <View style={styles.quantityContainer}>
         <TouchableOpacity
@@ -83,7 +91,7 @@ const Cart = () => {
           <Text style={[styles.quantityText, {color: '#30a7a7'}]}>-</Text>
         </TouchableOpacity>
         <Text style={[styles.quantity, {color: theme.text}]}>
-          {item.quantity} {/* Remove fallback */}
+          {item.quantity}
         </Text>
         <TouchableOpacity
           onPress={() => increaseQuantity(item.productUuid)}
@@ -140,7 +148,6 @@ const Cart = () => {
                 </Text>
               </View>
             </View>
-
             <View style={styles.summaryRow}>
               <Text style={[styles.totalText, {color: theme.text}]}>TOTAL</Text>
               <Text style={styles.totalValue}>${total.toFixed(2)}</Text>

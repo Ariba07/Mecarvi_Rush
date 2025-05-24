@@ -13,12 +13,7 @@ import Login from './src/screens/login/Login';
 import Forget from './src/screens/forget/Forget';
 import Reset from './src/screens/password/Reset';
 import Verify from './src/screens/verification/Verify';
-import Options from './src/screens/registerOption/Options';
 import Register from './src/screens/register/Register';
-import ServiceProviderRegister from './src/screens/register/ServiceProviderRegister';
-import ServiceProviderRegister3 from './src/screens/register/ServiceProviderRegister3';
-import ServiceProviderRegister2 from './src/screens/register/ServiceProviderRegister2';
-import ServiceProviderRegister1 from './src/screens/register/ServiceProviderRegister1';
 import Subscription from './src/screens/subscription/Subscription';
 import DrawerNavigator from './src/components/navigators/drawer/Drawer';
 import Notification from './src/screens/notification/Notification';
@@ -33,13 +28,6 @@ import Points from './src/screens/points/Points';
 import Products from './src/screens/products/Products';
 import Product from './src/screens/product/Product';
 import Quote from './src/screens/quote/Quote';
-import ServicesProducts from './src/screens/services/ServicesProducts';
-import ProductPrice from './src/screens/productPrice/ProductPrice';
-import ServiceProviderProfile from './src/screens/profile/ServiceProviderProfile';
-import Wallet from './src/screens/wallet/Wallet';
-import Withdraw from './src/screens/withdraw/Withdraw';
-import WithdrawBalance from './src/screens/withdraw_balance/WithdrawBalance';
-import WithdrawConfirm from './src/screens/popups/WithdrawConfirm';
 import Cart from './src/screens/cart/Cart';
 import Schedule from './src/screens/schedule/Schedule';
 import Booking from './src/screens/booking/Booking';
@@ -49,7 +37,6 @@ import MarketPlace from './src/screens/marketPlace/MarketPlace';
 import ShopProfile from './src/screens/shop/ShopProfile';
 import {ThemeProvider} from './src/components/helperUtils/theme/ThemeContext';
 import OrderIndex from './src/screens/orders/OrderIndex';
-import ServiceProviderOrderDecision from './src/screens/quote/ServiceProviderQuoteDecision';
 import BidList from './src/screens/marketPlace/BidList';
 import Ticket from './src/screens/ticketSupport/Ticket';
 import Feedback from './src/screens/feedback/Feedback';
@@ -62,6 +49,7 @@ import DisputeChat from './src/screens/disputes/DisputeChat';
 import {Card} from './src/screens/upload/Card';
 import Upload from './src/screens/upload/Upload';
 import {Photo} from './src/screens/upload/Photo';
+import AddCard from './src/screens/card/AddCard';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -97,29 +85,13 @@ const AppContent: React.FC = () => {
       <Stack.Screen name="Forget" component={Forget} />
       <Stack.Screen name="Verify" component={Verify} />
       <Stack.Screen name="Reset" component={Reset} />
-      <Stack.Screen name="Options" component={Options} />
       <Stack.Screen name="Register" component={Register} />
       <Stack.Screen name="Upload" component={Upload} />
       <Stack.Screen name="Card" component={Card} />
       <Stack.Screen name="Photo" component={Photo} />
       <Stack.Screen name="Drawer" component={DrawerNavigator} />
       <Stack.Screen name="Subscription" component={Subscription} />
-      <Stack.Screen
-        name="ServiceProviderRegister"
-        component={ServiceProviderRegister}
-      />
-      <Stack.Screen
-        name="ServiceProviderRegister1"
-        component={ServiceProviderRegister1}
-      />
-      <Stack.Screen
-        name="ServiceProviderRegister2"
-        component={ServiceProviderRegister2}
-      />
-      <Stack.Screen
-        name="ServiceProviderRegister3"
-        component={ServiceProviderRegister3}
-      />
+      <Stack.Screen name="AddCard" component={AddCard} />
       <Stack.Screen name="Notification" component={Notification} />
       <Stack.Screen name="Service" component={Service} />
       <Stack.Screen name="Search" component={Search} />
@@ -132,20 +104,6 @@ const AppContent: React.FC = () => {
       <Stack.Screen name="Support" component={Support} />
       <Stack.Screen name="Product" component={Product} />
       <Stack.Screen name="Quote" component={Quote} />
-      <Stack.Screen name="Services" component={ServicesProducts} />
-      <Stack.Screen name="ProductPrice" component={ProductPrice} />
-      <Stack.Screen
-        name="ServiceProviderProfile"
-        component={ServiceProviderProfile}
-      />
-      <Stack.Screen name="Wallet" component={Wallet} />
-      <Stack.Screen
-        name="QuoteDecision"
-        component={ServiceProviderOrderDecision}
-      />
-      <Stack.Screen name="Withdraw" component={Withdraw} />
-      <Stack.Screen name="WithdrawBalance" component={WithdrawBalance} />
-      <Stack.Screen name="WithdrawConfirm" component={WithdrawConfirm} />
       <Stack.Screen name="Cart" component={Cart} />
       <Stack.Screen name="Schedule" component={Schedule} />
       <Stack.Screen name="Checkout" component={Checkout} />

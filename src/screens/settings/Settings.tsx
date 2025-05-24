@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useContext} from 'react';
 import {
   Text,
   View,
@@ -21,26 +21,19 @@ import Money from '../../assets/images/Money.svg';
 import Truck from '../../assets/images/Truck.svg';
 import Log from '../../assets/images/Log.svg';
 import Service from '../../assets/images/Service.svg';
-import Dollar from '../../assets/images/Dollar.svg';
-import Products from '../../assets/images/Products.svg';
 import Dispute from '../../assets/images/Dispute.svg';
-import Notify from '../../assets/images/Notify.svg';
 import {Icon} from 'react-native-elements';
-import {clearUser, selectRole} from '../../slice/Slice';
-import {useDispatch, useSelector} from 'react-redux';
+import {clearUser} from '../../slice/Slice';
+import {useDispatch} from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 import Theme from '../../assets/images/Theme.svg';
 import {clearFCMToken} from '../../components/helperUtils/notifications/FCMTokenManager';
 
-const STORAGE_KEY = '@login_credentials';
-
 const Settings = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const reduxRole = useSelector(selectRole);
   const dispatch = useDispatch();
-  const [role, setRole] = useState<string | null>(null);
   const {theme, toggleTheme} = useContext(ThemeContext);
 
   const menuItems = [
@@ -109,91 +102,6 @@ const Settings = () => {
     },
   ];
 
-  const menuItem = [
-    {
-      id: '1',
-      title: 'My Profile',
-      icon: <Profile width={wp(5)} height={wp(5)} />,
-      bgColor: '#F4C542',
-      route: 'ServiceProviderProfile',
-    },
-    {
-      id: '2',
-      title: 'My Products',
-      icon: <Products width={wp(5)} height={wp(5)} />,
-      bgColor: '#FF4081',
-      route: 'Services',
-    },
-    {
-      id: '3',
-      title: 'My Orders',
-      icon: <List width={wp(5)} height={wp(5)} />,
-      bgColor: '#26C6DA',
-      route: 'Orders',
-    },
-    {
-      id: '4',
-      title: 'Wallet',
-      icon: <Money width={wp(5)} height={wp(5)} />,
-      bgColor: '#FFA726',
-      route: 'Wallet',
-    },
-    {
-      id: '5',
-      title: 'Notification',
-      icon: <Notify width={wp(5)} height={wp(5)} />,
-      bgColor: '#66BB6A',
-      route: 'Notification',
-    },
-    {
-      id: '6',
-      title: 'Subscription',
-      icon: <Dollar width={wp(5)} height={wp(5)} />,
-      bgColor: '#42A5F5',
-      route: 'Subscription',
-    },
-    {
-      id: '7',
-      title: theme.backgroundColor === '#000000' ? 'Light Theme' : 'Dark Theme',
-      icon: <Theme width={wp(5)} height={wp(5)} />,
-      bgColor: '#5C6B96',
-      // No route here, we'll handle it separately
-    },
-    {
-      id: '8',
-      title: 'Log Out',
-      icon: <Log width={wp(5)} height={wp(5)} />,
-      bgColor: '#5C6BC0',
-      route: 'Login',
-    },
-  ];
-
-  useEffect(() => {
-    const fetchRoleFromStorage = async () => {
-      try {
-        const savedCredentials = await AsyncStorage.getItem(STORAGE_KEY);
-        if (savedCredentials) {
-          const {role: storedRole} = JSON.parse(savedCredentials);
-          if (storedRole) {
-            setRole(storedRole);
-          } else {
-            setRole(reduxRole);
-          }
-        } else {
-          setRole(reduxRole);
-        }
-      } catch (error) {
-        console.log(
-          'Error fetching role from AsyncStorage:',
-          (error as any)?.message,
-        );
-        setRole(reduxRole);
-      }
-    };
-
-    fetchRoleFromStorage();
-  }, [reduxRole]);
-
   const handleLogout = async () => {
     try {
       await AsyncStorage.removeItem('@login_credentials');
@@ -204,10 +112,6 @@ const Settings = () => {
       console.log('Error during logout:', error);
     }
   };
-
-  if (role === null) {
-    return null; // Or a loading spinner: <ActivityIndicator />
-  }
 
   const renderItem = ({item}: {item: (typeof menuItems)[0]}) => (
     <TouchableOpacity
@@ -240,7 +144,7 @@ const Settings = () => {
   return (
     <View>
       <FlatList
-        data={role === 'customer' ? menuItems : menuItem}
+        data={menuItems}
         keyExtractor={item => item.id}
         renderItem={renderItem}
         contentContainerStyle={styles.listContainer}

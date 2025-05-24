@@ -5,7 +5,7 @@ import {Icon} from 'react-native-elements';
 import {styles} from '../../assets/styles/product/Product';
 
 interface ImageSliderProps {
-  productData: any; // Consider defining a more specific type for productData
+  productData: any;
   currentIndex: number;
   setCurrentIndex: (index: number) => void;
 }
@@ -18,7 +18,7 @@ const ImageSlider: React.FC<ImageSliderProps> = ({
   // Combine featured_image and additional_images into a single array
   const images = [
     productData?.featured_image,
-    ...(productData?.additional_images?.map((img: any) => img.file_url) || []),
+    ...(productData?.additional_images || []),
   ].filter(Boolean); // Filter out any undefined/null values
 
   const goToNextImage = () => {

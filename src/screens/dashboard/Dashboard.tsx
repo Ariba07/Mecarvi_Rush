@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-inline-styles */
 import React, {useContext, useEffect, useState} from 'react';
 import {
   SafeAreaView,
@@ -6,6 +7,8 @@ import {
   Text,
   Platform,
   RefreshControl,
+  FlatList,
+  TouchableOpacity,
 } from 'react-native';
 import {Productss} from '../../components/types/screenTypes/ScreenTypes';
 import {widthPercentageToDP as wp} from 'react-native-responsive-screen';
@@ -17,8 +20,8 @@ import HeaderTabs from './HeaderTabs';
 import FilterSection from './FilterSection';
 import BannerSection from './BannerSection';
 import ServicesSection from './ServicesSection';
+import FeaturedProductsSection from './FeaturedProductsSection';
 import {styles} from '../../assets/styles/dashboard/DashboardStyles';
-import RecommendedSection from './RecommendationSection';
 
 const Dashboard: React.FC = () => {
   const {theme} = useContext(ThemeContext);
@@ -31,14 +34,74 @@ const Dashboard: React.FC = () => {
   const [banners, setBanners] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedSection, setSelectedSection] = useState<string>('featured');
 
-  const fetchProducts = async () => {
+  const sectionTypes: Array<
+    | 'featured'
+    | 'top_rated'
+    | 'hot'
+    | 'trending'
+    | 'flash_deal'
+    | 'best_seller'
+    | 'bid_save'
+    | 'new'
+    | 'sale'
+    | 'hottest_deal'
+  > = [
+    'featured',
+    'top_rated',
+    'hot',
+    'trending',
+    'flash_deal',
+    'best_seller',
+    'bid_save',
+    'new',
+    'sale',
+    'hottest_deal',
+  ];
+
+  const fetchProducts = async (sectionType: string) => {
     try {
+      const queryParams = new URLSearchParams();
+      if (sectionType === 'featured') {
+        queryParams.append('highlight_in_featured', '1');
+      }
+      if (sectionType === 'top_rated') {
+        queryParams.append('highlight_in_top_rated', '1');
+      }
+      if (sectionType === 'hot') {
+        queryParams.append('highlight_in_hot', '1');
+      }
+      if (sectionType === 'trending') {
+        queryParams.append('highlight_in_trending', '1');
+      }
+      if (sectionType === 'flash_deal') {
+        queryParams.append('highlight_in_flash_deal', '1');
+      }
+      if (sectionType === 'best_seller') {
+        queryParams.append('highlight_in_best_seller', '1');
+      }
+      if (sectionType === 'bid_save') {
+        queryParams.append('highlight_in_bid_save', '1');
+      }
+      if (sectionType === 'new') {
+        queryParams.append('highlight_in_new', '1');
+      }
+      if (sectionType === 'sale') {
+        queryParams.append('highlight_in_sale', '1');
+      }
+      if (sectionType === 'hottest_deal') {
+        queryParams.append('highlight_in_hottest_deals', '1');
+      }
+      const endpoint = `products?${queryParams.toString()}`;
       const response: {data: Productss[]} = await apiHelper({
         method: 'GET',
-        endpoint: 'products',
+        endpoint: endpoint,
       });
-      setProducts(Array.isArray(response?.data) ? response.data : []);
+
+      setProducts(
+        Array.isArray(response?.data) ? response.data.slice(0, 5) : [],
+      );
     } catch (error) {
       console.warn('Error fetching products:', error);
       setProducts([]);
@@ -71,20 +134,66 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     const fetchInitialData = async () => {
-      await Promise.all([fetchProducts(), fetchBanners(), fetchCategories()]);
+      await Promise.all([
+        fetchProducts(selectedSection),
+        fetchBanners(),
+        fetchCategories(),
+      ]);
     };
     fetchInitialData();
-  }, []);
+  }, [selectedSection]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
-      await Promise.all([fetchProducts(), fetchBanners(), fetchCategories()]);
+      await Promise.all([
+        fetchProducts(selectedSection),
+        fetchBanners(),
+        fetchCategories(),
+      ]);
     } catch (error) {
       console.warn('Error during refresh:', error);
     } finally {
       setRefreshing(false);
     }
+  };
+
+  const renderSectionTab = ({item}: {item: string}) => {
+    const isSelected = selectedSection === item;
+    const titles = {
+      featured: 'Featured',
+      top_rated: 'Top Rated',
+      hot: 'Hot',
+      trending: 'Trending',
+      flash_deal: 'Flash Deals',
+      best_seller: 'Best Sellers',
+      bid_save: 'Bid & Save',
+      new: 'New Arrivals',
+      sale: 'On Sale',
+      hottest_deal: 'Hottest Deals',
+    };
+    return (
+      <TouchableOpacity
+        onPress={() => setSelectedSection(item)}
+        style={{
+          width: wp(25),
+          height: wp(8),
+          marginHorizontal: wp(1),
+          backgroundColor: isSelected ? '#FF00A7' : '#E0E0E0',
+          borderRadius: wp(2),
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+        <Text
+          style={{
+            color: isSelected ? '#FFF' : theme.text || '#333',
+            fontSize: wp(3.5),
+            fontWeight: isSelected ? 'bold' : 'normal',
+          }}>
+          {titles[item as keyof typeof titles]}
+        </Text>
+      </TouchableOpacity>
+    );
   };
 
   return (
@@ -108,7 +217,19 @@ const Dashboard: React.FC = () => {
           />
           <BannerSection banners={banners} />
           <ServicesSection categories={categories} />
-          <RecommendedSection products={products} />
+          <FlatList
+            data={sectionTypes}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            renderItem={renderSectionTab}
+            keyExtractor={item => item}
+            style={{marginVertical: wp(2), paddingHorizontal: wp(2)}}
+            contentContainerStyle={{paddingRight: wp(2)}}
+          />
+          <FeaturedProductsSection
+            products={products}
+            sectionType={selectedSection as any}
+          />
         </ScrollView>
       ) : (
         <View style={styles.availContainer}>

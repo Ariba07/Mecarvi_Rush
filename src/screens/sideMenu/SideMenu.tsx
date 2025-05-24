@@ -36,7 +36,6 @@ const SideMenu: React.FC = () => {
   const [userName, setUserName] = useState<string | null>(null);
   const reduxUserName = useSelector(selectUserName);
   const reduxRole = useSelector(selectRole);
-  const [role, setRole] = useState<string | null>(null);
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const reduxtotalPoints = useSelector(selectPointsEarned); // Define the max points required for gold
@@ -56,20 +55,17 @@ const SideMenu: React.FC = () => {
             parsedCredentials.pointsEarned
           ) {
             setUserName(parsedCredentials.name);
-            setRole(parsedCredentials.role);
             setTotalPoints(parsedCredentials.pointsEarned);
             return;
           }
         }
         // Fallback to Redux if AsyncStorage doesn't have userId
         setUserName(reduxUserName ?? null);
-        setRole(reduxRole ?? null);
         setTotalPoints(reduxtotalPoints ?? 0);
       } catch (error) {
         console.warn('Error retrieving user ID from AsyncStorage:', error);
         // Fallback to Redux on error
         setUserName(reduxUserName ?? null);
-        setRole(reduxRole ?? null);
         setTotalPoints(reduxtotalPoints ?? 0);
       }
     };
@@ -122,9 +118,7 @@ const SideMenu: React.FC = () => {
           <TouchableOpacity
             style={styles.editIcon}
             onPress={() => {
-              role === 'customer'
-                ? navigation.navigate('Profile')
-                : navigation.navigate('ServiceProviderProfile');
+              navigation.navigate('Profile');
             }}>
             <Edit />
           </TouchableOpacity>

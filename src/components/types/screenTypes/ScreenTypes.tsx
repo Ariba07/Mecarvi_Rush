@@ -12,10 +12,7 @@ export type RootStackParamList = {
   Photo: undefined;
   Card: undefined;
   Dashboard: undefined;
-  ServiceProviderRegister: undefined;
-  ServiceProviderRegister1: undefined;
-  ServiceProviderRegister2: undefined;
-  ServiceProviderRegister3: undefined;
+  AddCard: undefined;
   Subscription: undefined;
   Orders: undefined;
   Chats: undefined;
@@ -33,7 +30,6 @@ export type RootStackParamList = {
     chatName: string;
     participantNames: {[uuid: string]: string};
   };
-  Tracking: {order_uuid: string};
   OrderDetails: undefined;
   Review: {order_id: number};
   Support: undefined;
@@ -41,16 +37,9 @@ export type RootStackParamList = {
   Points: undefined;
   Product: undefined;
   Quote: undefined;
-  QuoteDecision: undefined;
-  ServiceProviderDashboard: undefined;
+
   Services: undefined;
-  ProductPrice: {product_uuid: string; id: number};
-  ServiceProviderOrderDetail: undefined;
-  ServiceProviderProfile: undefined;
-  Wallet: undefined;
-  Withdraw: undefined;
-  WithdrawBalance: undefined;
-  WithdrawConfirm: undefined;
+
   Cart: undefined;
   Schedule: undefined;
   Booking: undefined;
@@ -108,20 +97,25 @@ export interface Products {
   manufacturer: string;
   model: string;
   category_id: number;
-  specifications: {
-    color: string;
-    size: string;
+  category: {
+    id: number;
+    category_uuid: string;
+    name: string;
   };
+  specifications: string;
   refund_policy: string;
   description: string;
   price: number;
   discount_amount: number;
-  wholesale_price: number;
-  wholesale_quantity: number;
   status: boolean;
   type: string;
+  sale_count: number | null;
   created_at: string;
   updated_at: string;
+  featured_image: string | null;
+  additional_images: string[];
+  pdf: string | null;
+  video: string | null;
   labels: Array<{
     id: number;
     label_uuid: string;
@@ -141,35 +135,6 @@ export interface Products {
     created_at: string;
     updated_at: string;
   }>;
-  variations: Array<{
-    id: number;
-    product_variation_uuid: string;
-    product_id: number;
-    general_attribute_id: number;
-    specific_attribute_id: number | null;
-    price_adjustment: string;
-    price_type: string;
-    created_at: string;
-    updated_at: string;
-  }>;
-  specific_attributes: Array<{
-    id: number;
-    specific_attribute_uuid: string;
-    product_id: number;
-    general_attribute_id: number;
-    created_at: string;
-    updated_at: string;
-    attribute_values: Array<{
-      id: number;
-      attribute_value_uuid: string;
-      general_attribute_id: number | null;
-      specific_attribute_id: number;
-      value: string;
-      additional_info: string;
-      created_at: string;
-      updated_at: string;
-    }>;
-  }>;
   seo: {
     id: number;
     product_id: number;
@@ -181,10 +146,31 @@ export interface Products {
     created_at: string;
     updated_at: string;
   };
+  attributes: Array<{
+    general_attribute: {
+      id: number;
+      general_attribute_uuid: string;
+      name: string;
+      description: string;
+      created_at: string;
+      updated_at: string;
+    };
+    attribute_values: Array<{
+      id: number;
+      price_adjustment: number;
+      price_type: string;
+      front_only: boolean | null;
+      back_only: boolean | null;
+      attribute_name: string;
+      attribute_info: string | null;
+      created_at: string;
+      updated_at: string;
+    }>;
+  }>;
   shipping: {
     id: number;
     product_id: number;
-    free_shipping: number;
+    free_shipping: boolean;
     delivery_time: string;
     variant: string;
     shipping_cost: string;
@@ -212,12 +198,13 @@ export interface CartItem {
   productUuid: string;
   name: string;
   price: number;
-  selectedColor?: string | null;
-  frontFile?: {uri: string} | null;
-  backFile?: {uri: string} | null;
+  quantity: number;
+  selectedColor?: string;
+  frontFile?: {uri: string};
+  backFile?: {uri: string};
   orderNotes?: string;
-  quantity?: number;
-  attributes?: {[key: string]: string}; // Added attributes field
+  attributes: {[key: string]: string | undefined};
+  deliveryPrice?: number;
 }
 export interface DateSlot {
   day: string;

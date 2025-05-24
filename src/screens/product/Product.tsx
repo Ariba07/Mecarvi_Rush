@@ -8,13 +8,13 @@ import {
   RootStackParamList,
   ApiResponse,
   Attribute,
+  Products,
 } from '../../components/types/screenTypes/ScreenTypes';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 import {useSelector} from 'react-redux';
 import {selectProductUuid} from '../../slice/Slice';
 import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 import Header from '../../components/common/header/Header';
-
 import {styles} from '../../assets/styles/product/Product';
 import {Animated} from 'react-native';
 import AttributesSection from './AttributeSection';
@@ -23,24 +23,27 @@ import ProductDetails from './ProductDetails';
 import TabContent from './TabContent';
 import TabNavigation from './TabNavigation';
 
-export const tabs = ['Specification', 'Policy', 'Reviews'];
+export const tabs = ['Specification', 'Policy'];
 
 const Product = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const {theme} = useContext(ThemeContext);
   const productUuid = useSelector(selectProductUuid);
-  const [productData, setProductData] = useState<any | null>(null);
+  const [productData, setProductData] = useState<Products | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [activeTab, setActiveTab] = useState(0);
   const [reviewText, setReviewText] = useState('');
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [frontFile, setFrontFile] = useState<any | null>(null);
   const [backFile, setBackFile] = useState<any | null>(null);
   const [attributeValues, setAttributeValues] = useState<{
     [key: string]: string;
   }>({});
+  const [finalPrice, setFinalPrice] = useState<number>(0);
+
   const translateX = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -66,46 +69,54 @@ const Product = () => {
   }, [productUuid]);
 
   const attributes: Attribute[] =
-    productData?.specific_attributes.map((attr: any) => ({
+    productData?.attributes.map((attr: any) => ({
       label:
-        attr.attribute_values[0]?.additional_info || `Attribute ${attr.id}`,
-      placeholder: attr.attribute_values[0]?.value || 'Select',
-      key: attr.specific_attribute_uuid,
-      options: attr.attribute_values.map((val: any) => val.value),
+        attr.general_attribute.name || `Attribute ${attr.general_attribute.id}`,
+      placeholder: attr.attribute_values[0]?.attribute_name || 'Select',
+      key: attr.general_attribute.general_attribute_uuid,
+      options: attr.attribute_values.map((val: any) => val.attribute_name),
     })) || [];
 
   const dynamicSpecifications = productData
     ? [
         {
-          label: 'Frame Material',
-          value: productData.specifications?.size || 'N/A',
+          label: 'Specifications',
+          value: productData.specifications || 'N/A',
         },
         {
-          label: 'Sign Material',
-          value: productData.specifications?.color || 'N/A',
+          label: 'Category',
+          value: productData.category?.name || 'N/A',
         },
-        {label: 'Base Type', value: productData.type || 'N/A'},
         {
-          label: 'Display (Printed Side)',
+          label: 'Type',
+          value: productData.type || 'N/A',
+        },
+        {
+          label: 'Description',
           value: productData.description || 'N/A',
         },
         {
-          label: 'Sign Size',
+          label: 'Size Variations',
           value:
             productData.size_variations
               .map((v: any) => v.size_name)
               .join(', ') || 'N/A',
         },
         {
-          label: 'Color',
+          label: 'Attributes',
           value:
-            productData.specific_attributes
+            productData.attributes
               .map((attr: any) =>
-                attr.attribute_values.map((val: any) => val.value).join(', '),
+                attr.attribute_values
+                  .map((val: any) => val.attribute_name)
+                  .join(', '),
               )
               .join(', ') || 'N/A',
         },
-        {label: 'Weight', value: 'N/A'},
+        {
+          label: 'Manufacturer',
+          value: productData.manufacturer || 'N/A',
+        },
       ]
     : [];
 
@@ -124,13 +135,20 @@ const Product = () => {
             contentContainerStyle={{
               paddingBottom: Platform.OS === 'ios' ? undefined : hp(1),
             }}
-            keyboardShouldPersistTaps="handled">
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}>
             <ImageSlider
               productData={productData}
               currentIndex={currentIndex}
               setCurrentIndex={setCurrentIndex}
             />
-            <ProductDetails productData={productData} theme={theme} />
+            <ProductDetails
+              productData={productData}
+              theme={theme}
+              attributeValues={attributeValues}
+              selectedSize={selectedSize}
+              setFinalPrice={setFinalPrice}
+            />
             <TabNavigation
               activeTab={activeTab}
               setActiveTab={setActiveTab}
@@ -149,6 +167,8 @@ const Product = () => {
               setAttributeValues={setAttributeValues}
               selectedColor={selectedColor}
               setSelectedColor={setSelectedColor}
+              selectedSize={selectedSize}
+              setSelectedSize={setSelectedSize}
               frontFile={frontFile}
               setFrontFile={setFrontFile}
               backFile={backFile}
@@ -157,8 +177,9 @@ const Product = () => {
               setReviewText={setReviewText}
               theme={theme}
               navigation={navigation}
-              productData={productData} // Pass productData
-              productUuid={productUuid} // Pass productUuid
+              productData={productData}
+              productUuid={productUuid}
+              finalPrice={finalPrice}
             />
           </ScrollView>
         )}

@@ -11,6 +11,7 @@ import {
   ScrollView,
   Modal,
   TouchableOpacity,
+  TextInput,
 } from 'react-native';
 import {CardField, useStripe} from '@stripe/stripe-react-native';
 import {
@@ -28,6 +29,8 @@ interface CardPaymentBottomSheetProps {
     price: number;
     billingFrequency: string;
   };
+  setCardName?: (name: string) => void;
+  cardName?: string;
 }
 
 const CardPaymentBottomSheet: React.FC<CardPaymentBottomSheetProps> = ({
@@ -39,6 +42,8 @@ const CardPaymentBottomSheet: React.FC<CardPaymentBottomSheetProps> = ({
     price: 9.99,
     billingFrequency: 'Monthly',
   },
+  setCardName,
+  cardName,
 }) => {
   const stripe = useStripe();
   const [loading, setLoading] = useState(false);
@@ -145,6 +150,21 @@ const CardPaymentBottomSheet: React.FC<CardPaymentBottomSheetProps> = ({
                     }}
                     onCardChange={details => setCardDetails(details)}
                   />
+                  <View style={styles.inputContainer}>
+                    <Text style={[styles.label, {color: theme.text}]}>
+                      Card Name
+                    </Text>
+                    <TextInput
+                      style={[
+                        styles.textInput,
+                        {backgroundColor: theme.whole, color: theme.input},
+                      ]}
+                      value={cardName}
+                      onChangeText={setCardName}
+                      placeholder="Enter card name"
+                      placeholderTextColor="#A9A9A9"
+                    />
+                  </View>
                 </View>
                 <View style={styles.buttonContainer}>
                   {loading ? (
@@ -252,6 +272,20 @@ const styles = StyleSheet.create({
     color: '#000000',
     fontWeight: 'bold',
     fontSize: wp(4.5),
+  },
+  inputContainer: {
+    marginVertical: hp(1),
+  },
+  label: {
+    fontSize: wp(4),
+    marginBottom: wp(1),
+  },
+  textInput: {
+    borderWidth: 1,
+    borderColor: '#CCCCCC',
+    borderRadius: 10,
+    padding: wp(2),
+    height: hp(6),
   },
 });
 

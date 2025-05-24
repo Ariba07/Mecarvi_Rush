@@ -4,7 +4,7 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 
-const tabs = ['Specification', 'Policy', 'Reviews'];
+const tabs = ['Specification', 'Policy'];
 const screenWidth = Dimensions.get('window').width;
 const tabWidth = screenWidth / tabs.length;
 
@@ -115,11 +115,11 @@ export const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     left: 0,
-    width: tabWidth * 0.6,
+    width: tabWidth * 0.55,
     height: hp(0.3),
     backgroundColor: '#FF0080',
     borderRadius: 5,
-    marginLeft: tabWidth * 0.2,
+    marginLeft: tabWidth * 0.23,
     marginBottom: Platform.OS === 'ios' ? hp(1) : hp(0.5),
   },
   contentContainer: {
@@ -249,5 +249,16 @@ export const styles = StyleSheet.create({
   uploadText: {
     fontSize: wp(3.5),
     color: '#333333',
+  },
+  priceContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: wp(1),
+  },
+  originalPrice: {
+    fontSize: wp(4),
+    color: '#999',
+    marginLeft: wp(2),
+    textDecorationLine: 'line-through',
   },
 });

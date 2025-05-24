@@ -1,7 +1,7 @@
 import axios, {AxiosRequestConfig, AxiosResponse} from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export const API_BASE_URL = 'http://192.168.1.48:8000/api/';
+export const API_BASE_URL = 'http://192.168.1.51:8000/api/';
 
 if (!API_BASE_URL) {
   throw new Error('API_BASE_URL is not defined in the environment variables.');

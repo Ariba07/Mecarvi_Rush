@@ -21,6 +21,8 @@ interface AttributesSectionProps {
   setAttributeValues: (values: {[key: string]: string}) => void;
   selectedColor: string | null;
   setSelectedColor: (color: string | null) => void;
+  selectedSize: string | null;
+  setSelectedSize: (size: string | null) => void;
   frontFile: any;
   setFrontFile: (file: any) => void;
   backFile: any;
@@ -30,7 +32,8 @@ interface AttributesSectionProps {
   theme: any;
   navigation: NativeStackNavigationProp<any>;
   productData: any;
-  productUuid: string | null;
+  productUuid: string | '';
+  finalPrice: number;
 }
 
 const AttributesSection: React.FC<AttributesSectionProps> = ({
@@ -39,6 +42,8 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
   setAttributeValues,
   selectedColor,
   setSelectedColor,
+  selectedSize,
+  setSelectedSize,
   frontFile,
   setFrontFile,
   backFile,
@@ -49,6 +54,7 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
   navigation,
   productData,
   productUuid,
+  finalPrice,
 }) => {
   const dispatch = useDispatch();
   const [quantity, setQuantity] = useState(1);
@@ -84,49 +90,39 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
     }
   };
 
-  const colorMap: {[key: string]: string} = {
-    red: '#FF0000',
-    grey: '#808080',
-    indigo: '#4B0082',
-    black: '#000000',
-    white: '#FFFFFF',
-    blue: '#0000FF',
-    green: '#008000',
-    yellow: '#FFFF00',
-    purple: '#800080',
-    orange: '#FFA500',
-  };
-
-  const colorOptions = attributes
-    .flatMap(attr => attr.options)
-    .filter(
-      (color: string, index: number, self: string[]) =>
-        self.indexOf(color) === index,
-    );
+  const colorOptions =
+    productData?.labels.map((label: any) => label.label_color) || [];
 
   const getHexColor = (colorName: string) =>
     /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(colorName)
       ? colorName
-      : colorMap[colorName.toLowerCase()] || '#808080';
+      : '#808080';
+
+  const createCartItem = (): CartItem => {
+    return {
+      id: productData.id,
+      productUuid,
+      name: productData.name || 'Unnamed Product',
+      price: finalPrice,
+      quantity: quantity || 1,
+      selectedColor: selectedColor ? getHexColor(selectedColor) : undefined,
+      frontFile: frontFile ? {uri: frontFile.uri} : undefined,
+      backFile: backFile ? {uri: backFile.uri} : undefined,
+      orderNotes: reviewText || undefined,
+      attributes: {
+        ...attributeValues,
+        size: selectedSize || undefined,
+      },
+      deliveryPrice: productData?.shipping?.shipping_cost || 0,
+    };
+  };
 
   const handleChooseForMe = () => {
     if (!productUuid || !productData) {
       return;
     }
 
-    const cartItem: CartItem = {
-      id: productData.id,
-      productUuid,
-      name: productData.name || 'Unnamed Product',
-      price: productData.price || 0,
-      quantity: quantity || 1, // Ensure quantity has a default
-      selectedColor: selectedColor ? getHexColor(selectedColor) : undefined,
-      frontFile: frontFile ? {uri: frontFile.uri} : undefined,
-      backFile: backFile ? {uri: backFile.uri} : undefined,
-      orderNotes: reviewText || undefined,
-      attributes: attributeValues,
-    };
-
+    const cartItem = createCartItem();
     console.log('Dispatching cartItem:', cartItem);
     navigation.navigate('Cart');
     dispatch(addToCart(cartItem));
@@ -138,18 +134,7 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
       return;
     }
 
-    const cartItem: CartItem = {
-      id: productData.id,
-      productUuid,
-      name: productData.name || 'Unnamed Product',
-      price: productData.price || 0,
-      quantity: quantity,
-      selectedColor: selectedColor ? getHexColor(selectedColor) : undefined,
-      frontFile: frontFile ? {uri: frontFile.uri} : undefined,
-      backFile: backFile ? {uri: backFile.uri} : undefined,
-      orderNotes: reviewText || undefined,
-      attributes: attributeValues,
-    };
+    const cartItem = createCartItem();
 
     // Prepare form-data for the API request
     const formData = new FormData();
@@ -159,7 +144,9 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
 
     if (cartItem.attributes) {
       Object.entries(cartItem.attributes).forEach(([key, value]) => {
-        formData.append(`details[${key}]`, value);
+        if (value) {
+          formData.append(`details[${key}]`, value);
+        }
       });
     }
 
@@ -179,7 +166,6 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
     }
 
     try {
-      // Call the apiHelper function
       const result: {success: boolean; [key: string]: any} = await apiHelper({
         method: 'POST',
         endpoint: 'quote-requests',
@@ -187,11 +173,9 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
       });
 
       console.log('Quote Request Response:', result);
-
       navigation.navigate('Quote');
     } catch (error) {
       console.error('Error making quote request:', error);
-      // Handle network error (e.g., show error message to user)
     }
 
     dispatch(setSourceType('quote'));
@@ -202,19 +186,7 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
       return;
     }
 
-    const cartItem: CartItem = {
-      id: productData.id,
-      productUuid,
-      name: productData.name || 'Unnamed Product',
-      price: productData.price || 0,
-      quantity: quantity || 1, // Ensure quantity has a default
-      selectedColor: selectedColor ? getHexColor(selectedColor) : undefined,
-      frontFile: frontFile ? {uri: frontFile.uri} : undefined,
-      backFile: backFile ? {uri: backFile.uri} : undefined,
-      orderNotes: reviewText || undefined,
-      attributes: attributeValues,
-    };
-
+    const cartItem = createCartItem();
     console.log('Dispatching cartItem:', cartItem);
     navigation.navigate('MarketPlace', {
       fromProduct: true,
@@ -226,6 +198,19 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
 
   return (
     <View style={styles.attributeContainer}>
+      {productData?.size_variations.length > 0 && (
+        <View style={{marginBottom: hp(2)}}>
+          <Text style={[styles.label, {color: theme.text}]}>Size</Text>
+          <CustomTextInput
+            placeholder="Select Size"
+            value={selectedSize || ''}
+            width={wp(90)}
+            onChangeText={text => setSelectedSize(text as string)}
+            isMultiSelect={false}
+            options={productData.size_variations.map((v: any) => v.size_name)}
+          />
+        </View>
+      )}
       {attributes.map(attr => (
         <View key={attr.key} style={{marginBottom: hp(2)}}>
           <Text style={[styles.label, {color: theme.text}]}>{attr.label}</Text>
@@ -239,20 +224,24 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
           />
         </View>
       ))}
-      <Text style={[styles.label, {color: theme.text}]}>Color</Text>
-      <View style={styles.colorOptionsContainer}>
-        {colorOptions.map((color: string, index: number) => (
-          <TouchableOpacity
-            key={index}
-            style={[
-              styles.colorOption,
-              {backgroundColor: getHexColor(color)},
-              selectedColor === color && styles.selectedBorder,
-            ]}
-            onPress={() => setSelectedColor(color)}
-          />
-        ))}
-      </View>
+      {colorOptions.length > 0 && (
+        <>
+          <Text style={[styles.label, {color: theme.text}]}>Color</Text>
+          <View style={styles.colorOptionsContainer}>
+            {colorOptions.map((color: string, index: number) => (
+              <TouchableOpacity
+                key={index}
+                style={[
+                  styles.colorOption,
+                  {backgroundColor: getHexColor(color)},
+                  selectedColor === color && styles.selectedBorder,
+                ]}
+                onPress={() => setSelectedColor(color)}
+              />
+            ))}
+          </View>
+        </>
+      )}
       <View style={{marginBottom: hp(2)}}>
         <Text style={[styles.label, {color: theme.text}]}>Quantity</Text>
         <View
@@ -276,7 +265,6 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
             disabled={quantity <= 1}>
             <Text style={{color: theme.input, fontSize: wp(5)}}>-</Text>
           </TouchableOpacity>
-
           <Text
             style={{
               fontSize: wp(4.5),
@@ -286,7 +274,6 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
             }}>
             {quantity}
           </Text>
-
           <TouchableOpacity
             style={{
               width: wp(8),
@@ -346,7 +333,6 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
         onChangeText={setReviewText}
         placeholderTextColor={'#9c9c9c'}
       />
-
       <View style={styles.buttonContainer}>
         <View style={styles.row}>
           <TouchableOpacity style={styles.button} onPress={handleChooseForMe}>
@@ -362,9 +348,7 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
         </View>
         <TouchableOpacity
           style={[styles.button, styles.fullWidthButton]}
-          onPress={() => {
-            handleMarketplace();
-          }}>
+          onPress={handleMarketplace}>
           <Text style={[styles.buttonText, {color: theme.backgroundColor}]}>
             Add Marketplace
           </Text>

@@ -89,4 +89,61 @@ export const styles = StyleSheet.create({
     left: Platform.select({ios: wp(6), android: wp(5)}),
     right: Platform.select({ios: wp(6), android: wp(5)}),
   },
+  // Add to CheckoutStyles.ts
+  cardItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: wp(4),
+    marginVertical: wp(2),
+    borderRadius: wp(2),
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  selectedCardItem: {
+    borderColor: '#FF00A7',
+  },
+  cardDetails: {
+    flex: 1,
+  },
+  cardText: {
+    fontSize: wp(4),
+    fontWeight: '600',
+  },
+  cardSubText: {
+    fontSize: wp(3.5),
+    color: '#666',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContainer: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: wp(5),
+    borderTopRightRadius: wp(5),
+    padding: wp(5),
+    maxHeight: '80%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: wp(4),
+  },
+  modalTitle: {
+    fontSize: wp(5),
+    fontWeight: 'bold',
+  },
+  cardList: {
+    maxHeight: wp(60),
+  },
+  noCardsContainer: {
+    alignItems: 'center',
+    padding: wp(5),
+  },
+  noCardsText: {
+    fontSize: wp(4),
+    marginBottom: wp(4),
+  },
 });

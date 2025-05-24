@@ -28,34 +28,7 @@ export interface AuthState {
   photo: ImageData | null;
   card: ImageData | null;
 
-  // Business Fields
-  name?: string;
-  registrationNumber?: string;
-  stateRegistration?: string;
-  tin?: string;
-  businessStructure?: string;
-  yearEstablished?: string;
-  address?: string;
-  ownerName?: string;
-  ownerPhoneNumber?: string;
-  ownerEmail?: string;
-  linkedIn?: string;
-  serviceOffered?: number[];
-  productionCapacity?: string;
-  turnaroundTime?: string;
-  specialization?: string;
-  targetMarket?: string;
-  facebookLink?: string;
-  instagramLink?: string;
-  logoUpload?: null;
-  portfolio?: null;
-  businessProof?: null;
-  documentVerification?: null;
-  onboardingAvailability?: string;
-  website?: string;
-
   // Others
-  option: string;
   role: string;
   user_id: number;
   user_uuid: string;
@@ -99,7 +72,7 @@ export const initialState: AuthState = {
   cnic: null,
   photo: null,
   card: null,
-  option: '',
+
   role: '',
   user_id: 0,
   token: '',
@@ -150,46 +123,7 @@ const authSlice = createSlice({
         state[action.payload.field] = action.payload.value;
       }
     },
-    updateBusinessField: <K extends keyof AuthState>(
-      state: AuthState,
-      action: PayloadAction<{field: K; value: AuthState[K]}>,
-    ) => {
-      if (
-        [
-          'name',
-          'website',
-          'registrationNumber',
-          'stateRegistration',
-          'tin',
-          'businessStructure',
-          'yearEstablished',
-          'address',
-          'ownerName',
-          'ownerPhoneNumber',
-          'ownerEmail',
-          'linkedIn',
-          'serviceOffered',
-          'productionCapacity',
-          'turnaroundTime',
-          'specialization',
-          'targetMarket',
-          'facebookLink',
-          'instagramLink',
-          'logoUpload',
-          'portfolio',
-          'businessProof',
-          'documentVerification',
-          'onboardingAvailability',
-          'password',
-          'email',
-          'phoneNumber',
-          'longitude',
-          'latitude',
-        ].includes(action.payload.field)
-      ) {
-        state[action.payload.field] = action.payload.value;
-      }
-    },
+
     updateCnic: (state, action: PayloadAction<ImageData | null>) => {
       state.cnic = action.payload;
     },
@@ -199,9 +133,7 @@ const authSlice = createSlice({
     updateCard: (state, action: PayloadAction<ImageData | null>) => {
       state.card = action.payload;
     },
-    setOption: (state, action: PayloadAction<string>) => {
-      state.option = action.payload;
-    },
+
     setAddressId: (state, action: PayloadAction<number>) => {
       state.addressId = action.payload;
     },
@@ -304,7 +236,6 @@ const authSlice = createSlice({
     clearUser: state => {
       state.role = '';
       state.user_id = 0;
-      state.option = '';
       state.token = '';
       state.cart = [];
       state.user_uuid = '';
@@ -382,44 +313,11 @@ export const selectCustomerAuthState = (state: {auth: AuthState}) => ({
   password: state.auth.password,
 });
 
-export const selectBusinessAuthState = (state: {auth: AuthState}) => ({
-  name: state.auth.name,
-  website: state.auth.website,
-  registrationNumber: state.auth.registrationNumber,
-  stateRegistration: state.auth.stateRegistration,
-  tin: state.auth.tin,
-  businessStructure: state.auth.businessStructure,
-  yearEstablished: state.auth.yearEstablished,
-  address: state.auth.address,
-  ownerName: state.auth.ownerName,
-  ownerPhoneNumber: state.auth.ownerPhoneNumber,
-  ownerEmail: state.auth.ownerEmail,
-  linkedIn: state.auth.linkedIn,
-  serviceOffered: state.auth.serviceOffered,
-  productionCapacity: state.auth.productionCapacity,
-  turnaroundTime: state.auth.turnaroundTime,
-  specialization: state.auth.specialization,
-  targetMarket: state.auth.targetMarket,
-  facebookLink: state.auth.facebookLink,
-  instagramLink: state.auth.instagramLink,
-  logoUpload: state.auth.logoUpload,
-  portfolio: state.auth.portfolio,
-  businessProof: state.auth.businessProof,
-  documentVerification: state.auth.documentVerification,
-  onboardingAvailability: state.auth.onboardingAvailability,
-  password: state.auth.password,
-  email: state.auth.email,
-  phoneNumber: state.auth.phoneNumber,
-  longitude: state.auth.longitude,
-  latitude: state.auth.latitude,
-});
-
 export const selectCnicImage = (state: {auth: AuthState}) => state.auth.cnic;
 export const selectPhotoImage = (state: {auth: AuthState}) => state.auth.photo;
 export const selectCardImage = (state: {auth: AuthState}) => state.auth.card;
 export const selectTotalPrice = (state: {auth: AuthState}) =>
   state.auth.totalPrice;
-export const selectOption = (state: {auth: AuthState}) => state.auth.option;
 export const selectRole = (state: {auth: AuthState}) => state.auth.role;
 export const selectUserName = (state: {auth: AuthState}) => state.auth.username;
 export const selectUserId = (state: {auth: AuthState}) => state.auth.user_id;
@@ -478,8 +376,6 @@ export const {
   setDeliveryDate,
   setDeliveryTime,
   updateCustomerField,
-  updateBusinessField,
-  setOption,
   updateCard,
   updateCnic,
   updatePhoto,

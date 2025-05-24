@@ -69,7 +69,7 @@ const Feedback = () => {
 
     try {
       const response = await fetch(
-        `${API_BASE_URL}service-provider/order/order-proofs/get/${order_id}`,
+        `${API_BASE_URL}orders/order-proofs/${order_id}`,
         {
           method: 'GET',
           headers: {
