@@ -89,7 +89,7 @@ const Feedback = () => {
         Alert.alert('Error', result?.message || 'Failed to fetch feedback.');
       }
     } catch (error) {
-      console.error('Fetch feedback error:', error);
+      console.warn('Fetch feedback error:', error);
       Alert.alert(
         'Error',
         'Failed to fetch feedback. Please check your network.',
@@ -148,7 +148,7 @@ const Feedback = () => {
       setNote('');
       fetchFeedback(); // Refresh feedback list
     } catch (error) {
-      console.error(`Submit ${action} error:`, error);
+      console.warn(`Submit ${action} error:`, error);
       Alert.alert(
         'Error',
         `Failed to ${action} feedback. Please check your network.`,

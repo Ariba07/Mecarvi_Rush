@@ -49,7 +49,7 @@ const AllTicket = () => {
       console.log('Tickets fetched successfully:', response);
       setTickets(response.data || []);
     } catch (error) {
-      console.error('Fetch tickets error:', error);
+      console.warn('Fetch tickets error:', error);
       Alert.alert(
         'Error',
         'Failed to fetch tickets. Please check your network.',

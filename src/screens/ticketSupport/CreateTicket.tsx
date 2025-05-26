@@ -82,7 +82,7 @@ const CreateTicket = () => {
         Alert.alert('Error', response?.message || 'Failed to create ticket.');
       }
     } catch (error) {
-      console.error('Create ticket error:', error);
+      console.warn('Create ticket error:', error);
       Alert.alert(
         'Error',
         'Failed to create ticket. Please check your network.',

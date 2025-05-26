@@ -47,7 +47,7 @@ const Disputes = () => {
       console.log('Disputes fetched successfully:', response);
       setTickets(response.data || []);
     } catch (error) {
-      console.error('Fetch Disputes error:', error);
+      console.warn('Fetch Disputes error:', error);
       Alert.alert(
         'Error',
         'Failed to fetch Disputes. Please check your network.',

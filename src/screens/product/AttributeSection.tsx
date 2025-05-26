@@ -175,7 +175,7 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
       console.log('Quote Request Response:', result);
       navigation.navigate('Quote');
     } catch (error) {
-      console.error('Error making quote request:', error);
+      console.warn('Error making quote request:', error);
     }
 
     dispatch(setSourceType('quote'));

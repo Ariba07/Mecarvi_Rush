@@ -212,7 +212,7 @@ async function handleNotification(
     );
     navigation.navigate(targetScreen, {quote_request_uuid: uuid});
   } catch (error) {
-    console.error('handleNotification: Error processing notification:', error);
+    console.warn('handleNotification: Error processing notification:', error);
   }
 }
 
