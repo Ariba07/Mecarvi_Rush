@@ -420,13 +420,9 @@ const Checkout: React.FC = () => {
           isVisible={isAddCardModalVisible}
           onClose={() => setIsAddCardModalVisible(false)}
           onSubmit={createCard}
-          subscriptionDetails={{
-            planName: 'Checkout Payment',
-            price: orderPrice,
-            billingFrequency: 'One-Time',
-          }}
           setCardName={setCardName}
           cardName={cardName}
+          isCard={true}
         />
       </View>
     </SafeAreaView>

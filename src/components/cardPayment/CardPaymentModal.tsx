@@ -31,6 +31,7 @@ interface CardPaymentBottomSheetProps {
   };
   setCardName?: (name: string) => void;
   cardName?: string;
+  isCard?: boolean;
 }
 
 const CardPaymentBottomSheet: React.FC<CardPaymentBottomSheetProps> = ({
@@ -38,12 +39,13 @@ const CardPaymentBottomSheet: React.FC<CardPaymentBottomSheetProps> = ({
   onClose,
   onSubmit,
   subscriptionDetails = {
-    planName: 'Basic Plan',
-    price: 9.99,
-    billingFrequency: 'Monthly',
+    planName: '',
+    price: 0,
+    billingFrequency: '',
   },
   setCardName,
   cardName,
+  isCard,
 }) => {
   const stripe = useStripe();
   const [loading, setLoading] = useState(false);
@@ -150,21 +152,23 @@ const CardPaymentBottomSheet: React.FC<CardPaymentBottomSheetProps> = ({
                     }}
                     onCardChange={details => setCardDetails(details)}
                   />
-                  <View style={styles.inputContainer}>
-                    <Text style={[styles.label, {color: theme.text}]}>
-                      Card Name
-                    </Text>
-                    <TextInput
-                      style={[
-                        styles.textInput,
-                        {backgroundColor: theme.whole, color: theme.input},
-                      ]}
-                      value={cardName}
-                      onChangeText={setCardName}
-                      placeholder="Enter card name"
-                      placeholderTextColor="#A9A9A9"
-                    />
-                  </View>
+                  {isCard && (
+                    <View style={styles.inputContainer}>
+                      <Text style={[styles.label, {color: theme.text}]}>
+                        Card Name
+                      </Text>
+                      <TextInput
+                        style={[
+                          styles.textInput,
+                          {backgroundColor: theme.whole, color: theme.input},
+                        ]}
+                        value={cardName}
+                        onChangeText={setCardName}
+                        placeholder="Enter card name"
+                        placeholderTextColor="#A9A9A9"
+                      />
+                    </View>
+                  )}
                 </View>
                 <View style={styles.buttonContainer}>
                   {loading ? (

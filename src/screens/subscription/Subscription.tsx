@@ -30,12 +30,13 @@ type Plan = {
   title: string;
   price: string;
   features: string[];
+  unit_amount: number; // Added to track unit_amount for type determination
 };
 
 const Subscription = () => {
   const [selectedPlan, setSelectedPlan] = useState<string>(
-    'price_1R2SJ1QGkbRqDEDijT2rtpTY',
-  ); // Default to Free Plan ID
+    'price_1RSFzsQGkbRqDEDilPZLb5g6', // Default to Free Plan ID from API response
+  );
   const [plans, setPlans] = useState<Plan[]>([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -58,18 +59,19 @@ const Subscription = () => {
         const response = await apiHelper({
           method: 'GET',
           endpoint: 'packages',
-          token: token, // Include token if required by API
+          token: token,
         });
 
-        const {data} = response as {data: any[]}; // Adjust based on actual response structure
+        const {data} = response as {data: any[]};
         const fetchedPlans: Plan[] = data.map(plan => ({
           id: plan.id,
           title: plan.product_name,
           price: `$${plan.plan_price.toFixed(2)}/month`,
+          unit_amount: plan.unit_amount, // Store unit_amount
           features:
             plan.benefits && Object.keys(plan.benefits).length > 0
               ? (Object.values(plan.benefits) as string[])
-              : ['Limited orders per month', 'Access to basic features'], // Fallback for Free Plan
+              : ['Limited orders per month', 'Access to basic features'],
         }));
 
         setPlans(fetchedPlans);
@@ -83,23 +85,41 @@ const Subscription = () => {
   }, [token]);
 
   const handleSubscriptionSubmit = async (paymentMethodId: string) => {
-    if (!paymentMethodId || !selectedPlan) {
-      setErrorMessage('Invalid plan or payment method. Please try again.');
+    if (!selectedPlan) {
+      setErrorMessage('No plan selected. Please try again.');
+      return;
+    }
+
+    const selectedPlanData = plans.find(plan => plan.id === selectedPlan);
+    if (!selectedPlanData) {
+      setErrorMessage('Invalid plan selected. Please try again.');
+      return;
+    }
+
+    // Determine plan type based on unit_amount
+    const planType = selectedPlanData.unit_amount === 0 ? 'free' : 'paid';
+
+    // For paid plans, require a payment method
+    if (planType === 'paid' && !paymentMethodId) {
+      setErrorMessage('Payment method is required for paid plans.');
       return;
     }
 
     setErrorMessage(null);
 
-    let plan = selectedPlan === 'Paid Plan' ? 'paid' : 'free';
-
     try {
       const response = await apiHelper({
         method: 'POST',
         endpoint: 'subscribe',
-        data: {plan: plan, payment_method: paymentMethodId},
+        data: {
+          plan: selectedPlan, // Send the price ID as plan
+          type: planType, // Send free or paid based on unit_amount
+          payment_method: paymentMethodId, // Send payment method only for paid plans
+        },
+        token: token,
       });
 
-      const result = response as any; // Adjust based on apiHelper return type
+      const result = response as any;
       if (result.error) {
         throw new Error(result.error.message || 'Subscription creation failed');
       }
