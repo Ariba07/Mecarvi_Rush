@@ -16,6 +16,10 @@ import MessageInput from './MessageInput';
 
 import {Platform} from 'react-native';
 import {styles} from '../../assets/styles/ticket/TicketSTyles';
+import {useSelector} from 'react-redux';
+import {selectUserId} from '../../slice/Slice';
+import {STORAGE_KEY} from '../login/types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type TicketRouteProp = RouteProp<RootStackParamList, 'Ticket'>;
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -31,6 +35,27 @@ const Ticket: React.FC = () => {
   const [selectedImages, setSelectedImages] = useState<
     {uri: string; type: string; name: string}[]
   >([]);
+
+  const reduxUserId = useSelector(selectUserId);
+
+  const [userId, setUserId] = useState<number | null>(null);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const credentials = await AsyncStorage.getItem(STORAGE_KEY);
+        if (credentials) {
+          const parsedCredentials = JSON.parse(credentials);
+          setUserId(parsedCredentials.id ?? reduxUserId ?? null);
+        } else {
+          setUserId(reduxUserId ?? null);
+        }
+      } catch (error) {
+        setUserId(reduxUserId ?? null);
+      }
+    };
+    fetchUserData();
+  }, [reduxUserId]);
 
   const fetchChatMessages = useCallback(async () => {
     if (!ticketUuid) {
@@ -64,7 +89,7 @@ const Ticket: React.FC = () => {
             text: msg.message || '',
             images,
             timestamp: time,
-            isSent: msg.user.id === 2,
+            isSent: msg.user.id === userId,
           };
         });
         setMessages(fetchedMessages);
@@ -80,7 +105,7 @@ const Ticket: React.FC = () => {
         'Failed to fetch chat messages. Please check your network.',
       );
     }
-  }, [ticketUuid]);
+  }, [ticketUuid, userId]);
 
   const handleSelectImages = async () => {
     try {

@@ -1,7 +1,8 @@
 export interface Message {
   id: string;
-  text: string;
-  createdAt: any;
+  text?: string; // Optional for customer messages
+  message?: string; // Optional for seller messages
+  createdAt: any; // Firestore Timestamp or compatible type
   sender: string;
 }
 

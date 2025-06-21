@@ -1,5 +1,6 @@
 import React from 'react';
 import {View, Text, TouchableOpacity} from 'react-native';
+import * as Animatable from 'react-native-animatable';
 import {Formik} from 'formik';
 import {Icon} from 'react-native-elements';
 import {useNavigation} from '@react-navigation/native';
@@ -16,12 +17,14 @@ interface LoginFormProps {
   onSubmit: (values: {email: string; password: string}) => void;
   isChecked: boolean;
   setIsChecked: (checked: boolean) => void;
+  isLoading: boolean;
 }
 
 const LoginForm: React.FC<LoginFormProps> = ({
   onSubmit,
   isChecked,
   setIsChecked,
+  isLoading,
 }) => {
   const {theme} = React.useContext(ThemeContext);
   const navigation =
@@ -37,53 +40,81 @@ const LoginForm: React.FC<LoginFormProps> = ({
           <Text style={[styles.label, {color: theme.text || '#333'}]}>
             Email
           </Text>
-          <CustomTextInput
-            placeholder="Email"
-            value={values.email}
-            onChangeText={text => handleChange('email')(text as string)}
-          />
+          <Animatable.View animation="fadeIn" duration={800} delay={600}>
+            <CustomTextInput
+              placeholder="Email"
+              value={values.email}
+              onChangeText={text => handleChange('email')(text as string)}
+            />
+          </Animatable.View>
           {touched.email && errors.email && (
-            <Text style={styles.errorText}>{errors.email}</Text>
+            <Animatable.Text
+              animation="shake"
+              duration={500}
+              style={styles.errorText}>
+              {errors.email}
+            </Animatable.Text>
           )}
           <Text style={[styles.label, {color: theme.text || '#333'}]}>
             Password
           </Text>
-          <CustomTextInput
-            placeholder="Password"
-            secureTextEntry
-            value={values.password}
-            onChangeText={text => handleChange('password')(text as string)}
-          />
+          <Animatable.View animation="fadeIn" duration={800} delay={800}>
+            <CustomTextInput
+              placeholder="Password"
+              secureTextEntry
+              value={values.password}
+              onChangeText={text => handleChange('password')(text as string)}
+            />
+          </Animatable.View>
           {touched.password && errors.password && (
-            <Text style={styles.errorText}>{errors.password}</Text>
+            <Animatable.Text
+              animation="shake"
+              duration={500}
+              style={styles.errorText}>
+              {errors.password}
+            </Animatable.Text>
           )}
-          <View style={styles.options}>
-            <TouchableOpacity
-              style={styles.checkboxContainer}
-              onPress={() => setIsChecked(!isChecked)}>
-              <View
-                style={[styles.checkbox, isChecked && styles.checkboxChecked]}>
-                {isChecked && (
-                  <Icon
-                    name="checkmark"
-                    size={wp(3)}
-                    color="#fff"
-                    type="ionicon"
-                  />
-                )}
-              </View>
-              <Text
-                style={[styles.rememberText, {color: theme.text || '#333'}]}>
-                Remember me
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('Forget')}>
-              <Text style={[styles.forgotText, {color: theme.text || '#333'}]}>
-                Forgot Password?
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <CustomButton title="Login" onPress={handleSubmit} />
+          <Animatable.View animation="fadeIn" duration={800} delay={1000}>
+            <View style={styles.options}>
+              <TouchableOpacity
+                style={styles.checkboxContainer}
+                onPress={() => setIsChecked(!isChecked)}>
+                <Animatable.View
+                  animation={isChecked ? 'bounceIn' : 'bounceOut'}
+                  duration={300}
+                  style={[
+                    styles.checkbox,
+                    isChecked && styles.checkboxChecked,
+                  ]}>
+                  {isChecked && (
+                    <Icon
+                      name="checkmark"
+                      size={wp(3)}
+                      color="#fff"
+                      type="ionicon"
+                    />
+                  )}
+                </Animatable.View>
+                <Text
+                  style={[styles.rememberText, {color: theme.text || '#333'}]}>
+                  Remember me
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('Forget')}>
+                <Text
+                  style={[styles.forgotText, {color: theme.text || '#333'}]}>
+                  Forgot Password?
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </Animatable.View>
+          <Animatable.View animation="pulse" iterationCount={1} duration={1000}>
+            <CustomButton
+              title="Login"
+              onPress={handleSubmit}
+              disabled={isLoading}
+            />
+          </Animatable.View>
         </View>
       )}
     </Formik>

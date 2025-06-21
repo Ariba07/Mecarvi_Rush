@@ -3,7 +3,6 @@ import React, {useContext, useEffect, useState} from 'react';
 import {
   SafeAreaView,
   View,
-  Text,
   Keyboard,
   TouchableWithoutFeedback,
   Alert,
@@ -24,10 +23,10 @@ import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 import Header from '../../components/common/header/Header';
 import ProfileHeader from './ProfileHeader';
 import ProfileForm from './ProfileForm';
-
 import {heightPercentageToDP as hp} from 'react-native-responsive-screen';
 import {STORAGE_KEY} from '../login/types';
 import {styles} from '../../assets/styles/profile/ProfileStyles';
+import * as Animatable from 'react-native-animatable'; // Import animatable
 
 const Profile: React.FC = () => {
   const navigation =
@@ -42,7 +41,6 @@ const Profile: React.FC = () => {
   const [profileImage, setProfilePic] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [userUuid, setUserId] = useState<string | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
 
   useEffect(() => {
@@ -52,14 +50,11 @@ const Profile: React.FC = () => {
         if (credentials) {
           const parsedCredentials = JSON.parse(credentials);
           setUserName(parsedCredentials.name || reduxUserName);
-          setUserId(parsedCredentials.userUuid || user_uuid);
         } else {
           setUserName(reduxUserName ?? null);
-          setUserId(user_uuid ?? null);
         }
       } catch (error) {
         setUserName(reduxUserName ?? null);
-        setUserId(user_uuid ?? null);
       }
     };
     getUserId();
@@ -67,9 +62,6 @@ const Profile: React.FC = () => {
 
   useEffect(() => {
     const fetchProfileData = async () => {
-      if (!userUuid) {
-        return;
-      }
       try {
         setLoading(true);
         const response = await apiHelper({
@@ -100,7 +92,7 @@ const Profile: React.FC = () => {
       }
     };
     fetchProfileData();
-  }, [dispatch, userUuid]);
+  }, [dispatch]);
 
   const handleImagePick = () => {
     const options = {mediaType: 'photo' as const, quality: 1} as any;
@@ -171,14 +163,16 @@ const Profile: React.FC = () => {
         style={[styles.safeArea, {backgroundColor: theme.whole || '#F5F7FA'}]}>
         <View style={styles.container}>
           <Header title="Profile" onBackPress={() => navigation.goBack()} />
-          <Text
+          <Animatable.Text
+            animation="fadeIn"
+            duration={800}
             style={{
               textAlign: 'center',
               marginTop: hp(5),
               color: theme.text || '#333',
             }}>
             Loading...
-          </Text>
+          </Animatable.Text>
         </View>
       </SafeAreaView>
     );

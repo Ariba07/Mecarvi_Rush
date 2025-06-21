@@ -34,7 +34,7 @@ export const tabs = [
   {label: 'Processing', filter: 'Processing'},
   {label: 'Completed', filter: 'Completed'},
   {label: 'Cancelled', filter: 'Cancelled'},
-  {label: 'Disputes', filter: 'Disputes'},
+  {label: 'Disputed', filter: 'Disputed'},
   {label: 'Refunded', filter: 'Refunded'},
 ];
 

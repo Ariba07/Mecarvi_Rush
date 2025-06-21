@@ -1,7 +1,6 @@
 import {Alert} from 'react-native';
 import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 import {convertTo24HourFormat} from '../../components/helperUtils/timeFormat/TimeUtils';
-import {clearCart} from '../../slice/Slice';
 import {UserCard} from './types';
 
 interface CreateOrderParams {
@@ -32,7 +31,10 @@ export const createOrder = async ({
   try {
     const formattedTime = Time ? convertTo24HourFormat(Time) : '';
     if (addressType === 'delivery' && !addressId) {
-      Alert.alert('Please select a delivery address before proceeding.');
+      Alert.alert(
+        'Error',
+        'Please select a delivery address before proceeding.',
+      );
       throw new Error('User address ID is required for delivery');
     }
 
@@ -98,11 +100,15 @@ export const createOrder = async ({
     throw new Error('No valid order_uuid in response');
   } catch (error: any) {
     console.warn('Error creating order:', error);
-    Alert.alert(
-      error.response?.status === 500 ? 'Server Error' : 'Error',
+    const message =
       error.response?.status === 500
         ? 'An error occurred on the server while creating your order. Please try again later or contact support.'
-        : error.message || 'Failed to create order. Please try again.',
+        : error.response?.data?.message ||
+          error.message ||
+          'Failed to create order. Please try again.';
+    Alert.alert(
+      error.response?.status === 500 ? 'Server Error' : 'Error',
+      message,
     );
     return null;
   }
@@ -124,46 +130,99 @@ export const fetchUserCards = async (): Promise<UserCard[]> => {
 
 export const createPayment = async (
   orderUuid: string | null,
-  cardId: string,
+  cardId: string | null,
   navigation: any,
   dispatch: any,
+  addressType: string,
+  location: {latitude: number; longitude: number} | null,
+  paymentMethod: string,
+  orderPrice: number,
+  delivery: number,
 ) => {
   if (!orderUuid) {
     Alert.alert('Error', 'Order UUID is missing. Payment cannot proceed.');
-    return;
+    return false;
   }
+
+  if (
+    addressType === 'pickup' &&
+    (paymentMethod === 'stripe' || paymentMethod === 'wallet') &&
+    !location
+  ) {
+    Alert.alert('Error', 'Location is required for pickup payment.');
+    return false;
+  }
+
   try {
+    const endpoint =
+      paymentMethod === 'stripe'
+        ? `orders/${orderUuid}/stripe-payment`
+        : paymentMethod === 'wallet'
+        ? `orders/${orderUuid}/wallet-payment`
+        : `orders/${orderUuid}/paypal-payment`;
+
+    const data =
+      paymentMethod === 'stripe'
+        ? {
+            user_card_uuid: cardId,
+            ...(addressType === 'pickup' && {
+              pickup_location: {
+                latitude: location?.latitude,
+                longitude: location?.longitude,
+              },
+            }),
+          }
+        : {
+            balance:
+              addressType !== 'delivery' ? orderPrice - delivery : orderPrice,
+            ...(addressType === 'pickup' && {
+              pickup_location: {
+                latitude: location?.latitude,
+                longitude: location?.longitude,
+              },
+            }),
+          };
+
     await apiHelper({
       method: 'POST',
-      endpoint: `orders/${orderUuid}/stripe-payment`,
-      data: {user_card_uuid: cardId},
+      endpoint,
+      data,
     });
-    navigation.navigate('Receipt');
-    dispatch(clearCart());
+
+    return true;
   } catch (error) {
-    console.warn('Error creating payment:', error);
-    Alert.alert('Error', 'Payment failed. Please try again.');
+    console.warn(`Error initiating ${paymentMethod} payment:`, error);
+    Alert.alert(
+      'Error',
+      `Failed to initiate ${paymentMethod} payment. Please try again.`,
+    );
+    return false;
   }
 };
 
 export const createCard = async (
   paymentMethodId: string,
+  cardName: string,
   fetchUserCardsFn: () => Promise<UserCard[]>,
   setIsCardModalVisible: (visible: boolean) => void,
-) => {
+): Promise<string | null> => {
   try {
-    await apiHelper({
+    const response = (await apiHelper({
       method: 'POST',
       endpoint: 'user-cards/create',
       data: {
         stripe_payment_method_id: paymentMethodId,
-        card_name: 'Default Card', // Assuming a default name since cardName is managed in Checkout
+        card_name: cardName || 'Default Card',
       },
-    });
+    })) as {data: {user_card_uuid: string}};
+
     await fetchUserCardsFn();
     setIsCardModalVisible(true);
+
+    return response.data.user_card_uuid || null;
   } catch (error) {
     console.warn('Error creating card:', error);
     Alert.alert('Error', 'Failed to create card. Please try again.');
+    return null;
   }
 };

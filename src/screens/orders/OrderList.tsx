@@ -10,6 +10,7 @@ import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 import OrderCard from './OrderCard';
 import {Order, tabs} from './types';
 import {styles} from '../../assets/styles/orders/OrderStyles';
+import * as Animatable from 'react-native-animatable'; // Import animatable
 
 interface OrderListProps {
   orders: Order[];
@@ -87,26 +88,35 @@ const OrderList: React.FC<OrderListProps> = ({
         />
       </View>
       {isFirstLoad ? (
-        <View style={styles.noOrdersContainer}>
+        <Animatable.View
+          animation="bounceIn"
+          duration={800}
+          style={styles.noOrdersContainer}>
           <Text style={[styles.noOrdersText, {color: theme.text}]}>
             Loading orders...
           </Text>
-        </View>
+        </Animatable.View>
       ) : fetchOrdersError ? (
-        <View style={styles.noOrdersContainer}>
+        <Animatable.View
+          animation="bounceIn"
+          duration={800}
+          style={styles.noOrdersContainer}>
           <Text style={[styles.noOrdersText, {color: theme.text}]}>
             No Orders
           </Text>
           <TouchableOpacity style={styles.retryButton} onPress={onRefresh}>
             <Text style={styles.retryButtonText}>Retry</Text>
           </TouchableOpacity>
-        </View>
+        </Animatable.View>
       ) : filteredOrders.length === 0 ? (
-        <View style={styles.noOrdersContainer}>
+        <Animatable.View
+          animation="bounceIn"
+          duration={800}
+          style={styles.noOrdersContainer}>
           <Text style={[styles.noOrdersText, {color: theme.text}]}>
             No such orders yet
           </Text>
-        </View>
+        </Animatable.View>
       ) : (
         <FlatList
           data={filteredOrders}
@@ -130,19 +140,27 @@ const OrderList: React.FC<OrderListProps> = ({
               onRefresh={onRefresh}
               colors={['#00A19D']}
               tintColor={'#00A19D'}
+              title="Refreshing..."
+              titleColor={theme.text}
             />
           }
           onEndReached={onLoadMore}
           onEndReachedThreshold={0.2}
           ListFooterComponent={
             isLoadingMore ? (
-              <View style={styles.footerContainer}>
+              <Animatable.View
+                animation="fadeIn"
+                duration={600}
+                style={styles.footerContainer}>
                 <Text style={[styles.footerText, {color: theme.text}]}>
                   Loading more...
                 </Text>
-              </View>
+              </Animatable.View>
             ) : loadMoreError ? (
-              <View style={styles.footerContainer}>
+              <Animatable.View
+                animation="fadeIn"
+                duration={600}
+                style={styles.footerContainer}>
                 <Text style={[styles.footerText, {color: theme.text}]}>
                   No Orders
                 </Text>
@@ -151,7 +169,7 @@ const OrderList: React.FC<OrderListProps> = ({
                   onPress={onLoadMore}>
                   <Text style={styles.retryButtonText}>Retry</Text>
                 </TouchableOpacity>
-              </View>
+              </Animatable.View>
             ) : null
           }
         />

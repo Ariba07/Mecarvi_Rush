@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-inline-styles */
 import {
   FlatList,
   Platform,
@@ -25,6 +26,7 @@ import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 import {selectServiceUuid} from '../../slice/Slice';
 import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 import {useSelector} from 'react-redux';
+import * as Animatable from 'react-native-animatable';
 
 // Define the API response type
 interface ApiResponse {
@@ -35,13 +37,11 @@ const Products: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [searchQuery, setSearchQuery] = useState('');
-  const [fetchedProducts, setFetchedProducts] = useState<Productss[]>([]); // Source data
-  const [filteredProducts, setFilteredProducts] = useState<Productss[]>([]); // Filtered data
+  const [fetchedProducts, setFetchedProducts] = useState<Productss[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Productss[]>([]);
   const {theme} = useContext(ThemeContext);
   const serviceId = useSelector(selectServiceUuid);
-  // Use featured_image if available, otherwise fall back to a dummy image
 
-  // Fetch products when serviceId changes
   useEffect(() => {
     const fetchProducts = async () => {
       if (!serviceId) {
@@ -52,20 +52,18 @@ const Products: React.FC = () => {
       }
 
       try {
-        // Format category_id as an array (category_id[]=value)
         const queryString = `category_id[]=${serviceId}`;
         const endpoint = `products?${queryString}`;
-
         console.log('Fetching products with endpoint:', endpoint);
 
         const response: ApiResponse = await apiHelper({
           method: 'GET',
-          endpoint: endpoint, // e.g., products?category_id[]=83
+          endpoint: endpoint,
         });
 
         const products = response?.data || [];
-        setFetchedProducts(products); // Set source data
-        setFilteredProducts(products); // Initialize filtered data
+        setFetchedProducts(products);
+        setFilteredProducts(products);
       } catch (error: any) {
         console.warn('Error fetching products:', error.message || error);
         setFetchedProducts([]);
@@ -76,13 +74,12 @@ const Products: React.FC = () => {
     fetchProducts();
   }, [serviceId]);
 
-  // Filter products when searchQuery changes
   useEffect(() => {
     const filteredData = fetchedProducts.filter(item =>
       item.name.toLowerCase().includes(searchQuery.toLowerCase()),
     );
     setFilteredProducts(filteredData);
-  }, [searchQuery, fetchedProducts]); // Depend on searchQuery and fetchedProducts
+  }, [searchQuery, fetchedProducts]);
 
   return (
     <SafeAreaView
@@ -108,35 +105,51 @@ const Products: React.FC = () => {
           </View>
         </View>
 
-        {/* Product List */}
-        <FlatList
-          data={filteredProducts}
-          keyExtractor={item => item.product_uuid}
-          renderItem={({item}) => {
-            // Use featured_image if available, otherwise fall back to a dummy image
-            const imageSource = item.featured_image
-              ? {uri: item.featured_image}
-              : {
-                  uri: 'https://media.istockphoto.com/id/1147544807/vector/thumbnail-image-vector-graphic.jpg?s=612x612&w=0&k=20&c=rnCKVbdxqkjlcs3xH87-9gocETqpspHFXu5dIGB4wuM=',
-                };
-            return (
-              <ProductCard
-                key={item.id}
-                name={item.name}
-                price={item.price}
-                image={imageSource}
-                productUuid={item.product_uuid}
-              />
-            );
-          }}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={
-            <View style={styles.noResults}>
-              <Icon name="search-off" size={50} color="#888" />
-              <Text style={styles.noResultsText}>No products found</Text>
-            </View>
-          }
-        />
+        {/* Product List with animation */}
+        <Animatable.View
+          animation="fadeIn"
+          duration={400}
+          useNativeDriver
+          style={{flex: 1}}>
+          <FlatList
+            data={filteredProducts}
+            keyExtractor={item => item.product_uuid}
+            renderItem={({item, index}) => {
+              const imageSource = item.featured_image
+                ? {uri: item.featured_image}
+                : {
+                    uri: 'https://media.istockphoto.com/id/1147544807/vector/thumbnail-image-vector-graphic.jpg?s=612x612&w=0&k=20&c=rnCKVbdxqkjlcs3xH87-9gocETqpspHFXu5dIGB4wuM=',
+                  };
+
+              return (
+                <Animatable.View
+                  animation="fadeInUp"
+                  delay={index * 100}
+                  duration={500}
+                  useNativeDriver>
+                  <ProductCard
+                    key={item.id}
+                    name={item.name}
+                    price={item.price}
+                    image={imageSource}
+                    productUuid={item.product_uuid}
+                  />
+                </Animatable.View>
+              );
+            }}
+            showsVerticalScrollIndicator={false}
+            ListEmptyComponent={
+              <Animatable.View
+                animation="fadeIn"
+                duration={600}
+                useNativeDriver
+                style={styles.noResults}>
+                <Icon name="search-off" size={50} color="#888" />
+                <Text style={styles.noResultsText}>No products found</Text>
+              </Animatable.View>
+            }
+          />
+        </Animatable.View>
       </View>
     </SafeAreaView>
   );

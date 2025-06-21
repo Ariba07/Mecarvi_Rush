@@ -9,6 +9,7 @@ import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes
 import {Order, formatDate} from './types';
 import {widthPercentageToDP as wp} from 'react-native-responsive-screen';
 import {styles} from '../../assets/styles/orders/OrderStyles';
+import * as Animatable from 'react-native-animatable'; // Import animatable
 
 interface OrderCardProps {
   order: Order;
@@ -34,7 +35,11 @@ const OrderCard: React.FC<OrderCardProps> = ({
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   return (
-    <View style={styles.cardContainer}>
+    <Animatable.View
+      animation="fadeInUp"
+      duration={600}
+      delay={100} // Staggered delay for multiple cards
+      style={styles.cardContainer}>
       <TouchableOpacity
         style={[styles.card, {backgroundColor: theme.backgroundColor}]}
         onPress={() => onOpenOrderModal(order)}>
@@ -51,24 +56,29 @@ const OrderCard: React.FC<OrderCardProps> = ({
                     <TouchableOpacity
                       style={styles.menuButton}
                       onPress={() => onOpenCancelModal(order.order_uuid)}>
-                      <Icon
-                        name="ellipsis-vertical-outline"
-                        size={wp(5)}
-                        color={theme.text}
-                        type="ionicon"
-                      />
+                      <Animatable.View>
+                        <Icon
+                          name="ellipsis-vertical-outline"
+                          size={wp(5)}
+                          color={theme.text}
+                          type="ionicon"
+                        />
+                      </Animatable.View>
                     </TouchableOpacity>
                   )}
                   {order.status === 'Completed' && (
                     <TouchableOpacity
                       style={styles.menuButton}
-                      onPress={() => onOpenDisputeModal(order.id)}>
-                      <Icon
-                        name="ellipsis-vertical-outline"
-                        size={wp(5)}
-                        color={theme.text}
-                        type="ionicon"
-                      />
+                      onPress={() => onOpenDisputeModal(order.id)}
+                    >
+                      <Animatable.View>
+                        <Icon
+                          name="ellipsis-vertical-outline"
+                          size={wp(5)}
+                          color={theme.text}
+                          type="ionicon"
+                        />
+                      </Animatable.View>
                     </TouchableOpacity>
                   )}
                 </>
@@ -143,7 +153,7 @@ const OrderCard: React.FC<OrderCardProps> = ({
           </View>
         </View>
       </TouchableOpacity>
-    </View>
+    </Animatable.View>
   );
 };
 

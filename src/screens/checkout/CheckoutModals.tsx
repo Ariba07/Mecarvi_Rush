@@ -17,7 +17,7 @@ interface CardSelectionModalProps {
   theme: any;
 }
 
-const CardSelectionModal: React.FC<CardSelectionModalProps> = ({
+export const CardSelectionModal: React.FC<CardSelectionModalProps> = ({
   isVisible,
   onClose,
   userCards,

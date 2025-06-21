@@ -51,7 +51,7 @@ export const styles = StyleSheet.create({
     marginBottom: hp(1),
   },
   imagePreview: {
-    width: '100%',
+    width: '110%',
     height: hp(20),
     borderRadius: 10,
     resizeMode: 'cover',

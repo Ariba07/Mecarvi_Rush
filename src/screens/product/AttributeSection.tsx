@@ -1,6 +1,13 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useState} from 'react';
-import {View, Text, TextInput, TouchableOpacity, Image} from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Image,
+  Alert,
+} from 'react-native';
 import {
   heightPercentageToDP as hp,
   widthPercentageToDP as wp,
@@ -58,6 +65,51 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
 }) => {
   const dispatch = useDispatch();
   const [quantity, setQuantity] = useState(1);
+
+  // Pre-select the first option for each attribute and size on mount or when attributes/productData change
+  useEffect(() => {
+    // Pre-select first attribute options
+    const defaultAttributeValues: {[key: string]: string} = {};
+    let hasNewAttributes = false;
+    attributes.forEach(attr => {
+      if (
+        attr.options &&
+        attr.options.length > 0 &&
+        !attributeValues[attr.key]
+      ) {
+        defaultAttributeValues[attr.key] = attr.options[0];
+        hasNewAttributes = true;
+      }
+    });
+
+    if (hasNewAttributes) {
+      setAttributeValues({
+        ...attributeValues,
+        ...defaultAttributeValues,
+      });
+    }
+
+    // Pre-select first size option if available
+    if (
+      productData?.size_variations &&
+      productData.size_variations.length > 0 &&
+      !selectedSize
+    ) {
+      setSelectedSize(productData.size_variations[0].size_name);
+    }
+  }, [
+    attributeValues,
+    attributes,
+    productData,
+    selectedSize,
+    setAttributeValues,
+    setSelectedSize,
+  ]);
+
+  // Optional: Log attributeValues for debugging in a separate effect
+  useEffect(() => {
+    console.log('Updated attributeValues:', attributeValues);
+  }, [attributeValues]);
 
   const handleChange = (
     key: string,
@@ -117,8 +169,24 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
     };
   };
 
+  const validateSelections = () => {
+    if (colorOptions.length > 0 && !selectedColor) {
+      Alert.alert('Error', 'Please select a color before proceeding.');
+      return false;
+    }
+    if (
+      productData?.size_variations &&
+      productData.size_variations.length > 0 &&
+      !selectedSize
+    ) {
+      Alert.alert('Error', 'Please select a size before proceeding.');
+      return false;
+    }
+    return true;
+  };
+
   const handleChooseForMe = () => {
-    if (!productUuid || !productData) {
+    if (!productUuid || !productData || !validateSelections()) {
       return;
     }
 
@@ -130,13 +198,12 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
   };
 
   const handleRequestQuote = async () => {
-    if (!productUuid || !productData) {
+    if (!productUuid || !productData || !validateSelections()) {
       return;
     }
 
     const cartItem = createCartItem();
 
-    // Prepare form-data for the API request
     const formData = new FormData();
     formData.append('product_id', cartItem.id.toString());
     formData.append('quantity', cartItem.quantity?.toString() || '1');
@@ -175,14 +242,14 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
       console.log('Quote Request Response:', result);
       navigation.navigate('Quote');
     } catch (error) {
-      console.warn('Error making quote request:', error);
+      console.error('Error making quote request:', error);
     }
 
     dispatch(setSourceType('quote'));
   };
 
   const handleMarketplace = () => {
-    if (!productUuid || !productData) {
+    if (!productUuid || !productData || !validateSelections()) {
       return;
     }
 
@@ -200,7 +267,7 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
     <View style={styles.attributeContainer}>
       {productData?.size_variations.length > 0 && (
         <View style={{marginBottom: hp(2)}}>
-          <Text style={[styles.label, {color: theme.text}]}>Size</Text>
+          <Text style={[styles.label, {color: theme.text}]}>Size *</Text>
           <CustomTextInput
             placeholder="Select Size"
             value={selectedSize || ''}
@@ -226,7 +293,7 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
       ))}
       {colorOptions.length > 0 && (
         <>
-          <Text style={[styles.label, {color: theme.text}]}>Color</Text>
+          <Text style={[styles.label, {color: theme.text}]}>Color *</Text>
           <View style={styles.colorOptionsContainer}>
             {colorOptions.map((color: string, index: number) => (
               <TouchableOpacity

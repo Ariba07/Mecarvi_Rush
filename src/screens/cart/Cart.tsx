@@ -27,6 +27,7 @@ import {
   decrementQuantity,
   setTotalPrice,
 } from '../../slice/Slice';
+import * as Animatable from 'react-native-animatable'; // Import react-native-animatable
 
 const Cart = () => {
   const navigation =
@@ -59,8 +60,18 @@ const Cart = () => {
   const total = subtotal + delivery + loyaltyPoints;
 
   // Render each cart item
-  const renderItem = ({item}: {item: (typeof cartItems)[0]}) => (
-    <View style={[styles.itemCard, {backgroundColor: theme.backgroundColor}]}>
+  const renderItem = ({
+    item,
+    index,
+  }: {
+    item: (typeof cartItems)[0];
+    index: number;
+  }) => (
+    <Animatable.View
+      animation="fadeInUp"
+      duration={600}
+      delay={index * 100} // Staggered animation for each item
+      style={[styles.itemCard, {backgroundColor: theme.backgroundColor}]}>
       <Image
         source={{
           uri:
@@ -88,7 +99,9 @@ const Cart = () => {
         <TouchableOpacity
           onPress={() => decreaseQuantity(item.productUuid)}
           style={[styles.quantityButton, {backgroundColor: '#D3D3D380'}]}>
-          <Text style={[styles.quantityText, {color: '#30a7a7'}]}>-</Text>
+          <Animatable.View>
+            <Text style={[styles.quantityText, {color: '#30a7a7'}]}>-</Text>
+          </Animatable.View>
         </TouchableOpacity>
         <Text style={[styles.quantity, {color: theme.text}]}>
           {item.quantity}
@@ -96,10 +109,12 @@ const Cart = () => {
         <TouchableOpacity
           onPress={() => increaseQuantity(item.productUuid)}
           style={[styles.quantityButton, {backgroundColor: '#30a7a7'}]}>
-          <Text style={[styles.quantityText, {color: '#ffffff'}]}>+</Text>
+          <Animatable.View>
+            <Text style={[styles.quantityText, {color: '#ffffff'}]}>+</Text>
+          </Animatable.View>
         </TouchableOpacity>
       </View>
-    </View>
+    </Animatable.View>
   );
 
   return (
@@ -112,13 +127,17 @@ const Cart = () => {
           keyExtractor={item => item.productUuid}
           contentContainerStyle={styles.list}
           ListEmptyComponent={
-            <Text style={{textAlign: 'center', color: theme.text}}>
-              Your cart is empty
-            </Text>
+            <Animatable.View animation="bounceIn" duration={800}>
+              <Text style={{textAlign: 'center', color: theme.text}}>
+                Your cart is empty
+              </Text>
+            </Animatable.View>
           }
         />
         {cartItems.length > 0 && (
-          <View
+          <Animatable.View
+            animation="slideInUp"
+            duration={600}
             style={[
               styles.summaryContainer,
               {backgroundColor: theme.backgroundColor},
@@ -152,14 +171,16 @@ const Cart = () => {
               <Text style={[styles.totalText, {color: theme.text}]}>TOTAL</Text>
               <Text style={styles.totalValue}>${total.toFixed(2)}</Text>
             </View>
-            <CustomButton
-              title="Schedule"
-              onPress={() => {
-                navigation.navigate('Schedule');
-                dispatch(setTotalPrice(total));
-              }}
-            />
-          </View>
+            <Animatable.View animation="bounceIn" duration={800}>
+              <CustomButton
+                title="Schedule"
+                onPress={() => {
+                  navigation.navigate('Schedule');
+                  dispatch(setTotalPrice(total));
+                }}
+              />
+            </Animatable.View>
+          </Animatable.View>
         )}
       </View>
     </SafeAreaView>

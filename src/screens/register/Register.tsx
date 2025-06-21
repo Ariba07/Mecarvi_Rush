@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useContext} from 'react';
+import React, {useContext, useState} from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import {
   Keyboard,
   Dimensions,
 } from 'react-native';
+import * as Animatable from 'react-native-animatable';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -28,19 +29,19 @@ import {registerCustomerValidationSchema} from '../../components/helperUtils/val
 import {updateCustomerField} from '../../slice/Slice';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
-const {width, height} = Dimensions.get('window'); // Get screen dimensions
+const {width, height} = Dimensions.get('window');
 
-const Register = () => {
+const Register: React.FC = () => {
   const dispatch = useDispatch();
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const {theme} = useContext(ThemeContext); // Access theme
+  const {theme} = useContext(ThemeContext);
+  const [countryCode, setCountryCode] = useState<string>('+1'); // Default country code
 
-  // Determine the background image based on the theme
   const backgroundImage =
     theme.backgroundColor === '#ffffff'
-      ? require('../../assets/images/BG.png') // Light theme
-      : require('../../assets/images/dark.png'); // Dark theme
+      ? require('../../assets/images/BG.png')
+      : require('../../assets/images/dark.png');
 
   const handleNext = (values: {
     name: string;
@@ -48,11 +49,14 @@ const Register = () => {
     phoneNumber: string;
     password: string;
   }) => {
-    // Dispatch each field to Redux store
+    // Concatenate country code with phone number
+    const fullPhoneNumber = `${countryCode}${values.phoneNumber}`;
+
+    // Dispatch to Redux store
     dispatch(updateCustomerField({field: 'fullName', value: values.name}));
     dispatch(updateCustomerField({field: 'email', value: values.email}));
     dispatch(
-      updateCustomerField({field: 'phoneNumber', value: values.phoneNumber}),
+      updateCustomerField({field: 'phoneNumber', value: fullPhoneNumber}),
     );
     dispatch(updateCustomerField({field: 'password', value: values.password}));
 
@@ -67,16 +71,29 @@ const Register = () => {
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             style={styles.container}>
-            <View style={styles.logoView}>
+            <Animatable.View
+              animation="bounceInDown"
+              duration={1000}
+              style={styles.logoView}>
               <Image
                 source={require('../../assets/images/headerLogo.png')}
                 style={styles.logo}
               />
-            </View>
+            </Animatable.View>
 
-            <Text style={styles.title}>Registration</Text>
+            <Animatable.Text
+              animation="fadeIn"
+              duration={800}
+              delay={300}
+              style={styles.title}>
+              Registration
+            </Animatable.Text>
 
-            <View style={{height: hp(65), marginTop: hp(2)}}>
+            <Animatable.View
+              animation="fadeInUp"
+              duration={1000}
+              delay={300}
+              style={{height: hp(65), marginTop: hp(2)}}>
               <ScrollView
                 contentContainerStyle={styles.scrollContainer}
                 keyboardShouldPersistTaps="handled"
@@ -96,86 +113,138 @@ const Register = () => {
                       <Text style={[styles.label, {color: theme.text}]}>
                         Full Name
                       </Text>
-                      <CustomTextInput
-                        placeholder="Full Name"
-                        value={values.name}
-                        onChangeText={text =>
-                          handleChange('name')(text as string)
-                        }
-                      />
+                      <Animatable.View
+                        animation="fadeIn"
+                        duration={800}
+                        delay={600}>
+                        <CustomTextInput
+                          placeholder="Full Name"
+                          value={values.name}
+                          onChangeText={text =>
+                            handleChange('name')(text as string)
+                          }
+                        />
+                      </Animatable.View>
                       {touched.name && errors.name && (
-                        <Text style={styles.errorText}>{errors.name}</Text>
+                        <Animatable.Text
+                          animation="shake"
+                          duration={500}
+                          style={styles.errorText}>
+                          {errors.name}
+                        </Animatable.Text>
                       )}
 
                       <Text style={[styles.label, {color: theme.text}]}>
                         Email
                       </Text>
-                      <CustomTextInput
-                        placeholder="Email"
-                        value={values.email}
-                        onChangeText={text =>
-                          handleChange('email')(text as string)
-                        }
-                      />
+                      <Animatable.View
+                        animation="fadeIn"
+                        duration={800}
+                        delay={800}>
+                        <CustomTextInput
+                          placeholder="Email"
+                          value={values.email}
+                          onChangeText={text =>
+                            handleChange('email')(text as string)
+                          }
+                        />
+                      </Animatable.View>
                       {touched.email && errors.email && (
-                        <Text style={styles.errorText}>{errors.email}</Text>
+                        <Animatable.Text
+                          animation="shake"
+                          duration={500}
+                          style={styles.errorText}>
+                          {errors.email}
+                        </Animatable.Text>
                       )}
 
                       <Text style={[styles.label, {color: theme.text}]}>
-                        Phone Number
+                        Phone Number (select country code)
                       </Text>
-                      <CustomTextInput
-                        placeholder="Phone Number"
-                        value={values.phoneNumber}
-                        onChangeText={text =>
-                          handleChange('phoneNumber')(text as string)
-                        }
-                      />
+                      <Animatable.View
+                        animation="fadeIn"
+                        duration={800}
+                        delay={1000}>
+                        <CustomTextInput
+                          placeholder="Phone Number"
+                          isPhoneNumber
+                          value={values.phoneNumber}
+                          onChangeText={text =>
+                            handleChange('phoneNumber')(text as string)
+                          }
+                          onCountryCodeChange={setCountryCode}
+                        />
+                      </Animatable.View>
                       {touched.phoneNumber && errors.phoneNumber && (
-                        <Text style={styles.errorText}>
+                        <Animatable.Text
+                          animation="shake"
+                          duration={500}
+                          style={styles.errorText}>
                           {errors.phoneNumber}
-                        </Text>
+                        </Animatable.Text>
                       )}
 
                       <Text style={[styles.label, {color: theme.text}]}>
                         Password
                       </Text>
-                      <CustomTextInput
-                        placeholder="Password"
-                        secureTextEntry
-                        value={values.password}
-                        onChangeText={text =>
-                          handleChange('password')(text as string)
-                        }
-                      />
+                      <Animatable.View
+                        animation="fadeIn"
+                        duration={800}
+                        delay={1200}>
+                        <CustomTextInput
+                          placeholder="Password"
+                          secureTextEntry
+                          value={values.password}
+                          onChangeText={text =>
+                            handleChange('password')(text as string)
+                          }
+                        />
+                      </Animatable.View>
                       {touched.password && errors.password && (
-                        <Text style={styles.errorText}>{errors.password}</Text>
+                        <Animatable.Text
+                          animation="shake"
+                          duration={500}
+                          style={styles.errorText}>
+                          {errors.password}
+                        </Animatable.Text>
                       )}
 
                       <Text style={[styles.label, {color: theme.text}]}>
                         Confirm Password
                       </Text>
-                      <CustomTextInput
-                        placeholder="Confirm Password"
-                        secureTextEntry
-                        value={values.confirmPassword}
-                        onChangeText={text =>
-                          handleChange('confirmPassword')(text as string)
-                        }
-                      />
+                      <Animatable.View
+                        animation="fadeIn"
+                        duration={800}
+                        delay={1400}>
+                        <CustomTextInput
+                          placeholder="Confirm Password"
+                          secureTextEntry
+                          value={values.confirmPassword}
+                          onChangeText={text =>
+                            handleChange('confirmPassword')(text as string)
+                          }
+                        />
+                      </Animatable.View>
                       {touched.confirmPassword && errors.confirmPassword && (
-                        <Text style={styles.errorText}>
+                        <Animatable.Text
+                          animation="shake"
+                          duration={500}
+                          style={styles.errorText}>
                           {errors.confirmPassword}
-                        </Text>
+                        </Animatable.Text>
                       )}
 
-                      {/* Register Button */}
-                      <CustomButton title="Next" onPress={handleSubmit} />
+                      <Animatable.View
+                        animation="pulse"
+                        iterationCount={1}
+                        duration={1000}>
+                        <CustomButton title="Next" onPress={handleSubmit} />
+                      </Animatable.View>
                     </>
                   )}
                 </Formik>
               </ScrollView>
-            </View>
+            </Animatable.View>
           </KeyboardAvoidingView>
         </ImageBackground>
       </View>

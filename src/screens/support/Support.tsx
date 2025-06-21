@@ -19,11 +19,12 @@ import SupportIcon from '../../assets/images/Support.svg';
 import MailIcon from '../../assets/images/Mail.svg';
 import {Icon} from 'react-native-elements';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import * as Animatable from 'react-native-animatable'; // Import animatable
 
 const Support = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
+  const {theme} = useContext(ThemeContext);
 
   return (
     <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
@@ -32,24 +33,31 @@ const Support = () => {
           title="Customer Support"
           onBackPress={() => navigation.goBack()}
         />
-        <View style={styles.iconContainer}>
+        <Animatable.View
+          animation="zoomIn"
+          duration={800}
+          style={styles.iconContainer}>
           <SupportIcon width={wp(35)} height={wp(35)} />
-        </View>
-        <TouchableOpacity
-          style={[styles.button, {backgroundColor: theme.backgroundColor}]}
-          onPress={() => navigation.navigate('AllTicket')}>
-          <View style={styles.buttonContent}>
-            <MailIcon width={wp(5)} height={wp(5)} />
-            <Text style={[styles.buttonText, {color: theme.text}]}>
-              Sent us a message
-            </Text>
-          </View>
-          <Icon
-            name="chevron-forward"
-            color={theme.text}
-            size={wp(4)}
-            type="ionicon"
-          />
+        </Animatable.View>
+        <TouchableOpacity onPress={() => navigation.navigate('AllTicket')}>
+          <Animatable.View
+            animation="fadeInUp"
+            duration={600}
+            delay={200}
+            style={[styles.button, {backgroundColor: theme.backgroundColor}]}>
+            <View style={styles.buttonContent}>
+              <MailIcon width={wp(5)} height={wp(5)} />
+              <Text style={[styles.buttonText, {color: theme.text}]}>
+                Sent us a message
+              </Text>
+            </View>
+            <Icon
+              name="chevron-forward"
+              color={theme.text}
+              size={wp(4)}
+              type="ionicon"
+            />
+          </Animatable.View>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -64,7 +72,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: Platform.select({
-      ios: wp(6), // Slightly more padding on iOS
+      ios: wp(6),
       android: wp(5),
     }),
   },

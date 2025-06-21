@@ -1,5 +1,6 @@
 import React from 'react';
 import {View, TouchableOpacity, Text, Animated, Easing} from 'react-native';
+import * as Animatable from 'react-native-animatable';
 import {styles} from '../../assets/styles/product/Product';
 import {tabs} from './Product';
 
@@ -29,21 +30,25 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
   return (
     <View style={styles.tabContainer}>
       {tabs.map((tab, index) => (
-        <TouchableOpacity
+        <Animatable.View
           key={index}
-          style={styles.tabButton}
-          onPress={() => animateUnderline(index)}>
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === index && [
-                styles.activeTabText,
-                {color: theme.input},
-              ],
-            ]}>
-            {tab}
-          </Text>
-        </TouchableOpacity>
+          animation="zoomIn"
+          duration={600}
+          delay={index * 200}
+          style={styles.tabButton}>
+          <TouchableOpacity onPress={() => animateUnderline(index)}>
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === index && [
+                  styles.activeTabText,
+                  {color: theme.input},
+                ],
+              ]}>
+              {tab}
+            </Text>
+          </TouchableOpacity>
+        </Animatable.View>
       ))}
       <Animated.View style={[styles.underline, {transform: [{translateX}]}]} />
     </View>

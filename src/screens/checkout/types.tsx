@@ -1,9 +1,16 @@
-export interface PaymentOption {
-  id: string;
+export interface VerifyScreenProps {
+  title: string;
   label: string;
-  logoUrl: string;
-  selected: boolean;
-  balance?: string;
+  imageSource: any;
+}
+
+export interface ImageData {
+  uri: string;
+  type: string;
+  name: string;
+  fileSize?: number;
+  width?: number;
+  height?: number;
 }
 
 export interface UserCard {
@@ -20,7 +27,10 @@ export interface UserCard {
   updated_at: string;
 }
 
-export type RootStackParamList = {
-  Receipt: undefined;
-  // Add other screen types as needed
-};
+export interface PaymentOption {
+  id: string;
+  label: string;
+  logoUrl: string;
+  selected: boolean;
+  balance?: string;
+}

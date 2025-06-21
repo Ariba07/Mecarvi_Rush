@@ -22,6 +22,7 @@ import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 import {setServiceUuid} from '../../slice/Slice';
 import {useDispatch} from 'react-redux';
+import * as Animatable from 'react-native-animatable';
 
 const Service: React.FC = () => {
   const navigation =
@@ -82,13 +83,11 @@ const Service: React.FC = () => {
 
   const handleCategoryPress = (category: any) => {
     if (category.children > 0) {
-      // Navigate to ChildCategories if there are child categories
       navigation.navigate('ChildCategories', {
         categoryId: category.id,
         categoryName: category.name,
       });
     } else {
-      // Navigate to Products if no child categories
       dispatch(setServiceUuid(category.id));
       navigation.navigate('Products');
     }
@@ -102,22 +101,26 @@ const Service: React.FC = () => {
           data={categories}
           numColumns={3}
           keyExtractor={item => item.id.toString()}
-          renderItem={({item}) => (
-            <TouchableOpacity
+          renderItem={({item, index}) => (
+            <Animatable.View
+              animation="fadeInUp"
+              duration={800}
+              delay={index * 100} // Staggered delay based on index
               style={[
                 styles.serviceCard,
                 {backgroundColor: theme.backgroundColor},
-              ]}
-              onPress={() => handleCategoryPress(item)}>
-              <Image
-                source={{uri: item.icon || 'https://via.placeholder.com/50'}}
-                style={styles.serviceImage}
-                resizeMode="contain"
-              />
-              <Text style={[styles.serviceName, {color: theme.text}]}>
-                {item.name}
-              </Text>
-            </TouchableOpacity>
+              ]}>
+              <TouchableOpacity onPress={() => handleCategoryPress(item)}>
+                <Image
+                  source={{uri: item.icon || 'https://via.placeholder.com/50'}}
+                  style={styles.serviceImage}
+                  resizeMode="contain"
+                />
+                <Text style={[styles.serviceName, {color: theme.text}]}>
+                  {item.name}
+                </Text>
+              </TouchableOpacity>
+            </Animatable.View>
           )}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContainer}

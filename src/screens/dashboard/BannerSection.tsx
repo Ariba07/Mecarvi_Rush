@@ -1,6 +1,7 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, {useState} from 'react';
 import {View, FlatList, Image} from 'react-native';
+import * as Animatable from 'react-native-animatable';
 import {styles} from '../../assets/styles/dashboard/DashboardStyles';
 import {
   widthPercentageToDP as wp,
@@ -20,17 +21,22 @@ const BannerSection: React.FC<BannerSectionProps> = ({banners}) => {
   const [activeIndex, setActiveIndex] = useState(0);
 
   const renderBanner = ({item}: {item: Banner}) => (
-    <View style={styles.bannerContainer}>
-      <Image
-        source={{uri: item.image_url}}
-        style={styles.banner}
-        resizeMode="cover"
-      />
-    </View>
+    <Animatable.View animation="fadeIn" duration={800} delay={300}>
+      <View style={styles.bannerContainer}>
+        <Image
+          source={{uri: item.image_url}}
+          style={styles.banner}
+          resizeMode="cover"
+        />
+      </View>
+    </Animatable.View>
   );
 
   return (
-    <View style={{marginHorizontal: hp('2%')}}>
+    <Animatable.View
+      animation="slideInLeft"
+      duration={1000}
+      style={{marginHorizontal: hp('2%')}}>
       <FlatList
         data={banners}
         horizontal
@@ -50,8 +56,10 @@ const BannerSection: React.FC<BannerSectionProps> = ({banners}) => {
       />
       <View style={styles.dotContainer}>
         {banners.map((_, index) => (
-          <View
+          <Animatable.View
             key={index}
+            animation={index === activeIndex ? 'bounceIn' : 'fadeIn'}
+            duration={300}
             style={[
               styles.dot,
               {backgroundColor: index === activeIndex ? '#FF00A7' : '#cccccc'},
@@ -59,7 +67,7 @@ const BannerSection: React.FC<BannerSectionProps> = ({banners}) => {
           />
         ))}
       </View>
-    </View>
+    </Animatable.View>
   );
 };
 

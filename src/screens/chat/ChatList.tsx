@@ -2,11 +2,11 @@ import React from 'react';
 import {FlatList, TouchableOpacity, Text} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 import {
   Chat,
   RootStackParamList,
 } from '../../components/types/screenTypes/ScreenTypes';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 import {styles} from '../../assets/styles/chats/ChatsStyles';
 
 interface ChatListProps {
@@ -26,6 +26,8 @@ const ChatList: React.FC<ChatListProps> = ({chats, currentUserUuid}) => {
         ? item.participantNames[otherParticipant]
         : 'Unknown';
     const isSender = item.lastMessage?.sender === currentUserUuid;
+    const messageText =
+      item.lastMessage?.text || item.lastMessage?.message || '';
 
     return (
       <TouchableOpacity
@@ -43,8 +45,8 @@ const ChatList: React.FC<ChatListProps> = ({chats, currentUserUuid}) => {
         {item.lastMessage ? (
           <Text style={[styles.lastMessage, {color: theme.text}]}>
             {isSender
-              ? `You: ${item.lastMessage.text}`
-              : `${otherParticipantName}: ${item.lastMessage.text}`}
+              ? `You: ${messageText}`
+              : `${otherParticipantName}: ${messageText}`}
           </Text>
         ) : (
           <Text style={[styles.lastMessage, {color: theme.text}]}>

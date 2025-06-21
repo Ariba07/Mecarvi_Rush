@@ -1,5 +1,6 @@
 import React from 'react';
-import {View, Text, Image, TouchableOpacity} from 'react-native';
+import {View, Text, TouchableOpacity} from 'react-native';
+import * as Animatable from 'react-native-animatable';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 import {ImageData} from './types';
 import {styles} from '../../assets/styles/verifyScreen/VerifyScreenStyles';
@@ -29,13 +30,33 @@ const ImageCapture: React.FC<ImageCaptureProps> = ({
       <TouchableOpacity onPress={onCapture}>
         <View style={styles.box}>
           {label === 'CNIC Front Picture' && cnicImage ? (
-            <Image source={{uri: cnicImage.uri}} style={styles.imagePreview} />
+            <Animatable.Image
+              animation="fadeIn"
+              duration={800}
+              source={{uri: cnicImage.uri}}
+              style={styles.imagePreview}
+            />
           ) : label === 'Credit Card Picture' && cardImage ? (
-            <Image source={{uri: cardImage.uri}} style={styles.imagePreview} />
+            <Animatable.Image
+              animation="fadeIn"
+              duration={800}
+              source={{uri: cardImage.uri}}
+              style={styles.imagePreview}
+            />
           ) : label === 'Live Photo' && photoImage ? (
-            <Image source={{uri: photoImage.uri}} style={styles.imagePreview} />
+            <Animatable.Image
+              animation="fadeIn"
+              duration={800}
+              source={{uri: photoImage.uri}}
+              style={styles.imagePreview}
+            />
           ) : (
-            <Image style={styles.icon} source={imageSource} />
+            <Animatable.Image
+              animation="fadeIn"
+              duration={800}
+              style={styles.icon}
+              source={imageSource}
+            />
           )}
         </View>
       </TouchableOpacity>

@@ -133,7 +133,15 @@ const authSlice = createSlice({
     updateCard: (state, action: PayloadAction<ImageData | null>) => {
       state.card = action.payload;
     },
-
+    setWalletBalance: (state, action: PayloadAction<number>) => {
+      state.walletBalance = action.payload;
+    },
+    setPointsEarned: (state, action: PayloadAction<number>) => {
+      state.pointsEarned = action.payload;
+    },
+    setPointUsed: (state, action: PayloadAction<number>) => {
+      state.pointsUsed = action.payload;
+    },
     setAddressId: (state, action: PayloadAction<number>) => {
       state.addressId = action.payload;
     },
@@ -403,6 +411,9 @@ export const {
   setQuoteUuid,
   setSubscriptionStatus,
   setProfileImage,
+  setWalletBalance,
+  setPointUsed,
+  setPointsEarned,
 } = authSlice.actions;
 
 export default authSlice.reducer;

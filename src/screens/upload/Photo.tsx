@@ -5,6 +5,6 @@ export const Photo = () => (
   <VerifyScreen
     title="Verify identity"
     label="Live Photo"
-    imageSource={require('../../assets/images/live.png')}
+    imageSource={require('../../assets/images/card.png')}
   />
 );

@@ -1,6 +1,7 @@
 /* eslint-disable react-native/no-inline-styles */
 import React from 'react';
-import {View, Text, FlatList} from 'react-native';
+import {View, Text} from 'react-native';
+import * as Animatable from 'react-native-animatable';
 import {Productss} from '../../components/types/screenTypes/ScreenTypes';
 import ProductCard from '../../components/common/productCard/ProductCard';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
@@ -26,6 +27,7 @@ const FeaturedProductsSection: React.FC<FeaturedProductsSectionProps> = ({
   sectionType,
 }) => {
   const {theme} = React.useContext(ThemeContext);
+
   const getSectionTitle = () => {
     const titles = {
       featured: 'Featured',
@@ -43,44 +45,47 @@ const FeaturedProductsSection: React.FC<FeaturedProductsSectionProps> = ({
   };
 
   return (
-    <View style={styles.section}>
-      <Text style={[styles.sectionTitle, {color: theme.text || '#333'}]}>
-        {getSectionTitle()}
-      </Text>
-      {products.length > 0 ? (
-        <FlatList
-          data={products.slice(0, 5)}
-          horizontal
-          keyExtractor={item => item.id.toString()}
-          showsHorizontalScrollIndicator={false}
-          renderItem={({item}) => (
-            <ProductCard
-              key={item.id}
-              productUuid={item.product_uuid}
-              name={item.name}
-              price={item.price}
-              image={
-                item.featured_image
-                  ? {uri: item.featured_image}
-                  : {
-                      uri: 'https://media.istockphoto.com/id/1147544807/vector/thumbnail-image-vector-graphic.jpg?s=612x612&w=0&k=20&c=rnCKVbdxqkjlcs3xH87-9gocETqpspHFXu5dIGB4wuM=',
-                    }
-              }
-            />
-          )}
-          contentContainerStyle={{paddingVertical: 10}}
-        />
-      ) : (
-        <Text
-          style={{
-            color: theme.text || '#333',
-            textAlign: 'center',
-            padding: 10,
-          }}>
-          No products available
+    <Animatable.View animation="fadeInUp" duration={1000}>
+      <View style={styles.section}>
+        <Text style={[styles.sectionTitle, {color: theme.text || '#333'}]}>
+          {getSectionTitle()}
         </Text>
-      )}
-    </View>
+
+        {products.length > 0 ? (
+          <View style={{paddingVertical: 10}}>
+            {products.slice(0, 6).map((item, index) => (
+              <Animatable.View
+                key={item.id}
+                animation="fadeIn"
+                duration={800}
+                delay={index * 200}>
+                <ProductCard
+                  productUuid={item.product_uuid}
+                  name={item.name}
+                  price={item.price}
+                  image={
+                    item.featured_image
+                      ? {uri: item.featured_image}
+                      : {
+                          uri: 'https://media.istockphoto.com/id/1147544807/vector/thumbnail-image-vector-graphic.jpg?s=612x612&w=0&k=20&c=rnCKVbdxqkjlcs3xH87-9gocETqpspHFXu5dIGB4wuM=',
+                        }
+                  }
+                />
+              </Animatable.View>
+            ))}
+          </View>
+        ) : (
+          <Text
+            style={{
+              color: theme.text || '#333',
+              textAlign: 'center',
+              padding: 10,
+            }}>
+            No products available
+          </Text>
+        )}
+      </View>
+    </Animatable.View>
   );
 };
 

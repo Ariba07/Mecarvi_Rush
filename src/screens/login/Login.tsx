@@ -1,6 +1,14 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, {useState, useEffect, useContext} from 'react';
-import {View, ImageBackground, Image, Text} from 'react-native';
+import {
+  View,
+  ImageBackground,
+  Image,
+  Text,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
+import * as Animatable from 'react-native-animatable';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
@@ -12,19 +20,19 @@ import {auth} from '../../../FirebaseConfig';
 import {signInWithCustomToken} from '@react-native-firebase/auth';
 import {initializeFCM} from '../../components/helperUtils/notifications/FCMTokenManager';
 import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
-import CustomErrorModal from '../../components/common/errorModal/CustomErrorModal';
 import LoginForm from './LoginForm';
 import FooterSection from './FooterSection';
 import {STORAGE_KEY, TOKEN_KEY, UserData, ApiResponse} from './types';
 import {styles} from '../../assets/styles/login/LoginStyles';
+
+const FIRST_LOGIN_KEY = '@first_login';
 
 const Login: React.FC = () => {
   const [isChecked, setIsChecked] = useState<boolean>(false);
   const [unsubscribeFCM, setUnsubscribeFCM] = useState<(() => void) | null>(
     null,
   );
-  const [modalVisible, setModalVisible] = useState<boolean>(false);
-  const [errorMessage, setErrorMessage] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const dispatch = useDispatch();
@@ -39,7 +47,8 @@ const Login: React.FC = () => {
       try {
         const credentials = await AsyncStorage.getItem(STORAGE_KEY);
         if (credentials) {
-          navigation.replace('Subscription');
+          const firstLogin = await AsyncStorage.getItem(FIRST_LOGIN_KEY);
+          navigation.replace(firstLogin === null ? 'Subscription' : 'Drawer');
         }
       } catch (error) {
         console.log('Error checking credentials:', error);
@@ -58,6 +67,7 @@ const Login: React.FC = () => {
   }, [unsubscribeFCM]);
 
   const handleLogin = async (values: {email: string; password: string}) => {
+    setIsLoading(true);
     try {
       const response = await apiHelper<ApiResponse>({
         method: 'POST',
@@ -68,8 +78,8 @@ const Login: React.FC = () => {
       const isCustomer = data.roles?.includes('customer');
       const roles = isCustomer ? data.roles : data.user?.roles;
       if (roles?.includes('service_provider')) {
-        setErrorMessage('Invalid credentials.');
-        setModalVisible(true);
+        setIsLoading(false);
+        Alert.alert('Login Error', 'Service providers cannot log in here.');
         return;
       }
       if (!meta.firebase_token) {
@@ -134,48 +144,52 @@ const Login: React.FC = () => {
       }
       const unsubscribe = initializeFCM(isChecked, navigation, dispatch);
       setUnsubscribeFCM(() => unsubscribe);
-      navigation.replace('Subscription');
+      const firstLogin = await AsyncStorage.getItem(FIRST_LOGIN_KEY);
+      if (firstLogin === null) {
+        await AsyncStorage.setItem(FIRST_LOGIN_KEY, 'completed');
+        navigation.replace('Subscription');
+      } else {
+        navigation.replace('Drawer');
+      }
     } catch (error: any) {
-      const localErrorMessage = error.code
-        ? {
-            'auth/invalid-custom-token':
-              'Invalid authentication token. Please try again.',
-            'auth/network-request-failed':
-              'Network error. Please check your connection.',
-            'auth/internal-error':
-              'Firebase internal error. Please contact support.',
-          }[error.code as string] || `Firebase error: ${error.message}`
-        : error.message || 'Login failed. Please check your credentials.';
-      setErrorMessage(localErrorMessage);
-      setModalVisible(true);
+      console.log('Login error:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <View style={{flex: 1, backgroundColor: theme.backgroundColor || '#fff'}}>
       <ImageBackground source={backgroundImage} style={styles.background}>
-        <View style={styles.logoView}>
+        {isLoading && (
+          <View style={styles.loaderContainer}>
+            <ActivityIndicator size="large" color={theme.text || '#333'} />
+          </View>
+        )}
+        <Animatable.View
+          animation="bounceInDown"
+          duration={1000}
+          style={styles.logoView}>
           <Image
             source={require('../../assets/images/headerLogo.png')}
             style={styles.logo}
           />
-        </View>
-        <View style={styles.container}>
+        </Animatable.View>
+        <Animatable.View
+          animation="fadeInUp"
+          duration={1000}
+          delay={300}
+          style={styles.container}>
           <Text style={styles.title}>Login</Text>
           <LoginForm
             onSubmit={handleLogin}
             isChecked={isChecked}
             setIsChecked={setIsChecked}
+            isLoading={isLoading}
           />
           <FooterSection />
-        </View>
+        </Animatable.View>
       </ImageBackground>
-      <CustomErrorModal
-        visible={modalVisible}
-        message={errorMessage}
-        onClose={() => setModalVisible(false)}
-        theme={theme}
-      />
     </View>
   );
 };

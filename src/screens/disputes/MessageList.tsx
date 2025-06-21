@@ -1,10 +1,12 @@
 /* eslint-disable react-native/no-inline-styles */
 import React from 'react';
-import {View, FlatList, Text, Image} from 'react-native';
+import {View, FlatList, Text} from 'react-native';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 import {Message} from '../../components/types/screenTypes/ScreenTypes';
 import {styles} from '../../assets/styles/disputes/DisputeChatStyles';
 import {heightPercentageToDP as hp} from 'react-native-responsive-screen';
+import * as Animatable from 'react-native-animatable'; // Import animatable
+
 interface MessageListProps {
   messages: Message[];
 }
@@ -12,8 +14,11 @@ interface MessageListProps {
 const MessageList: React.FC<MessageListProps> = ({messages}) => {
   const {theme} = React.useContext(ThemeContext);
 
-  const renderMessage = ({item}: {item: Message}) => (
-    <View
+  const renderMessage = ({item, index}: {item: Message; index: number}) => (
+    <Animatable.View
+      animation="fadeInUp"
+      duration={600}
+      delay={index * 100} // Staggered animation
       style={[
         styles.messageContainer,
         item.isSent
@@ -29,7 +34,7 @@ const MessageList: React.FC<MessageListProps> = ({messages}) => {
           <Text
             style={[
               styles.messageText,
-              {color: item.isSent ? '#fff' : '#000'},
+              {color: item.isSent ? '#ffffff' : '#000000'},
               (item.images?.length ?? 0) > 0 && {marginBottom: hp(1)},
             ]}>
             {item.text}
@@ -41,9 +46,11 @@ const MessageList: React.FC<MessageListProps> = ({messages}) => {
               styles.imageContainer,
               item.isSent && styles.sentImageContainer,
             ]}>
-            {(item.images ?? []).map((imageUrl: string, index: number) => (
-              <Image
-                key={`${item.id}-${index}`}
+            {(item.images ?? []).map((imageUrl: string, imgIndex: number) => (
+              <Animatable.Image
+                key={`${item.id}-${imgIndex}`}
+                animation="zoomIn"
+                duration={600}
                 source={{uri: imageUrl}}
                 style={styles.messageImage}
                 resizeMode="cover"
@@ -65,7 +72,7 @@ const MessageList: React.FC<MessageListProps> = ({messages}) => {
         ]}>
         {item.timestamp}
       </Text>
-    </View>
+    </Animatable.View>
   );
 
   return (

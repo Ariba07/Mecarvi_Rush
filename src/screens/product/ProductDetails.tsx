@@ -1,6 +1,7 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, {useEffect} from 'react';
 import {View, Text} from 'react-native';
+import * as Animatable from 'react-native-animatable';
 import BestSeller from '../../assets/images/BestSeller.svg';
 import {renderStars} from '../../components/common/review/RenderStars';
 import {styles} from '../../assets/styles/product/Product';
@@ -25,17 +26,11 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
   setFinalPrice,
 }) => {
   const calculatePrice = () => {
-    // Start with the original price
     const basePrice = productData?.price || 250;
     const discountAmount = productData?.discount_amount || 0;
-
-    // Use discounted price if available, otherwise original price
     const startingPrice = discountAmount > 0 ? discountAmount : basePrice;
-
-    // Initialize adjusted price
     let adjustedPrice = startingPrice;
 
-    // Add size variation price if selected
     if (selectedSize && productData?.size_variations) {
       const sizeVariation = productData.size_variations.find(
         (v: any) => v.size_name === selectedSize,
@@ -45,7 +40,6 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
       }
     }
 
-    // Add attribute price adjustments
     if (productData?.attributes && attributeValues) {
       productData.attributes.forEach((attr: any) => {
         const attrKey = attr.general_attribute.general_attribute_uuid;
@@ -65,10 +59,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
       });
     }
 
-    // Calculate original price before discount for strikethrough
     const originalPrice = basePrice;
-
-    // Ensure final price is not negative
     const finalPrice = Math.max(0, adjustedPrice);
 
     return {
@@ -80,21 +71,27 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
 
   const {originalPrice, finalPrice, hasDiscount} = calculatePrice();
 
-  // Update finalPrice in parent component
   useEffect(() => {
     setFinalPrice(parseFloat(finalPrice));
   }, [finalPrice, setFinalPrice]);
 
   return (
-    <View style={styles.productDetailsContainer}>
-      <View style={styles.bestSellerBadge}>
+    <Animatable.View
+      animation="fadeInUp"
+      duration={800}
+      style={styles.productDetailsContainer}>
+      <Animatable.View
+        animation="bounceIn"
+        duration={800}
+        delay={200}
+        style={styles.bestSellerBadge}>
         <BestSeller width={wp(3)} height={hp(3)} />
         <Text style={[styles.bestSellerText, {color: theme.bottom}]}>
           Best Seller
         </Text>
-      </View>
+      </Animatable.View>
       <View style={styles.productInfoContainer}>
-        <View>
+        <Animatable.View animation="fadeInUp" duration={800} delay={400}>
           <Text style={[styles.productTitle, {color: theme.input}]}>
             {productData?.name || 'Signage'}
           </Text>
@@ -102,8 +99,12 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
             {renderStars(Number('4.5'))}
             <Text style={[styles.ratingText, {color: theme.input}]}>4.5</Text>
           </View>
-        </View>
-        <View style={styles.priceContainer}>
+        </Animatable.View>
+        <Animatable.View
+          animation="fadeInUp"
+          duration={800}
+          delay={600}
+          style={styles.priceContainer}>
           <Text style={[styles.productPrice, {color: theme.input}]}>
             ${finalPrice}
           </Text>
@@ -116,9 +117,9 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
               ${originalPrice.toFixed(2)}
             </Text>
           )}
-        </View>
+        </Animatable.View>
       </View>
-    </View>
+    </Animatable.View>
   );
 };
 

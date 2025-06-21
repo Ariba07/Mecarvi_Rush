@@ -18,18 +18,25 @@ import {
 } from 'react-native-responsive-screen';
 import CustomButton from '../../components/common/buttons/CustomButton';
 import CustomTextInput from '../../components/common/textInput/CustomTextInput';
-import {useNavigation} from '@react-navigation/native';
+import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
 import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 
 const {width, height} = Dimensions.get('window'); // Get screen dimensions
-
-const Forget: React.FC = () => {
+type PasswordResetRouteParams = {
+  Password: {
+    token: string; // Token passed via the URL
+    email: string;
+  };
+};
+const Password: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const {theme} = useContext(ThemeContext); // Access theme
+  const route = useRoute<RouteProp<PasswordResetRouteParams, 'Password'>>();
+  const {token, email} = route.params; // Retrieve token from the route
 
   // Determine the background image based on the theme
   const backgroundImage =
@@ -37,14 +44,24 @@ const Forget: React.FC = () => {
       ? require('../../assets/images/BG.png') // Light theme
       : require('../../assets/images/dark.png'); // Dark theme
 
-  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   const handleLogin = async () => {
+    if (confirmPassword !== password) {
+      return;
+    }
+
     try {
       await apiHelper({
         method: 'POST',
-        endpoint: 'authentication/forgot-password',
-        data: {email: email},
+        endpoint: 'authentication/reset-password',
+        data: {
+          password: password,
+          token: token,
+          email: email,
+          password_confirmation: confirmPassword,
+        },
       });
       navigation.replace('Login');
     } catch (error) {
@@ -70,20 +87,30 @@ const Forget: React.FC = () => {
             duration={1000}
             delay={300}
             style={styles.container}>
-            <Text style={styles.title}>Forget Password</Text>
+            <Text style={styles.title}>Reset Password</Text>
             <Animatable.View animation="fadeIn" duration={800} delay={600}>
-              <Text style={[styles.label, {color: theme.text}]}>Email</Text>
+              <Text style={[styles.label, {color: theme.text}]}>Password</Text>
               <CustomTextInput
-                placeholder="Email"
-                value={email}
-                onChangeText={text => setEmail(text as string)}
+                placeholder="Password"
+                value={password}
+                onChangeText={text => setPassword(text as string)}
+              />
+            </Animatable.View>
+            <Animatable.View animation="fadeIn" duration={800} delay={600}>
+              <Text style={[styles.label, {color: theme.text}]}>
+                Confirm Password
+              </Text>
+              <CustomTextInput
+                placeholder="Confirm Password"
+                value={confirmPassword}
+                onChangeText={text => setConfirmPassword(text as string)}
               />
             </Animatable.View>
             <Animatable.View
               animation="pulse"
               iterationCount={1}
               duration={1000}>
-              <CustomButton title="Send Code" onPress={handleLogin} />
+              <CustomButton title="Reset Password" onPress={handleLogin} />
             </Animatable.View>
           </Animatable.View>
         </ImageBackground>
@@ -135,4 +162,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Forget;
+export default Password;

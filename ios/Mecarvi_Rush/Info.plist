@@ -84,16 +84,19 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/> <!-- Added missing value -->
+	
 	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>myapp</string>
-			</array>
-		</dict>
-	</array>
+<array>
+    <dict>
+        <key>CFBundleTypeRole</key>
+        <string>Editor</string>
+        <key>CFBundleURLName</key>
+        <string>com.mecarvirush</string>
+        <key>CFBundleURLSchemes</key>
+        <array>
+            <string>mecarvirush</string>
+        </array>
+    </dict>
+</array>
 </dict>
 </plist>

@@ -57,4 +57,11 @@ export const styles = StyleSheet.create({
     marginLeft: wp(5),
     marginTop: hp(0.5),
   },
+  loaderContainer: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
 });

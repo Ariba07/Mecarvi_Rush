@@ -4,7 +4,6 @@ export type RootStackParamList = {
   OnBoard: undefined;
   Login: undefined;
   Forget: undefined;
-  Reset: undefined;
   Verify: undefined;
   Options: undefined;
   Register: undefined;
@@ -37,9 +36,8 @@ export type RootStackParamList = {
   Points: undefined;
   Product: undefined;
   Quote: undefined;
-
+  Password: {token: string; email: string};
   Services: undefined;
-
   Cart: undefined;
   Schedule: undefined;
   Booking: undefined;
@@ -217,13 +215,14 @@ export interface TimeSlot {
 }
 
 export interface Message {
-  text: string;
+  text?: string;
   sender: string;
   createdAt: any;
   id?: string;
   timestamp?: string;
   isSent?: boolean;
   images?: string[];
+  message?: string;
 }
 
 export interface Chat {

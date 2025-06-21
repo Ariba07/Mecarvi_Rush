@@ -24,11 +24,7 @@ interface CardPaymentBottomSheetProps {
   isVisible: boolean;
   onClose: () => void;
   onSubmit: (paymentMethodId: string) => void;
-  subscriptionDetails?: {
-    planName: string;
-    price: number;
-    billingFrequency: string;
-  };
+
   setCardName?: (name: string) => void;
   cardName?: string;
   isCard?: boolean;
@@ -38,11 +34,7 @@ const CardPaymentBottomSheet: React.FC<CardPaymentBottomSheetProps> = ({
   isVisible,
   onClose,
   onSubmit,
-  subscriptionDetails = {
-    planName: '',
-    price: 0,
-    billingFrequency: '',
-  },
+
   setCardName,
   cardName,
   isCard,
@@ -120,19 +112,6 @@ const CardPaymentBottomSheet: React.FC<CardPaymentBottomSheetProps> = ({
                 </View>
                 <View style={styles.divider} />
                 <View style={{paddingHorizontal: wp(3)}}>
-                  <View
-                    style={[
-                      styles.subscriptionDetails,
-                      {backgroundColor: theme.text},
-                    ]}>
-                    <Text style={[styles.detailText, {color: theme.input}]}>
-                      Plan: {subscriptionDetails.planName}
-                    </Text>
-                    <Text style={[styles.detailText, {color: theme.input}]}>
-                      Price: ${subscriptionDetails.price.toFixed(2)} /{' '}
-                      {subscriptionDetails.billingFrequency}
-                    </Text>
-                  </View>
                   <CardField
                     postalCodeEnabled={false}
                     placeholders={{

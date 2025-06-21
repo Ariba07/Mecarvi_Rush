@@ -75,6 +75,7 @@ const Chats: React.FC = () => {
 
             setChats(chatList);
 
+            messageUnsubscribers.forEach(unsub => unsub());
             messageUnsubscribers = [];
             chatList.forEach(chat => {
               try {
@@ -92,9 +93,19 @@ const Chats: React.FC = () => {
                 const messageUnsubscribe = onSnapshot(
                   messagesQuery,
                   messagesSnapshot => {
-                    const lastMessage = messagesSnapshot.docs[0]?.data() as
+                    const lastMessageData = messagesSnapshot.docs[0]?.data() as
                       | Message
                       | undefined;
+                    const lastMessage = lastMessageData
+                      ? {
+                          ...lastMessageData,
+                          // Normalize text/message fields
+                          text:
+                            lastMessageData.text ||
+                            lastMessageData.message ||
+                            '',
+                        }
+                      : undefined;
                     setChats(prevChats => {
                       const updatedChats = prevChats.map(c =>
                         c.id === chat.id ? {...c, lastMessage} : c,

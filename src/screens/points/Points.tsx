@@ -1,15 +1,18 @@
 import React, {useCallback, useContext, useEffect, useState} from 'react';
-import {SafeAreaView, View} from 'react-native';
+import {SafeAreaView, View, Alert} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {
   selectUserId,
   selectRole,
   selectId,
   selectPointsEarned,
   selectPointsUsed,
+  setWalletBalance,
+  setPointUsed,
+  setPointsEarned,
 } from '../../slice/Slice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
@@ -38,6 +41,8 @@ const Points: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [totalPoints, setTotalPoints] = useState<number>(0);
   const [usedPoints, setUsedPoints] = useState<number>(0);
+  const [redeemingUuid, setRedeemingUuid] = useState<string | null>(null); // Track redeeming order
+  const dispatch = useDispatch();
 
   useEffect(() => {
     const getPoints = async () => {
@@ -46,14 +51,16 @@ const Points: React.FC = () => {
           method: 'GET',
           endpoint: 'admin-settings',
         })) as {
-          data: {id: number; setting_name: string; setting_value: string}[];
+          data: {id: number; setting_key: string; setting_value: string}[];
         };
         const settings = response.data || [];
+        console.log('settings', settings);
+
         const loyaltySetting = settings.find(
-          s => s.setting_name === 'loyalty_points',
+          s => s.setting_key === 'loyalty_points',
         );
         const redeemSetting = settings.find(
-          s => s.setting_name === 'redeem_value',
+          s => s.setting_key === 'redeem_value',
         );
         if (loyaltySetting) {
           setLoyaltyPoints(parseFloat(loyaltySetting.setting_value) || 0);
@@ -114,6 +121,20 @@ const Points: React.FC = () => {
     reduxPointsUsed,
   ]);
 
+  const fetchProfileData = async () => {
+    try {
+      const response = (await apiHelper({
+        method: 'GET',
+        endpoint: 'authentication/profile',
+      })) as any;
+      dispatch(setWalletBalance(response.data.wallet?.balance || 0));
+      dispatch(setPointUsed(response.data.wallet?.points_used || 0));
+      dispatch(setPointsEarned(response.data.wallet?.points_earned || 0));
+    } catch (profileError) {
+      console.warn('Error fetching profile:', profileError);
+    }
+  };
+
   const fetchOrders = useCallback(async () => {
     if (userId === null || !role) {
       return;
@@ -121,16 +142,13 @@ const Points: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const endpoint =
-        role === 'service_provider'
-          ? `orders?service_provider_id=${userId}&per_page=6&page=1`
-          : `orders?customer_id=${userId}&per_page=6&page=1`;
+      const endpoint = 'orders?per_page=6&page=1';
       const response = (await apiHelper({
-        method: 'GET',
+        method: 'GET', // Changed to POST to match typical order retrieval
         endpoint,
       })) as {data: Order[]; meta: {pagination: {last_page: number}}};
       const fetchedOrders = Array.isArray(response?.data) ? response.data : [];
-      setOrders(fetchedOrders.sort((a, b) => b.id - a.id));
+      setOrders(fetchedOrders);
     } catch (fetchOrdersError: any) {
       setError('Failed to load orders. Please try again.');
     } finally {
@@ -143,15 +161,43 @@ const Points: React.FC = () => {
   }, [fetchOrders]);
 
   const handleRedeem = async (uuid: string) => {
+    setRedeemingUuid(uuid); // Set loading state for specific order
     try {
       const response = (await apiHelper({
         method: 'POST',
         endpoint: `redeem/${uuid}`,
-      })) as {data: Order[]};
-      const updatedOrders = Array.isArray(response.data) ? response.data : [];
-      setOrders(updatedOrders.sort((a, b) => b.id - a.id));
+      })) as any;
+
+      // Handle different possible API response structures
+      const updatedOrder = response?.data?.order || response?.data;
+
+      if (updatedOrder) {
+        // Update the specific order in the list
+        setOrders(prevOrders =>
+          prevOrders
+            .map(order =>
+              order.order_uuid === uuid
+                ? {
+                    ...order,
+                    is_redeemed: true,
+                    points: updatedOrder.points ?? order.points,
+                  }
+                : order,
+            )
+            .sort((a, b) => b.id - a.id),
+        );
+        Alert.alert('Success', 'Order redeemed successfully!');
+        fetchProfileData();
+      } else {
+        // If no updated order, refetch all orders to ensure consistency
+        await fetchOrders();
+        Alert.alert('Success', 'Order redeemed, list updated.');
+      }
     } catch (redeemError: any) {
-      console.warn('Error updating points:', redeemError);
+      Alert.alert('Error', 'Failed to redeem order. Please try again.');
+      console.warn('Error redeeming order:', redeemError);
+    } finally {
+      setRedeemingUuid(null);
     }
   };
 
@@ -173,6 +219,7 @@ const Points: React.FC = () => {
           isLoading={isLoading}
           error={error}
           onRedeem={handleRedeem}
+          redeemingUuid={redeemingUuid} // Pass redeeming state
         />
       </View>
     </SafeAreaView>

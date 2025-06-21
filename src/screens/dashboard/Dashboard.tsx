@@ -3,13 +3,13 @@ import React, {useContext, useEffect, useState} from 'react';
 import {
   SafeAreaView,
   ScrollView,
-  View,
   Text,
   Platform,
   RefreshControl,
   FlatList,
   TouchableOpacity,
 } from 'react-native';
+import * as Animatable from 'react-native-animatable';
 import {Productss} from '../../components/types/screenTypes/ScreenTypes';
 import {widthPercentageToDP as wp} from 'react-native-responsive-screen';
 import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
@@ -98,12 +98,10 @@ const Dashboard: React.FC = () => {
         method: 'GET',
         endpoint: endpoint,
       });
-
       setProducts(
         Array.isArray(response?.data) ? response.data.slice(0, 5) : [],
       );
-    } catch (error) {
-      console.warn('Error fetching products:', error);
+    } catch (error: any) {
       setProducts([]);
     }
   };
@@ -115,8 +113,8 @@ const Dashboard: React.FC = () => {
         endpoint: 'banners',
       });
       setBanners(response.data || []);
-    } catch (error) {
-      console.warn('Error fetching banners:', error);
+    } catch (error: any) {
+      setBanners([]);
     }
   };
 
@@ -127,8 +125,8 @@ const Dashboard: React.FC = () => {
         endpoint: 'categories/?parent_only=1',
       })) as any;
       setCategories(response.data);
-    } catch (error) {
-      console.warn('Error fetching categories:', error);
+    } catch (error: any) {
+      setCategories([]);
     }
   };
 
@@ -151,8 +149,7 @@ const Dashboard: React.FC = () => {
         fetchBanners(),
         fetchCategories(),
       ]);
-    } catch (error) {
-      console.warn('Error during refresh:', error);
+    } catch (error: any) {
     } finally {
       setRefreshing(false);
     }
@@ -173,33 +170,37 @@ const Dashboard: React.FC = () => {
       hottest_deal: 'Hottest Deals',
     };
     return (
-      <TouchableOpacity
-        onPress={() => setSelectedSection(item)}
-        style={{
-          width: wp(25),
-          height: wp(8),
-          marginHorizontal: wp(1),
-          backgroundColor: isSelected ? '#FF00A7' : '#E0E0E0',
-          borderRadius: wp(2),
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}>
-        <Text
+      <Animatable.View animation="fadeIn" duration={800} delay={200}>
+        <TouchableOpacity
+          onPress={() => setSelectedSection(item)}
           style={{
-            color: isSelected ? '#FFF' : theme.text || '#333',
-            fontSize: wp(3.5),
-            fontWeight: isSelected ? 'bold' : 'normal',
+            width: wp(25),
+            height: wp(8),
+            marginHorizontal: wp(1),
+            backgroundColor: isSelected ? '#FF00A7' : '#E0E0E0',
+            borderRadius: wp(2),
+            alignItems: 'center',
+            justifyContent: 'center',
           }}>
-          {titles[item as keyof typeof titles]}
-        </Text>
-      </TouchableOpacity>
+          <Text
+            style={{
+              color: isSelected ? '#FFF' : theme.text || '#333',
+              fontSize: wp(3.5),
+              fontWeight: isSelected ? 'bold' : 'normal',
+            }}>
+            {titles[item as keyof typeof titles]}
+          </Text>
+        </TouchableOpacity>
+      </Animatable.View>
     );
   };
 
   return (
     <SafeAreaView
       style={[styles.container, {backgroundColor: theme.whole || '#F5F7FA'}]}>
-      <HeaderTabs selectedTab={selectedTab} setSelectedTab={setSelectedTab} />
+      <Animatable.View animation="fadeInDown" duration={1000}>
+        <HeaderTabs selectedTab={selectedTab} setSelectedTab={setSelectedTab} />
+      </Animatable.View>
       {selectedTab === 'prints' ? (
         <ScrollView
           style={{marginBottom: Platform.OS === 'ios' ? wp(15) : wp(20)}}
@@ -211,30 +212,43 @@ const Dashboard: React.FC = () => {
               tintColor={theme.text || '#FF00A7'}
             />
           }>
-          <FilterSection
-            defaultCity={defaultCity}
-            defaultCountry={defaultCountry}
-          />
-          <BannerSection banners={banners} />
-          <ServicesSection categories={categories} />
-          <FlatList
-            data={sectionTypes}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            renderItem={renderSectionTab}
-            keyExtractor={item => item}
-            style={{marginVertical: wp(2), paddingHorizontal: wp(2)}}
-            contentContainerStyle={{paddingRight: wp(2)}}
-          />
-          <FeaturedProductsSection
-            products={products}
-            sectionType={selectedSection as any}
-          />
+          <Animatable.View animation="fadeInUp" duration={1000} delay={300}>
+            <FilterSection
+              defaultCity={defaultCity}
+              defaultCountry={defaultCountry}
+            />
+          </Animatable.View>
+          <Animatable.View animation="fadeInUp" duration={1000} delay={600}>
+            <BannerSection banners={banners} />
+          </Animatable.View>
+          <Animatable.View animation="fadeInUp" duration={1000} delay={900}>
+            <ServicesSection categories={categories} />
+          </Animatable.View>
+          <Animatable.View animation="fadeInUp" duration={1000} delay={1200}>
+            <FlatList
+              data={sectionTypes}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              renderItem={renderSectionTab}
+              keyExtractor={item => item}
+              style={{marginVertical: wp(2), paddingHorizontal: wp(2)}}
+              contentContainerStyle={{paddingRight: wp(2)}}
+            />
+          </Animatable.View>
+          <Animatable.View animation="fadeInUp" duration={1000} delay={1500}>
+            <FeaturedProductsSection
+              products={products}
+              sectionType={selectedSection as any}
+            />
+          </Animatable.View>
         </ScrollView>
       ) : (
-        <View style={styles.availContainer}>
+        <Animatable.View
+          animation="fadeIn"
+          duration={1000}
+          style={styles.availContainer}>
           <Text style={styles.availTxt}>Available Soon</Text>
-        </View>
+        </Animatable.View>
       )}
     </SafeAreaView>
   );

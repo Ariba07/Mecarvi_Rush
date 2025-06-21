@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-inline-styles */
 import React, {useState, useEffect, useCallback, useContext} from 'react';
 import {
   SafeAreaView,
@@ -6,7 +7,6 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  Alert,
 } from 'react-native';
 import {
   widthPercentageToDP as wp,
@@ -18,6 +18,7 @@ import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes
 import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 import Header from '../../components/common/header/Header';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import * as Animatable from 'react-native-animatable'; // Import animatable
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Disputes'>;
 
@@ -34,10 +35,12 @@ interface Ticket {
 const Disputes = () => {
   const navigation = useNavigation<NavigationProp>();
   const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false); // Add loading state
   const {theme} = useContext(ThemeContext);
 
   // Fetch tickets from API
   const fetchDisputes = useCallback(async () => {
+    setIsLoading(true);
     try {
       const response = (await apiHelper({
         method: 'GET',
@@ -45,35 +48,42 @@ const Disputes = () => {
       })) as any;
 
       console.log('Disputes fetched successfully:', response);
-      setTickets(response.data || []);
+      if (Array.isArray(response.data)) {
+        setTickets(response.data);
+      } else {
+        console.warn('Unexpected response data:', response.data);
+      }
     } catch (error) {
       console.warn('Fetch Disputes error:', error);
-      Alert.alert(
-        'Error',
-        'Failed to fetch Disputes. Please check your network.',
-      );
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
-  // Fetch tickets on mount and when token changes
+  // Fetch tickets on mount
   useEffect(() => {
     fetchDisputes();
   }, [fetchDisputes]);
 
-  const renderTicketItem = ({item}: {item: Ticket}) => (
+  const renderTicketItem = ({item, index}: {item: Ticket; index: number}) => (
     <TouchableOpacity
-      style={[styles.ticketItem, {backgroundColor: theme.backgroundColor}]}
       onPress={() => {
         navigation.navigate('DisputeChat', {
           disputeUuid: item.support_ticket_uuid,
           disputeId: item.id,
         });
       }}>
-      <Text style={styles.ticketNumber}>{item.order}</Text>
-      <Text style={[styles.subject, {color: theme.text}]}>
-        Subject: {item.subject}
-      </Text>
-      <Text style={styles.description}>Description: {item.message}</Text>
+      <Animatable.View
+        animation="fadeInUp"
+        duration={600}
+        delay={index * 100} // Staggered animation
+        style={[styles.ticketItem, {backgroundColor: theme.backgroundColor}]}>
+        <Text style={styles.ticketNumber}>{item.order}</Text>
+        <Text style={[styles.subject, {color: theme.text}]}>
+          Subject: {item.subject}
+        </Text>
+        <Text style={styles.description}>Description: {item.message}</Text>
+      </Animatable.View>
     </TouchableOpacity>
   );
 
@@ -81,15 +91,29 @@ const Disputes = () => {
     <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
       <View style={styles.container}>
         <Header title="Disputes" onBackPress={() => navigation.goBack()} />
-
-        {/* Ticket List */}
-        <FlatList
-          data={tickets}
-          renderItem={renderTicketItem}
-          keyExtractor={item => item.id.toString()}
-          contentContainerStyle={styles.ticketList}
-          showsVerticalScrollIndicator={false}
-        />
+        {isLoading ? (
+          <Animatable.Text
+            animation="fadeIn"
+            duration={800}
+            style={{textAlign: 'center', color: theme.text, marginTop: hp(5)}}>
+            Loading disputes...
+          </Animatable.Text>
+        ) : tickets.length === 0 ? (
+          <Animatable.Text
+            animation="fadeIn"
+            duration={800}
+            style={{textAlign: 'center', color: theme.text, marginTop: hp(5)}}>
+            No disputes available
+          </Animatable.Text>
+        ) : (
+          <FlatList
+            data={tickets}
+            renderItem={renderTicketItem}
+            keyExtractor={item => item.id.toString()}
+            contentContainerStyle={styles.ticketList}
+            showsVerticalScrollIndicator={false}
+          />
+        )}
       </View>
     </SafeAreaView>
   );
@@ -106,7 +130,7 @@ const styles = StyleSheet.create({
     paddingBottom: hp(2),
   },
   ticketList: {
-    paddingBottom: hp(10), // Space for the Create Ticket button
+    paddingBottom: hp(10),
     paddingTop: hp(2),
     flexGrow: 1,
   },

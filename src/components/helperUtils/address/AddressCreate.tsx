@@ -28,7 +28,6 @@ const GOOGLE_API_KEY = 'AIzaSyAU9bshzS-D9P2Equ-0HW9skO7Ro9wR9ZY';
 const GEOCODE_API_URL = 'https://maps.google.com/maps/api/geocode/json';
 
 const AddressCreate: React.FC<AddressCreateProps> = ({visible, onClose}) => {
-  const [addressType, setAddressType] = useState('');
   const [country, setCountry] = useState('');
   const [state, setState] = useState('');
   const [city, setCity] = useState('');
@@ -65,7 +64,7 @@ const AddressCreate: React.FC<AddressCreateProps> = ({visible, onClose}) => {
   };
 
   const handleSave = async () => {
-    if (!addressType || !country || !state || !city || !zipCode || !address) {
+    if (!country || !state || !city || !zipCode || !address) {
       Alert.alert('Error', 'Please fill all fields');
       return;
     }
@@ -83,7 +82,6 @@ const AddressCreate: React.FC<AddressCreateProps> = ({visible, onClose}) => {
 
       const payload = {
         user_id: user_id,
-        address_type: addressType,
         address,
         city,
         state,
@@ -103,7 +101,6 @@ const AddressCreate: React.FC<AddressCreateProps> = ({visible, onClose}) => {
       if (response.status === 1) {
         Alert.alert('Success', 'Address added successfully');
         // Reset form
-        setAddressType('');
         setCountry('');
         setState('');
         setCity('');
@@ -133,27 +130,6 @@ const AddressCreate: React.FC<AddressCreateProps> = ({visible, onClose}) => {
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, {backgroundColor: theme.whole}]}>
             <Text style={[styles.title, {color: theme.text}]}>Add Address</Text>
-
-            <View style={styles.inputContainer}>
-              <Text style={[styles.label, {color: theme.text}]}>
-                Address-type
-              </Text>
-              <CustomTextInput
-                placeholder="Address-type"
-                value={addressType}
-                onChangeText={(text: string | {id: number; name: string}[]) =>
-                  setAddressType(
-                    Array.isArray(text)
-                      ? text
-                          .map(item =>
-                            typeof item === 'string' ? item : item.name,
-                          )
-                          .join(', ')
-                      : text,
-                  )
-                }
-              />
-            </View>
 
             <View style={styles.inputContainer}>
               <Text style={[styles.label, {color: theme.text}]}>Country</Text>

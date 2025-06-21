@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-inline-styles */
 import React, {useState, useEffect, useContext, useCallback} from 'react';
 import {SafeAreaView, View, Alert, Platform} from 'react-native';
 import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
@@ -14,6 +15,12 @@ import Header from '../../components/common/header/Header';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import {styles} from '../../assets/styles/disputes/DisputeChatStyles';
+import * as Animatable from 'react-native-animatable'; // Import animatable
+import {useSelector} from 'react-redux'; // Import Redux
+import {selectUserId} from '../../slice/Slice'; // Import user UUID selector
+import {heightPercentageToDP as hp} from 'react-native-responsive-screen';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {STORAGE_KEY} from '../login/types';
 
 type TicketRouteProp = RouteProp<RootStackParamList, 'DisputeChat'>;
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -29,12 +36,33 @@ const DisputeChat: React.FC = () => {
   const [selectedImages, setSelectedImages] = useState<
     {uri: string; type: string; name: string}[]
   >([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false); // Add loading state
+  const reduxUserId = useSelector(selectUserId);
 
+  const [userId, setUserId] = useState<number | null>(null);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const credentials = await AsyncStorage.getItem(STORAGE_KEY);
+        if (credentials) {
+          const parsedCredentials = JSON.parse(credentials);
+          setUserId(parsedCredentials.id ?? reduxUserId ?? null);
+        } else {
+          setUserId(reduxUserId ?? null);
+        }
+      } catch (error) {
+        setUserId(reduxUserId ?? null);
+      }
+    };
+    fetchUserData();
+  }, [reduxUserId]);
   const fetchChatMessages = useCallback(async () => {
     if (!disputeUuid) {
       Alert.alert('Error', 'Dispute UUID is missing.');
       return;
     }
+    setIsLoading(true);
     try {
       const response = (await apiHelper({
         method: 'GET',
@@ -42,29 +70,31 @@ const DisputeChat: React.FC = () => {
       })) as any;
       if (response.status === 1 && response.data) {
         setTicketSubject(response.data.subject || 'Support Chat');
-        const fetchedMessages = response.data.messages.map((msg: any) => {
-          const date = new Date(msg.created_at);
-          const time = date.toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit',
-          });
-          const images = Array.isArray(msg.images)
-            ? msg.images
-                .map((img: any) =>
-                  typeof img === 'string'
-                    ? img
-                    : img?.file_url || img?.uri || img?.url || '',
-                )
-                .filter((img: string) => img)
-            : [];
-          return {
-            id: msg.id.toString(),
-            text: msg.message || '',
-            images,
-            timestamp: time,
-            isSent: msg.user.id === 2, // Dummy Customer ID
-          };
-        });
+        const fetchedMessages = Array.isArray(response.data.messages)
+          ? response.data.messages.map((msg: any) => {
+              const date = new Date(msg.created_at);
+              const time = date.toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
+              });
+              const images = Array.isArray(msg.images)
+                ? msg.images
+                    .map((img: any) =>
+                      typeof img === 'string'
+                        ? img
+                        : img?.file_url || img?.uri || img?.url || '',
+                    )
+                    .filter((img: string) => img)
+                : [];
+              return {
+                id: msg.id.toString(),
+                text: msg.message || '',
+                images,
+                timestamp: time,
+                isSent: msg.user.id === userId,
+              };
+            })
+          : [];
         setMessages(fetchedMessages);
       } else {
         Alert.alert(
@@ -77,8 +107,10 @@ const DisputeChat: React.FC = () => {
         'Error',
         'Failed to fetch chat messages. Please check your network.',
       );
+    } finally {
+      setIsLoading(false);
     }
-  }, [disputeUuid]);
+  }, [disputeUuid, userId]);
 
   const handleSelectImages = async () => {
     try {
@@ -191,7 +223,18 @@ const DisputeChat: React.FC = () => {
       style={[styles.safeArea, {backgroundColor: theme.whole || '#f0f4f8'}]}>
       <View style={styles.container}>
         <Header title={ticketSubject} onBackPress={() => navigation.goBack()} />
-        <MessageList messages={messages} />
+        {isLoading ? (
+          <Animatable.Text
+            animation="fadeIn"
+            duration={800}
+            style={{textAlign: 'center', color: theme.text, marginTop: hp(5)}}>
+            Loading messages...
+          </Animatable.Text>
+        ) : (
+          <Animatable.View animation="slideInUp" duration={600}>
+            <MessageList messages={messages} />
+          </Animatable.View>
+        )}
         <MessageInput
           newMessage={newMessage}
           setNewMessage={setNewMessage}

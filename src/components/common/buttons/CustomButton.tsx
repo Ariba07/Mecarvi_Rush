@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-inline-styles */
 import React, {useContext} from 'react';
 import {TouchableOpacity, Text, StyleSheet, Platform} from 'react-native';
 import {
@@ -9,13 +10,21 @@ import {ThemeContext} from '../../helperUtils/theme/ThemeContext';
 interface CustomButtonProps {
   title: string;
   onPress: () => void;
+  disabled?: boolean; // Optional prop to handle disabled state
 }
 
-const CustomButton: React.FC<CustomButtonProps> = ({title, onPress}) => {
+const CustomButton: React.FC<CustomButtonProps> = ({
+  title,
+  onPress,
+  disabled,
+}) => {
   const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
 
   return (
-    <TouchableOpacity style={styles.button} onPress={onPress}>
+    <TouchableOpacity
+      style={[styles.button, {opacity: disabled ? 0.5 : 1}]}
+      onPress={onPress}
+      disabled={disabled}>
       <Text style={[styles.text, {color: theme.backgroundColor}]}>{title}</Text>
     </TouchableOpacity>
   );

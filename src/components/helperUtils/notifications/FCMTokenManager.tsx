@@ -166,12 +166,15 @@ async function handleNotification(
     console.log('handleNotification: Data keys:', Object.keys(data));
 
     let uuid: string | null = null;
+
     if (data.quote_request_uuid) {
       uuid = data.quote_request_uuid;
     } else if (data.quote_uuid) {
       uuid = data.quote_uuid;
     } else if (data.uuid) {
       uuid = data.uuid;
+    } else if (data.order_uuid) {
+      uuid = data.order_uuid;
     }
 
     if (!uuid && typeof data === 'string') {
@@ -181,7 +184,9 @@ async function handleNotification(
           parsedData.quote_request_uuid ||
           parsedData.quote_uuid ||
           parsedData.uuid ||
+          parsedData.order_uuid ||
           null;
+
         console.log('handleNotification: Parsed data:', parsedData);
       } catch (e) {
         console.warn('handleNotification: Failed to parse data as JSON:', e);

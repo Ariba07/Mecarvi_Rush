@@ -1,9 +1,10 @@
 /* eslint-disable react-native/no-inline-styles */
 import React from 'react';
-import {View, Text, TextInput} from 'react-native';
+import {Text, TextInput} from 'react-native';
 import CustomButton from '../../components/common/buttons/CustomButton';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 import {styles} from '../../assets/styles/profile/ProfileStyles';
+import * as Animatable from 'react-native-animatable'; // Import animatable
 
 interface ProfileFormProps {
   fullName: string;
@@ -27,7 +28,9 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
   const {theme} = React.useContext(ThemeContext);
 
   return (
-    <View
+    <Animatable.View
+      animation="fadeInUp"
+      duration={600}
       style={[styles.card, {backgroundColor: theme.backgroundColor || '#fff'}]}>
       <Text style={[styles.label, {color: theme.text || '#333'}]}>
         Full Name
@@ -77,8 +80,10 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
         placeholder="Enter phone number"
         placeholderTextColor={theme.text ? theme.text + '80' : '#999'}
       />
-      <CustomButton title="Update" onPress={onUpdate} />
-    </View>
+      <Animatable.View animation="bounceIn" duration={800}>
+        <CustomButton title="Update" onPress={onUpdate} />
+      </Animatable.View>
+    </Animatable.View>
   );
 };
 

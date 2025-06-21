@@ -6,12 +6,14 @@ import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 import {Order} from './types';
 import {widthPercentageToDP as wp} from 'react-native-responsive-screen';
 import {styles} from '../../assets/styles/points/PointsStyles';
+import * as Animatable from 'react-native-animatable';
 
 interface RewardsListProps {
   orders: Order[];
   isLoading: boolean;
   error: string | null;
   onRedeem: (uuid: string) => void;
+  redeemingUuid: string | null;
 }
 
 const RewardsList: React.FC<RewardsListProps> = ({
@@ -19,8 +21,12 @@ const RewardsList: React.FC<RewardsListProps> = ({
   isLoading,
   error,
   onRedeem,
+  redeemingUuid,
 }) => {
   const {theme} = React.useContext(ThemeContext);
+
+  // Filter orders to exclude those with points as null
+  const validOrders = orders.filter(order => order.points !== null);
 
   return (
     <View
@@ -30,21 +36,36 @@ const RewardsList: React.FC<RewardsListProps> = ({
       ]}>
       <Text style={[styles.rewardsTitle, {color: theme.text}]}>Rewards</Text>
       {isLoading ? (
-        <Text style={[styles.statusText, {color: theme.text}]}>
+        <Animatable.Text
+          animation="fadeIn"
+          duration={800}
+          style={[styles.statusText, {color: theme.text}]}>
           Loading orders...
-        </Text>
+        </Animatable.Text>
       ) : error ? (
-        <Text style={[styles.statusText, {color: 'red'}]}>{error}</Text>
-      ) : orders.length === 0 ? (
-        <Text style={[styles.statusText, {color: theme.text}]}>
+        <Animatable.Text
+          animation="fadeIn"
+          duration={800}
+          style={[styles.statusText, {color: 'red'}]}>
+          {error}
+        </Animatable.Text>
+      ) : validOrders.length === 0 ? (
+        <Animatable.Text
+          animation="fadeIn"
+          duration={800}
+          style={[styles.statusText, {color: theme.text}]}>
           No orders available
-        </Text>
+        </Animatable.Text>
       ) : (
         <FlatList
-          data={orders}
+          data={validOrders}
           keyExtractor={item => item.id.toString()}
-          renderItem={({item}) => (
-            <View style={styles.rewardItem}>
+          renderItem={({item, index}) => (
+            <Animatable.View
+              animation="fadeInUp"
+              duration={600}
+              delay={index * 100}
+              style={styles.rewardItem}>
               <GiftBox width={wp(8)} height={wp(8)} />
               <View style={styles.rewardTextContainer}>
                 <Text style={[styles.rewardTitle, {color: theme.text}]}>
@@ -65,16 +86,25 @@ const RewardsList: React.FC<RewardsListProps> = ({
                     : {backgroundColor: theme.whole},
                 ]}
                 onPress={() => onRedeem(item.order_uuid)}
-                disabled={!!item.is_redeemed}>
-                <Text
-                  style={[
-                    styles.redeemText,
-                    item.is_redeemed && styles.redeemedText,
-                  ]}>
-                  {item.is_redeemed ? 'Redeemed' : 'Redeem'}
-                </Text>
+                disabled={
+                  !!item.is_redeemed || redeemingUuid === item.order_uuid
+                }>
+                <Animatable.View>
+                  <Text
+                    style={[
+                      styles.redeemText,
+                      item.is_redeemed && styles.redeemedText,
+                      redeemingUuid === item.order_uuid && {opacity: 0.5},
+                    ]}>
+                    {redeemingUuid === item.order_uuid
+                      ? 'Redeeming...'
+                      : item.is_redeemed
+                      ? 'Redeemed'
+                      : 'Redeem'}
+                  </Text>
+                </Animatable.View>
               </TouchableOpacity>
-            </View>
+            </Animatable.View>
           )}
         />
       )}

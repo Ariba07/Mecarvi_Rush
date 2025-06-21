@@ -1,5 +1,6 @@
 import React from 'react';
 import {View, Text} from 'react-native';
+import * as Animatable from 'react-native-animatable';
 import {styles} from '../../assets/styles/product/Product';
 
 interface TabContentProps {
@@ -15,16 +16,25 @@ const TabContent: React.FC<TabContentProps> = ({
   refundPolicy,
   theme,
 }) => (
-  <View style={styles.contentContainer}>
+  <Animatable.View
+    animation="fadeIn"
+    duration={600}
+    key={activeTab} // Key ensures animation retriggers on tab change
+    style={styles.contentContainer}>
     {activeTab === 0 && (
       <View>
         {dynamicSpecifications.map((item, index) => (
-          <View key={index} style={styles.specRow}>
+          <Animatable.View
+            key={index}
+            animation="fadeInUp"
+            duration={600}
+            delay={index * 100}
+            style={styles.specRow}>
             <Text style={[styles.specLabel, {color: theme.text}]}>
               {item.label}:
             </Text>
             <Text style={styles.specValue}>{item.value}</Text>
-          </View>
+          </Animatable.View>
         ))}
       </View>
     )}
@@ -33,7 +43,7 @@ const TabContent: React.FC<TabContentProps> = ({
         {refundPolicy || 'No refund policy available.'}
       </Text>
     )}
-  </View>
+  </Animatable.View>
 );
 
 export default TabContent;

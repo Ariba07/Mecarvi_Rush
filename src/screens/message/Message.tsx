@@ -75,7 +75,7 @@ const MessageScreen: React.FC = () => {
             const fetchedMessages: Message[] = snapshot.docs.map(
               messageDoc => ({
                 id: messageDoc.id,
-                text: messageDoc.data().text || '',
+                text: messageDoc.data().text || messageDoc.data().message || '',
                 sender: messageDoc.data().sender || 'unknown',
                 createdAt: messageDoc.data().createdAt || serverTimestamp(),
               }),
@@ -103,6 +103,7 @@ const MessageScreen: React.FC = () => {
       }
     };
   }, [chatId, currentUserUuid, navigation]);
+  console.log(messages);
 
   const sendMessage = async () => {
     if (!text.trim() || !currentUserUuid || !chatId) {

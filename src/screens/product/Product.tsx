@@ -17,6 +17,7 @@ import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 import Header from '../../components/common/header/Header';
 import {styles} from '../../assets/styles/product/Product';
 import {Animated} from 'react-native';
+import * as Animatable from 'react-native-animatable';
 import AttributesSection from './AttributeSection';
 import ImageSlider from './ImageSlider';
 import ProductDetails from './ProductDetails';
@@ -58,6 +59,7 @@ const Product = () => {
           method: 'GET',
           endpoint: `products/${productUuid}`,
         });
+        console.log('Product Data Response:', response.data); // Log the response data
         setProductData(response.data);
       } catch (error) {
         console.warn('Error fetching product:', error);
@@ -66,7 +68,7 @@ const Product = () => {
       }
     };
     fetchProduct();
-  }, [productUuid]);
+  }, [productUuid]); // Depend on productUuid, not productData
 
   const attributes: Attribute[] =
     productData?.attributes.map((attr: any) => ({
@@ -137,50 +139,60 @@ const Product = () => {
             }}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}>
-            <ImageSlider
-              productData={productData}
-              currentIndex={currentIndex}
-              setCurrentIndex={setCurrentIndex}
-            />
-            <ProductDetails
-              productData={productData}
-              theme={theme}
-              attributeValues={attributeValues}
-              selectedSize={selectedSize}
-              setFinalPrice={setFinalPrice}
-            />
-            <TabNavigation
-              activeTab={activeTab}
-              setActiveTab={setActiveTab}
-              translateX={translateX}
-              theme={theme}
-            />
-            <TabContent
-              activeTab={activeTab}
-              dynamicSpecifications={dynamicSpecifications}
-              refundPolicy={productData?.refund_policy}
-              theme={theme}
-            />
-            <AttributesSection
-              attributes={attributes}
-              attributeValues={attributeValues}
-              setAttributeValues={setAttributeValues}
-              selectedColor={selectedColor}
-              setSelectedColor={setSelectedColor}
-              selectedSize={selectedSize}
-              setSelectedSize={setSelectedSize}
-              frontFile={frontFile}
-              setFrontFile={setFrontFile}
-              backFile={backFile}
-              setBackFile={setBackFile}
-              reviewText={reviewText}
-              setReviewText={setReviewText}
-              theme={theme}
-              navigation={navigation}
-              productData={productData}
-              productUuid={productUuid}
-              finalPrice={finalPrice}
-            />
+            <Animatable.View animation="fadeIn" duration={800}>
+              <ImageSlider
+                productData={productData}
+                currentIndex={currentIndex}
+                setCurrentIndex={setCurrentIndex}
+              />
+            </Animatable.View>
+            <Animatable.View animation="fadeIn" duration={800} delay={200}>
+              <ProductDetails
+                productData={productData}
+                theme={theme}
+                attributeValues={attributeValues}
+                selectedSize={selectedSize}
+                setFinalPrice={setFinalPrice}
+              />
+            </Animatable.View>
+            <Animatable.View animation="fadeIn" duration={800} delay={400}>
+              <TabNavigation
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+                translateX={translateX}
+                theme={theme}
+              />
+            </Animatable.View>
+            <Animatable.View animation="fadeIn" duration={800} delay={600}>
+              <TabContent
+                activeTab={activeTab}
+                dynamicSpecifications={dynamicSpecifications}
+                refundPolicy={productData?.refund_policy}
+                theme={theme}
+              />
+            </Animatable.View>
+            <Animatable.View animation="fadeIn" duration={800} delay={800}>
+              <AttributesSection
+                attributes={attributes}
+                attributeValues={attributeValues}
+                setAttributeValues={setAttributeValues}
+                selectedColor={selectedColor}
+                setSelectedColor={setSelectedColor}
+                selectedSize={selectedSize}
+                setSelectedSize={setSelectedSize}
+                frontFile={frontFile}
+                setFrontFile={setFrontFile}
+                backFile={backFile}
+                setBackFile={setBackFile}
+                reviewText={reviewText}
+                setReviewText={setReviewText}
+                theme={theme}
+                navigation={navigation}
+                productData={productData}
+                productUuid={productUuid}
+                finalPrice={finalPrice}
+              />
+            </Animatable.View>
           </ScrollView>
         )}
       </View>

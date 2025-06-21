@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-inline-styles */
 import React, {useState, useEffect, useContext, useCallback} from 'react';
 import {
   SafeAreaView,
@@ -8,7 +9,6 @@ import {
   TouchableOpacity,
   FlatList,
   Alert,
-  Image,
 } from 'react-native';
 import {
   widthPercentageToDP as wp,
@@ -25,6 +25,7 @@ import {
 import Header from '../../components/common/header/Header';
 import {useSelector} from 'react-redux';
 import {selectToken} from '../../slice/Slice';
+import * as Animatable from 'react-native-animatable'; // Import animatable
 
 type FeedbackRouteProp = RouteProp<RootStackParamList, 'Feedback'>;
 
@@ -58,6 +59,7 @@ const Feedback = () => {
   const order_id = route.params?.order_id;
   const [note, setNote] = useState<string>('');
   const [feedbackData, setFeedbackData] = useState<FeedbackItem[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false); // Add loading state
   const token = useSelector(selectToken);
 
   // Fetch feedback data
@@ -67,6 +69,7 @@ const Feedback = () => {
       return;
     }
 
+    setIsLoading(true);
     try {
       const response = await fetch(
         `${API_BASE_URL}orders/order-proofs/${order_id}`,
@@ -83,7 +86,12 @@ const Feedback = () => {
 
       if (response.status >= 200 && response.status < 300) {
         console.log('Feedback fetched successfully:', result);
-        setFeedbackData(result.data || []);
+        if (Array.isArray(result.data)) {
+          setFeedbackData(result.data);
+        } else {
+          console.warn('Unexpected feedback data:', result.data);
+          Alert.alert('Warning', 'Received invalid feedback data.');
+        }
       } else {
         console.warn('Error fetching feedback:', result);
         Alert.alert('Error', result?.message || 'Failed to fetch feedback.');
@@ -94,13 +102,15 @@ const Feedback = () => {
         'Error',
         'Failed to fetch feedback. Please check your network.',
       );
+    } finally {
+      setIsLoading(false);
     }
   }, [order_id, token]);
 
   // Fetch feedback on mount and when order_id/token changes
   useEffect(() => {
     fetchFeedback();
-  }, [fetchFeedback, order_id, token]);
+  }, [fetchFeedback]);
 
   const handleAction = async (action: 'approve' | 'reject') => {
     if (action === 'reject' && !note.trim()) {
@@ -113,7 +123,6 @@ const Feedback = () => {
       return;
     }
 
-    // Get the UUID of the latest feedback item
     if (feedbackData.length === 0) {
       Alert.alert('Error', 'No feedback available to approve or reject.');
       return;
@@ -127,6 +136,7 @@ const Feedback = () => {
     const uuid = latestFeedback.uuid;
 
     try {
+      setIsLoading(true);
       console.log(`Submitting ${action} action:`, {
         status: action === 'approve' ? 'approved' : 'rejected',
         feedback: action === 'reject' ? note : undefined,
@@ -141,18 +151,18 @@ const Feedback = () => {
         },
       })) as any;
 
-      const result = response.message;
-
-      console.log(`${action} action submitted successfully:`, result);
+      console.log(`${action} action submitted successfully:`, response);
       Alert.alert('Success', `Feedback ${action}d successfully!`);
       setNote('');
-      fetchFeedback(); // Refresh feedback list
+      await fetchFeedback(); // Refresh feedback list
     } catch (error) {
       console.warn(`Submit ${action} error:`, error);
       Alert.alert(
         'Error',
         `Failed to ${action} feedback. Please check your network.`,
       );
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -164,13 +174,23 @@ const Feedback = () => {
     let hours = date.getHours();
     const minutes = date.getMinutes();
     const ampm = hours >= 12 ? 'PM' : 'AM';
-    hours = hours % 12 || 12; // Convert to 12-hour format
+    hours = hours % 12 || 12;
     const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
     return `${month}/${day}/${year}, ${hours}:${formattedMinutes}${ampm}`;
   };
 
-  const renderFeedbackItem = ({item}: {item: FeedbackItem}) => (
-    <View style={styles.feedbackItem}>
+  const renderFeedbackItem = ({
+    item,
+    index,
+  }: {
+    item: FeedbackItem;
+    index: number;
+  }) => (
+    <Animatable.View
+      animation="fadeInUp"
+      duration={600}
+      delay={index * 100} // Staggered animation
+      style={styles.feedbackItem}>
       {item.note && (
         <View style={styles.customerFeedbackContainer}>
           <Text style={[styles.feedbackHeading, {color: theme.text}]}>
@@ -184,7 +204,9 @@ const Feedback = () => {
               <FlatList
                 data={item.images}
                 renderItem={({item: image}) => (
-                  <Image
+                  <Animatable.Image
+                    animation="zoomIn"
+                    duration={600}
                     source={{uri: image.file_url}}
                     style={styles.feedbackImage}
                     resizeMode="cover"
@@ -208,111 +230,144 @@ const Feedback = () => {
             <Text style={[styles.feedbackText, {color: theme.text}]}>
               {item.feedback}
             </Text>
-
-            <Text style={[styles.timestamp, {color: theme.header}]}>
+            <Text style={[styles.timestamp, {color: '#999'}]}>
               {formatTimestamp(item.created_at)}
             </Text>
           </View>
         </View>
       )}
-    </View>
+    </Animatable.View>
   );
 
   return (
-    <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
-      <View style={styles.container}>
-        <Header title={'Feedback'} onBackPress={() => navigation.goBack()} />
-
-        {/* Feedback List */}
-        <FlatList
-          data={feedbackData.sort(
-            (a, b) =>
-              new Date(a.created_at).getTime() -
-              new Date(b.created_at).getTime(),
-          )}
-          renderItem={renderFeedbackItem}
-          keyExtractor={item => item.id.toString()}
-          contentContainerStyle={styles.feedbackList}
-          showsVerticalScrollIndicator={true} // Enable scroll indicator to confirm scrolling
-        />
-
-        {/* Create Feedback Section */}
-        <View style={[styles.createSection]}>
-          <View style={[styles.section]}>
-            <TextInput
-              style={[
-                styles.noteInput,
-                {color: theme.input, backgroundColor: theme.whole},
-              ]}
-              placeholder="Write feedback (required for reject)"
-              placeholderTextColor="#A9A9A9"
-              multiline
-              value={note}
-              onChangeText={setNote}
+    <View style={[styles.safeArea, {backgroundColor: theme.whole}]}>
+      <SafeAreaView style={{flex: 1}}>
+        <View style={styles.container}>
+          <Header title="Feedback" onBackPress={() => navigation.goBack()} />
+          {isLoading ? (
+            <Animatable.Text
+              animation="fadeIn"
+              duration={800}
+              style={{
+                textAlign: 'center',
+                color: theme.text,
+                marginTop: hp(5),
+              }}>
+              Loading feedback...
+            </Animatable.Text>
+          ) : feedbackData.length === 0 ? (
+            <Animatable.Text
+              animation="fadeIn"
+              duration={800}
+              style={{
+                textAlign: 'center',
+                color: theme.text,
+                marginTop: hp(5),
+              }}>
+              No feedback available
+            </Animatable.Text>
+          ) : (
+            <FlatList
+              data={feedbackData.sort(
+                (a, b) =>
+                  new Date(a.created_at).getTime() -
+                  new Date(b.created_at).getTime(),
+              )}
+              renderItem={renderFeedbackItem}
+              keyExtractor={item => item.id.toString()}
+              contentContainerStyle={styles.feedbackList}
+              showsVerticalScrollIndicator={true}
             />
-          </View>
-
-          <View style={styles.buttonRow}>
-            <TouchableOpacity
-              style={[styles.actionButton, styles.approveButton]}
-              onPress={() => handleAction('approve')}>
-              <Text style={styles.actionButtonText}>Approve</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.actionButton, styles.rejectButton]}
-              onPress={() => handleAction('reject')}>
-              <Text style={[styles.actionButtonText, {color: theme.text}]}>
-                Reject
-              </Text>
-            </TouchableOpacity>
+          )}
+          {/* Feedback Section */}
+          <View style={[styles.createSection]}>
+            <Animatable.View
+              animation="fadeInUp"
+              duration={600}
+              style={[styles.section]}>
+              <TextInput
+                style={[
+                  styles.noteInput,
+                  {color: theme.text, backgroundColor: theme.input},
+                ]}
+                placeholder="Write feedback (required for reject)"
+                placeholderTextColor="#999"
+                multiline
+                value={note}
+                onChangeText={setNote}
+              />
+            </Animatable.View>
+            <View style={styles.buttonRow}>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.approveButton]}
+                onPress={() => handleAction('approve')}
+                disabled={isLoading}>
+                <Animatable.View animation="bounceIn" duration={600}>
+                  <Text style={styles.whiteButtonText}>Approve</Text>
+                </Animatable.View>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.rejectButton]}
+                onPress={() => handleAction('reject')}
+                disabled={isLoading}>
+                <Animatable.View
+                  animation="bounceIn"
+                  duration={600}
+                  delay={200}>
+                  <Text style={[styles.buttonText, {color: theme.text}]}>
+                    Reject
+                  </Text>
+                </Animatable.View>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#1C2526',
+    backgroundColor: '#333',
   },
   container: {
     flex: 1,
-    paddingHorizontal: wp(4),
-    paddingBottom: hp(2),
+    paddingHorizontal: hp(2),
+    paddingVertical: hp(2),
   },
   feedbackList: {
     paddingBottom: hp(25),
     paddingTop: hp(2),
-    flexGrow: 1, // Ensure the content can grow to enable scrolling
+    flexGrow: 1,
   },
   feedbackItem: {
     marginVertical: hp(1),
   },
   customerFeedbackContainer: {
     alignItems: 'flex-start',
-    marginRight: wp(10),
+    paddingRight: wp(10),
   },
-  serviceProviderNoteContainer: {
+  serviceProviderContainer: {
     alignItems: 'flex-end',
-    marginLeft: wp(10),
-    marginVertical: hp(1),
+    paddingLeft: wp(10),
+    marginVertical: hp(2),
   },
   feedbackHeading: {
     fontSize: wp(4),
-    fontWeight: '600',
+    fontWeight: 'bold',
     marginBottom: hp(0.5),
-    color: '#A9A9A9',
+    color: '#999',
   },
   feedbackBubble: {
     maxWidth: wp(70),
     padding: wp(3),
   },
   customerBubble: {
-    backgroundColor: '#E5E5E5',
+    backgroundColor: '#444',
     borderTopRightRadius: wp(4),
-    borderBottomRightRadius: wp(4),
+    borderBottomRightRadius: wp(20),
     borderTopLeftRadius: 0,
     borderBottomLeftRadius: wp(4),
   },
@@ -336,11 +391,11 @@ const styles = StyleSheet.create({
   feedbackImageList: {
     marginTop: hp(1),
     marginBottom: hp(1),
-    maxHeight: hp(10), // Constrain the height of the image list
+    maxHeight: hp(10),
   },
   feedbackImage: {
     width: wp(20),
-    height: hp(10), // Use hp for height to better control vertical space
+    height: hp(10),
     marginRight: wp(2),
     borderRadius: wp(2),
   },
@@ -356,7 +411,7 @@ const styles = StyleSheet.create({
   noteInput: {
     borderRadius: wp(2),
     borderWidth: 1,
-    borderColor: '#5C6667',
+    borderColor: '#666',
     padding: wp(3),
     fontSize: wp(4),
     minHeight: hp(10),
@@ -370,7 +425,7 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     flex: 1,
-    paddingVertical: hp(1),
+    paddingVertical: hp(1.5),
     borderRadius: wp(2),
     alignItems: 'center',
   },
@@ -378,14 +433,23 @@ const styles = StyleSheet.create({
     backgroundColor: '#00C4B4',
   },
   rejectButton: {
-    backgroundColor: '#ffffff',
+    backgroundColor: '#fff',
     borderColor: '#00C4B4',
     borderWidth: 2,
   },
-  actionButtonText: {
+  whiteButtonText: {
     color: '#fff',
     fontSize: wp(4.5),
     fontWeight: '600',
+  },
+  buttonText: {
+    fontSize: wp(4.5),
+    fontWeight: '600',
+  },
+  serviceProviderNoteContainer: {
+    alignItems: 'flex-end',
+    marginLeft: wp(10),
+    marginVertical: hp(1),
   },
 });
 

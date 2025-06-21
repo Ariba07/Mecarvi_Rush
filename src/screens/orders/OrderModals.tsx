@@ -11,6 +11,7 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import {styles} from '../../assets/styles/orders/OrderStyles';
+import * as Animatable from 'react-native-animatable'; // Import animatable
 
 interface OrderModalsProps {
   selectedOrder: Order | null;
@@ -72,7 +73,11 @@ const OrderModals: React.FC<OrderModalsProps> = ({
         visible={selectedOrder !== null}
         onRequestClose={onCloseOrderModal}>
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, {backgroundColor: theme.whole}]}>
+          <Animatable.View
+            animation="slideInUp"
+            duration={400}
+            style={[styles.modalContent, {backgroundColor: theme.whole}]}
+            onAnimationEnd={selectedOrder ? undefined : onCloseOrderModal}>
             <Text style={[styles.modalTitle, {color: theme.text}]}>
               Order Items (Order #{selectedOrder?.id})
             </Text>
@@ -105,10 +110,14 @@ const OrderModals: React.FC<OrderModalsProps> = ({
             </ScrollView>
             <TouchableOpacity
               style={styles.closeButton}
-              onPress={onCloseOrderModal}>
-              <Text style={styles.closeButtonText}>Close</Text>
+              onPress={() => {
+                onCloseOrderModal();
+              }}>
+              <Animatable.View>
+                <Text style={styles.closeButtonText}>Close</Text>
+              </Animatable.View>
             </TouchableOpacity>
-          </View>
+          </Animatable.View>
         </View>
       </Modal>
       {/* Status Update Modal (Service Provider Only) */}
@@ -119,11 +128,16 @@ const OrderModals: React.FC<OrderModalsProps> = ({
           visible={statusModalVisible}
           onRequestClose={onCloseStatusModal}>
           <View style={styles.modalOverlay}>
-            <View
+            <Animatable.View
+              animation="slideInUp"
+              duration={400}
               style={[
                 styles.statusModalContent,
                 {backgroundColor: theme.whole},
-              ]}>
+              ]}
+              onAnimationEnd={
+                statusModalVisible ? undefined : onCloseStatusModal
+              }>
               <Text style={[styles.modalTitle, {color: theme.text}]}>
                 Update Order Status
               </Text>
@@ -161,10 +175,14 @@ const OrderModals: React.FC<OrderModalsProps> = ({
               </View>
               <TouchableOpacity
                 style={styles.closeButton}
-                onPress={onCloseStatusModal}>
-                <Text style={styles.closeButtonText}>Cancel</Text>
+                onPress={() => {
+                  onCloseStatusModal();
+                }}>
+                <Animatable.View>
+                  <Text style={styles.closeButtonText}>Cancel</Text>
+                </Animatable.View>
               </TouchableOpacity>
-            </View>
+            </Animatable.View>
           </View>
         </Modal>
       )}
@@ -175,11 +193,16 @@ const OrderModals: React.FC<OrderModalsProps> = ({
         visible={trackingModalVisible}
         onRequestClose={onCloseTrackingModal}>
         <View style={styles.modalOverlay}>
-          <View
+          <Animatable.View
+            animation="slideInUp"
+            duration={400}
             style={[
               styles.trackingModalContent,
               {backgroundColor: theme.whole},
-            ]}>
+            ]}
+            onAnimationEnd={
+              trackingModalVisible ? undefined : onCloseTrackingModal
+            }>
             <Text style={[styles.modalTitle, {color: theme.text}]}>
               Tracking Status
             </Text>
@@ -188,10 +211,14 @@ const OrderModals: React.FC<OrderModalsProps> = ({
             </Text>
             <TouchableOpacity
               style={styles.closeButton}
-              onPress={onCloseTrackingModal}>
-              <Text style={styles.closeButtonText}>Close</Text>
+              onPress={() => {
+                onCloseTrackingModal();
+              }}>
+              <Animatable.View>
+                <Text style={styles.closeButtonText}>Close</Text>
+              </Animatable.View>
             </TouchableOpacity>
-          </View>
+          </Animatable.View>
         </View>
       </Modal>
       {/* Cancel Order Modal (Customer Only) */}
@@ -202,11 +229,16 @@ const OrderModals: React.FC<OrderModalsProps> = ({
           visible={cancelModalVisible}
           onRequestClose={onCloseCancelModal}>
           <View style={styles.modalOverlay}>
-            <View
+            <Animatable.View
+              animation="slideInUp"
+              duration={400}
               style={[
                 styles.cancelModalContent,
                 {backgroundColor: theme.whole},
-              ]}>
+              ]}
+              onAnimationEnd={
+                cancelModalVisible ? undefined : onCloseCancelModal
+              }>
               <Text style={[styles.modalTitle, {color: theme.text}]}>
                 Order Actions
               </Text>
@@ -223,11 +255,15 @@ const OrderModals: React.FC<OrderModalsProps> = ({
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.closeButton}
-                  onPress={onCloseCancelModal}>
-                  <Text style={styles.closeButtonText}>Close</Text>
+                  onPress={() => {
+                    onCloseCancelModal();
+                  }}>
+                  <Animatable.View>
+                    <Text style={styles.closeButtonText}>Close</Text>
+                  </Animatable.View>
                 </TouchableOpacity>
               </View>
-            </View>
+            </Animatable.View>
           </View>
         </Modal>
       )}
@@ -239,11 +275,16 @@ const OrderModals: React.FC<OrderModalsProps> = ({
           visible={disputeModalVisible}
           onRequestClose={onCloseDisputeModal}>
           <View style={styles.modalOverlay}>
-            <View
+            <Animatable.View
+              animation="slideInUp"
+              duration={400}
               style={[
                 styles.cancelModalContent,
                 {backgroundColor: theme.whole},
-              ]}>
+              ]}
+              onAnimationEnd={
+                disputeModalVisible ? undefined : onCloseDisputeModal
+              }>
               <Text style={[styles.modalTitle, {color: theme.text}]}>
                 Order Actions
               </Text>
@@ -266,11 +307,15 @@ const OrderModals: React.FC<OrderModalsProps> = ({
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.closeButton}
-                  onPress={onCloseDisputeModal}>
-                  <Text style={styles.closeButtonText}>Close</Text>
+                  onPress={() => {
+                    onCloseDisputeModal();
+                  }}>
+                  <Animatable.View>
+                    <Text style={styles.closeButtonText}>Close</Text>
+                  </Animatable.View>
                 </TouchableOpacity>
               </View>
-            </View>
+            </Animatable.View>
           </View>
         </Modal>
       )}

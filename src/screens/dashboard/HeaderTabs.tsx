@@ -1,5 +1,6 @@
 import React from 'react';
 import {View, TouchableOpacity, Text} from 'react-native';
+import * as Animatable from 'react-native-animatable';
 import {useNavigation} from '@react-navigation/native';
 import {DrawerNavigationProp} from '@react-navigation/drawer';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
@@ -20,45 +21,55 @@ const HeaderTabs: React.FC<HeaderTabsProps> = ({
   const {theme} = React.useContext(ThemeContext);
 
   return (
-    <View style={styles.header}>
-      <TouchableOpacity onPress={() => navigation.openDrawer()}>
-        <SideMenu />
-      </TouchableOpacity>
-      <View style={styles.tabsContainer}>
-        <TouchableOpacity
-          onPress={() => setSelectedTab('prints')}
-          style={[
-            styles.tab,
-            selectedTab === 'prints' && styles.selectedTabStyle,
-          ]}>
-          <Text
-            style={[
-              styles.title,
-              selectedTab === 'prints'
-                ? styles.selectedTabText
-                : {color: theme.text || '#333'},
-            ]}>
-            Prints
-          </Text>
+    <Animatable.View animation="fadeInDown" duration={1000}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.openDrawer()}>
+          <SideMenu />
         </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => setSelectedTab('rentals')}
-          style={[
-            styles.tab,
-            selectedTab === 'rentals' && styles.selectedTabStyle,
-          ]}>
-          <Text
-            style={[
-              styles.title,
-              selectedTab === 'rentals'
-                ? styles.selectedTabText
-                : {color: theme.text || '#333'},
-            ]}>
-            Rentals
-          </Text>
-        </TouchableOpacity>
+        <View style={styles.tabsContainer}>
+          <Animatable.View
+            animation={selectedTab === 'prints' ? 'bounceIn' : 'fadeIn'}
+            duration={300}>
+            <TouchableOpacity
+              onPress={() => setSelectedTab('prints')}
+              style={[
+                styles.tab,
+                selectedTab === 'prints' && styles.selectedTabStyle,
+              ]}>
+              <Text
+                style={[
+                  styles.title,
+                  selectedTab === 'prints'
+                    ? styles.selectedTabText
+                    : {color: theme.text || '#333'},
+                ]}>
+                Prints
+              </Text>
+            </TouchableOpacity>
+          </Animatable.View>
+          <Animatable.View
+            animation={selectedTab === 'rentals' ? 'bounceIn' : 'fadeIn'}
+            duration={300}>
+            <TouchableOpacity
+              onPress={() => setSelectedTab('rentals')}
+              style={[
+                styles.tab,
+                selectedTab === 'rentals' && styles.selectedTabStyle,
+              ]}>
+              <Text
+                style={[
+                  styles.title,
+                  selectedTab === 'rentals'
+                    ? styles.selectedTabText
+                    : {color: theme.text || '#333'},
+                ]}>
+                Rentals
+              </Text>
+            </TouchableOpacity>
+          </Animatable.View>
+        </View>
       </View>
-    </View>
+    </Animatable.View>
   );
 };
 

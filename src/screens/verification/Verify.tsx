@@ -61,9 +61,16 @@ const Verify = () => {
 
   const handleVerify = async () => {
     try {
+      const verificationCode = code.join('');
+      // Validate that all fields are filled and are numeric
+      if (verificationCode.length !== 6 || !/^\d{6}$/.test(verificationCode)) {
+        console.warn('Please enter a valid 6-digit code');
+        return;
+      }
+
       const verify = {
         phone_number: number,
-        verification_code: parseInt(code.join(''), 10),
+        verification_code: verificationCode, // Send as string
       };
 
       await apiHelper({
