@@ -1,4 +1,5 @@
-import React, {useState, useEffect, useCallback, useContext} from 'react';
+/* eslint-disable react-native/no-inline-styles */
+import React, {useState, useCallback, useContext} from 'react';
 import {
   SafeAreaView,
   View,
@@ -6,18 +7,19 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  Alert,
+  RefreshControl,
 } from 'react-native';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
 import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 import Header from '../../components/common/header/Header';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import CustomModal from '../../components/common/errorModal/CustomModal';
 
 type NavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -33,13 +35,25 @@ interface Ticket {
   status: string;
 }
 
+interface ActionResult {
+  success: boolean;
+  data?: any;
+  error?: {
+    title: string;
+    message: string;
+  };
+}
+
 const AllTicket = () => {
   const navigation = useNavigation<NavigationProp>();
   const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [modalMessage, setModalMessage] = useState<string>('');
+  const [modalTitle, setModalTitle] = useState<string>('Error');
+  const [refreshing, setRefreshing] = useState<boolean>(false);
   const {theme} = useContext(ThemeContext);
 
-  // Fetch tickets from API
-  const fetchTickets = useCallback(async () => {
+  const fetchTickets = useCallback(async (): Promise<ActionResult> => {
     try {
       const response = (await apiHelper({
         method: 'GET',
@@ -48,19 +62,48 @@ const AllTicket = () => {
 
       console.log('Tickets fetched successfully:', response);
       setTickets(response.data || []);
+      return {
+        success: true,
+        data: response.data || [],
+      };
     } catch (error) {
       console.error('Fetch tickets error:', error);
-      Alert.alert(
-        'Error',
-        'Failed to fetch tickets. Please check your network.',
-      );
+      return {
+        success: false,
+        error: {
+          title: 'Error',
+          message: 'Failed to fetch tickets. Please check your network.',
+        },
+      };
+    } finally {
+      setRefreshing(false);
     }
   }, []);
 
-  // Fetch tickets on mount and when token changes
-  useEffect(() => {
-    fetchTickets();
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    const result = await fetchTickets();
+    if (!result.success && result.error) {
+      setModalTitle(result.error.title);
+      setModalMessage(result.error.message);
+      setModalVisible(true);
+    }
   }, [fetchTickets]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const loadTickets = async () => {
+        const result = await fetchTickets();
+        if (!result.success && result.error) {
+          setModalTitle(result.error.title);
+          setModalMessage(result.error.message);
+          setModalVisible(true);
+        }
+      };
+      loadTickets();
+      return () => {};
+    }, [fetchTickets]),
+  );
 
   const handleCreateTicket = () => {
     navigation.navigate('CreateTicket', {order_id: 0, fromOrders: false});
@@ -90,22 +133,44 @@ const AllTicket = () => {
           title="Customer Support"
           onBackPress={() => navigation.goBack()}
         />
-
-        {/* Ticket List */}
-        <FlatList
-          data={tickets}
-          renderItem={renderTicketItem}
-          keyExtractor={item => item.id.toString()}
-          contentContainerStyle={styles.ticketList}
-          showsVerticalScrollIndicator={false}
-        />
-
-        {/* Create Ticket Button */}
+        {tickets.length === 0 && !refreshing ? (
+          <Text
+            style={{
+              textAlign: 'center',
+              color: theme.text || '#333',
+              marginTop: hp(5),
+            }}>
+            No tickets available
+          </Text>
+        ) : (
+          <FlatList
+            data={tickets}
+            renderItem={renderTicketItem}
+            keyExtractor={item => item.id.toString()}
+            contentContainerStyle={styles.ticketList}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={[theme.status || '#00C4B4']}
+                tintColor={theme.status || '#00C4B4'}
+                title="Pull to refresh"
+              />
+            }
+          />
+        )}
         <TouchableOpacity
           style={styles.createButton}
           onPress={handleCreateTicket}>
           <Text style={styles.createButtonText}>Create Ticket</Text>
         </TouchableOpacity>
+        <CustomModal
+          visible={modalVisible}
+          title={modalTitle}
+          message={modalMessage}
+          onClose={() => setModalVisible(false)}
+        />
       </View>
     </SafeAreaView>
   );
@@ -122,7 +187,7 @@ const styles = StyleSheet.create({
     paddingBottom: hp(2),
   },
   ticketList: {
-    paddingBottom: hp(10), // Space for the Create Ticket button
+    paddingBottom: hp(10),
     paddingTop: hp(2),
     flexGrow: 1,
   },

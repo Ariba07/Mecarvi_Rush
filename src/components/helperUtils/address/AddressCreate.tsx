@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   Modal,
   StyleSheet,
-  Alert,
   TouchableWithoutFeedback,
 } from 'react-native';
 import {
@@ -18,6 +17,7 @@ import {apiHelper} from '../apiHelper/ApiHelper';
 import {useSelector} from 'react-redux';
 import {selectUserId} from '../../../slice/Slice';
 import {ThemeContext} from '../theme/ThemeContext';
+import CustomModal from '../../common/errorModal/CustomModal';
 
 interface AddressCreateProps {
   visible: boolean;
@@ -36,6 +36,9 @@ const AddressCreate: React.FC<AddressCreateProps> = ({visible, onClose}) => {
   const [latitude, setLatitude] = useState('');
   const [longitude, setLongitude] = useState('');
   const [loading, setLoading] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
+  const [modalTitle, setModalTitle] = useState('Error');
   const user_id = useSelector(selectUserId);
   const {theme} = useContext(ThemeContext);
 
@@ -58,20 +61,23 @@ const AddressCreate: React.FC<AddressCreateProps> = ({visible, onClose}) => {
       }
     } catch (error) {
       console.warn('Geocoding Error:', error);
-      Alert.alert('Error', 'Failed to get coordinates for the address');
+      setModalTitle('Error');
+      setModalMessage('Failed to get coordinates for the address');
+      setModalVisible(true);
       return null;
     }
   };
 
   const handleSave = async () => {
     if (!country || !state || !city || !zipCode || !address) {
-      Alert.alert('Error', 'Please fill all fields');
+      setModalTitle('Error');
+      setModalMessage('Please fill all fields');
+      setModalVisible(true);
       return;
     }
 
     setLoading(true);
     try {
-      // Construct full address for geocoding
       const fullAddress = `${address}, ${city}, ${state}, ${zipCode}, ${country}`;
       const coordinates = await fetchCoordinates(fullAddress);
 
@@ -99,8 +105,9 @@ const AddressCreate: React.FC<AddressCreateProps> = ({visible, onClose}) => {
       })) as {status: number; message?: string};
 
       if (response.status === 1) {
-        Alert.alert('Success', 'Address added successfully');
-        // Reset form
+        setModalTitle('Success');
+        setModalMessage('Address added successfully');
+        setModalVisible(true);
         setCountry('');
         setState('');
         setCity('');
@@ -110,85 +117,104 @@ const AddressCreate: React.FC<AddressCreateProps> = ({visible, onClose}) => {
         setLongitude('');
         onClose();
       } else {
-        Alert.alert('Error', response.message || 'Failed to add address');
+        setModalTitle('Error');
+        setModalMessage(response.message || 'Failed to add address');
+        setModalVisible(true);
       }
     } catch (error: any) {
       console.warn('API Error:', error.message);
-      Alert.alert('Error', 'An error occurred while adding the address');
+      setModalTitle('Error');
+      setModalMessage('An error occurred while adding the address');
+      setModalVisible(true);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Modal
-      animationType="slide"
-      transparent={true}
-      visible={visible}
-      onRequestClose={onClose}>
-      <TouchableWithoutFeedback onPress={onClose}>
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, {backgroundColor: theme.whole}]}>
-            <Text style={[styles.title, {color: theme.text}]}>Add Address</Text>
-
-            <View style={styles.inputContainer}>
-              <Text style={[styles.label, {color: theme.text}]}>Country</Text>
-              <CustomTextInput
-                placeholder="Country"
-                value={country}
-                onChangeText={text => setCountry(text as string)}
-              />
-            </View>
-
-            <View style={styles.inputContainer}>
-              <Text style={[styles.label, {color: theme.text}]}>State</Text>
-              <CustomTextInput
-                placeholder="State"
-                value={state}
-                onChangeText={text => setState(text as string)}
-              />
-            </View>
-
-            <View style={styles.inputContainer}>
-              <Text style={[styles.label, {color: theme.text}]}>City</Text>
-              <CustomTextInput
-                placeholder="City"
-                value={city}
-                onChangeText={text => setCity(text as string)}
-              />
-            </View>
-
-            <View style={styles.inputContainer}>
-              <Text style={[styles.label, {color: theme.text}]}>Zip Code</Text>
-              <CustomTextInput
-                placeholder="Zip Code"
-                value={zipCode}
-                onChangeText={text => setZipCode(text as string)}
-              />
-            </View>
-
-            <View style={styles.inputContainer}>
-              <Text style={[styles.label, {color: theme.text}]}>Address</Text>
-              <CustomTextInput
-                placeholder="Address"
-                value={address}
-                onChangeText={text => setAddress(text as string)}
-              />
-            </View>
-
-            <TouchableOpacity
-              style={[styles.doneButton, loading && styles.disabledButton]}
-              onPress={handleSave}
-              disabled={loading}>
-              <Text
-                style={[styles.doneButtonText, {color: theme.backgroundColor}]}>
-                {loading ? 'Adding...' : 'Add'}
+    <>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={visible}
+        onRequestClose={onClose}>
+        <TouchableWithoutFeedback onPress={onClose}>
+          <View style={styles.modalOverlay}>
+            <View style={[styles.modalContent, {backgroundColor: theme.whole}]}>
+              <Text style={[styles.title, {color: theme.text}]}>
+                Add Address
               </Text>
-            </TouchableOpacity>
+
+              <View style={styles.inputContainer}>
+                <Text style={[styles.label, {color: theme.text}]}>Country</Text>
+                <CustomTextInput
+                  placeholder="Country"
+                  value={country}
+                  onChangeText={text => setCountry(text as string)}
+                />
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Text style={[styles.label, {color: theme.text}]}>State</Text>
+                <CustomTextInput
+                  placeholder="State"
+                  value={state}
+                  onChangeText={text => setState(text as string)}
+                />
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Text style={[styles.label, {color: theme.text}]}>City</Text>
+                <CustomTextInput
+                  placeholder="City"
+                  value={city}
+                  onChangeText={text => setCity(text as string)}
+                />
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Text style={[styles.label, {color: theme.text}]}>
+                  Zip Code
+                </Text>
+                <CustomTextInput
+                  placeholder="Zip Code"
+                  value={zipCode}
+                  onChangeText={text => setZipCode(text as string)}
+                />
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Text style={[styles.label, {color: theme.text}]}>Address</Text>
+                <CustomTextInput
+                  placeholder="Address"
+                  value={address}
+                  onChangeText={text => setAddress(text as string)}
+                />
+              </View>
+
+              <TouchableOpacity
+                style={[styles.doneButton, loading && styles.disabledButton]}
+                onPress={handleSave}
+                disabled={loading}>
+                <Text
+                  style={[
+                    styles.doneButtonText,
+                    {color: theme.backgroundColor},
+                  ]}>
+                  {loading ? 'Adding...' : 'Add'}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </TouchableWithoutFeedback>
-    </Modal>
+        </TouchableWithoutFeedback>
+      </Modal>
+      <CustomModal
+        visible={modalVisible}
+        title={modalTitle}
+        message={modalMessage}
+        onClose={() => setModalVisible(false)}
+      />
+    </>
   );
 };
 
@@ -227,16 +253,9 @@ const styles = StyleSheet.create({
     paddingVertical: hp(1.5),
     alignItems: 'center',
     marginTop: hp(2),
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
   },
   disabledButton: {
     backgroundColor: '#A0C4C4',
-    elevation: 0,
-    shadowOpacity: 0,
   },
   doneButtonText: {
     color: '#FFF',

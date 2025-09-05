@@ -33,6 +33,7 @@ const Product = () => {
   const productUuid = useSelector(selectProductUuid);
   const [productData, setProductData] = useState<Products | null>(null);
   const [loading, setLoading] = useState(true);
+  const [hasFetched, setHasFetched] = useState(false); // Added to prevent duplicate API calls
   const [currentIndex, setCurrentIndex] = useState(0);
   const [activeTab, setActiveTab] = useState(0);
   const [reviewText, setReviewText] = useState('');
@@ -49,18 +50,20 @@ const Product = () => {
 
   useEffect(() => {
     const fetchProduct = async () => {
-      if (!productUuid) {
+      if (!productUuid || hasFetched) {
         setLoading(false);
         return;
       }
       try {
         setLoading(true);
+        console.log('Fetching product for UUID:', productUuid);
         const response: ApiResponse = await apiHelper({
           method: 'GET',
           endpoint: `products/${productUuid}`,
         });
-        console.log('Product Data Response:', response.data); // Log the response data
+        console.log('Product Data Response:', response.data);
         setProductData(response.data);
+        setHasFetched(true); // Set flag after successful fetch
       } catch (error) {
         console.warn('Error fetching product:', error);
       } finally {
@@ -68,14 +71,19 @@ const Product = () => {
       }
     };
     fetchProduct();
-  }, [productUuid]); // Depend on productUuid, not productData
+  }, [productUuid, hasFetched]);
+
+  // Reset hasFetched when productUuid changes
+  useEffect(() => {
+    setHasFetched(false);
+  }, [productUuid]);
 
   const attributes: Attribute[] =
     productData?.attributes.map((attr: any) => ({
       label:
         attr.general_attribute.name || `Attribute ${attr.general_attribute.id}`,
       placeholder: attr.attribute_values[0]?.attribute_name || 'Select',
-      key: attr.general_attribute.general_attribute_uuid,
+      key: attr.general_attribute.name,
       options: attr.attribute_values.map((val: any) => val.attribute_name),
     })) || [];
 

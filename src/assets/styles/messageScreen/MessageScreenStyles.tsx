@@ -101,4 +101,8 @@ export const styles = StyleSheet.create({
     marginVertical: hp(2),
     color: 'red',
   },
+  disabledButton: {
+    backgroundColor: '#cccccc',
+    opacity: 0.6,
+  },
 });

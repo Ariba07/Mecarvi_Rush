@@ -1,10 +1,8 @@
-/* eslint-disable react-native/no-inline-styles */
 import React, {useContext, useState} from 'react';
 import {
   StyleSheet,
   TouchableWithoutFeedback,
   ActivityIndicator,
-  Alert,
   View,
   Text,
   Image,
@@ -19,6 +17,7 @@ import {
 } from 'react-native-responsive-screen';
 import {ThemeContext} from '../helperUtils/theme/ThemeContext';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import CustomModal from '../common/errorModal/CustomModal';
 
 interface Card {
   id: number;
@@ -36,7 +35,7 @@ interface Card {
 interface CardProps {
   isVisible: boolean;
   onClose: () => void;
-  onSubmit: (userCardUuid: string) => void; // Updated to pass user_card_uuid
+  onSubmit: (userCardUuid: string) => void;
   cards: Card[];
 }
 
@@ -44,19 +43,17 @@ const Cards: React.FC<CardProps> = ({isVisible, onClose, onSubmit, cards}) => {
   const [loading, setLoading] = useState(false);
   const {theme} = useContext(ThemeContext);
   const [selectedCardUuid, setSelectedCardUuid] = useState<string | null>(null);
+  const [errorModalVisible, setErrorModalVisible] = useState(false);
 
   const handleCardSelect = async (card: Card) => {
     setSelectedCardUuid(card.user_card_uuid);
     setLoading(true);
 
     try {
-      onSubmit(card.user_card_uuid); // Pass the user_card_uuid to the parent component
+      onSubmit(card.user_card_uuid);
       onClose();
     } catch (err) {
-      Alert.alert(
-        'Error',
-        'An unexpected error occurred while processing the card.',
-      );
+      setErrorModalVisible(true);
     } finally {
       setLoading(false);
     }
@@ -88,65 +85,74 @@ const Cards: React.FC<CardProps> = ({isVisible, onClose, onSubmit, cards}) => {
   );
 
   return (
-    <Modal
-      visible={isVisible}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}>
-      <View style={styles.modalOverlay}>
-        <TouchableWithoutFeedback>
-          <View
-            style={[
-              styles.modalContent,
-              {backgroundColor: theme.backgroundColor || '#fff'},
-            ]}>
-            <ScrollView
-              contentContainerStyle={styles.scrollViewContent}
-              keyboardShouldPersistTaps="handled">
-              <View style={styles.contentContainer}>
-                <View style={styles.headerContainer}>
-                  <Image
-                    source={{
-                      uri: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Stripe_Logo%2C_revised_2016.svg/1200px-Stripe_Logo%2C_revised_2016.svg.png',
-                    }}
-                    style={styles.stripeLogo}
-                  />
-                </View>
-                <View style={styles.divider} />
-                <View style={{paddingHorizontal: wp(3)}}>
-                  <Text style={[styles.title, {color: theme.input || '#333'}]}>
-                    Select a Card
-                  </Text>
-                  <FlatList
-                    data={cards}
-                    renderItem={renderCardItem}
-                    keyExtractor={item => item.user_card_uuid}
-                    ListEmptyComponent={
-                      <Text
-                        style={[
-                          styles.emptyText,
-                          {color: theme.input || '#666'},
-                        ]}>
-                        No saved cards found.
-                      </Text>
-                    }
-                    style={styles.cardList}
-                  />
-                  <View style={styles.buttonContainer}>
-                    <TouchableOpacity
-                      style={styles.cancelButton}
-                      onPress={onClose}
-                      disabled={loading}>
-                      <Text style={styles.cancelText}>Cancel</Text>
-                    </TouchableOpacity>
+    <>
+      <Modal
+        visible={isVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={onClose}>
+        <View style={styles.modalOverlay}>
+          <TouchableWithoutFeedback>
+            <View
+              style={[
+                styles.modalContent,
+                {backgroundColor: theme.backgroundColor || '#fff'},
+              ]}>
+              <ScrollView
+                contentContainerStyle={styles.scrollViewContent}
+                keyboardShouldPersistTaps="handled">
+                <View style={styles.contentContainer}>
+                  <View style={styles.headerContainer}>
+                    <Image
+                      source={{
+                        uri: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Stripe_Logo%2C_revised_2016.svg/1200px-Stripe_Logo%2C_revised_2016.svg.png',
+                      }}
+                      style={styles.stripeLogo}
+                    />
+                  </View>
+                  <View style={styles.divider} />
+                  <View style={{paddingHorizontal: wp(3)}}>
+                    <Text
+                      style={[styles.title, {color: theme.input || '#333'}]}>
+                      Select a Card
+                    </Text>
+                    <FlatList
+                      data={cards}
+                      renderItem={renderCardItem}
+                      keyExtractor={item => item.user_card_uuid}
+                      ListEmptyComponent={
+                        <Text
+                          style={[
+                            styles.emptyText,
+                            {color: theme.input || '#666'},
+                          ]}>
+                          No saved cards found.
+                        </Text>
+                      }
+                      style={styles.cardList}
+                    />
+                    <View style={styles.buttonContainer}>
+                      <TouchableOpacity
+                        style={styles.cancelButton}
+                        onPress={onClose}
+                        disabled={loading}>
+                        <Text style={styles.cancelText}>Cancel</Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
                 </View>
-              </View>
-            </ScrollView>
-          </View>
-        </TouchableWithoutFeedback>
-      </View>
-    </Modal>
+              </ScrollView>
+            </View>
+          </TouchableWithoutFeedback>
+        </View>
+      </Modal>
+      <CustomModal
+        visible={errorModalVisible}
+        title="Error"
+        message="An unexpected error occurred while processing the card."
+        onClose={() => setErrorModalVisible(false)}
+      />
+    </>
   );
 };
 

@@ -1,26 +1,18 @@
-/* eslint-disable react-native/no-inline-styles */
 import React, {useState, useEffect} from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  Image,
-  Alert,
-} from 'react-native';
-import {
-  heightPercentageToDP as hp,
-  widthPercentageToDP as wp,
-} from 'react-native-responsive-screen';
-import CustomTextInput from '../../components/common/textInput/CustomTextInput';
-import DocumentPicker from 'react-native-document-picker';
-import File from '../../assets/images/File.svg';
-import {styles} from '../../assets/styles/product/Product';
-import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {View} from 'react-native';
 import {useDispatch} from 'react-redux';
+import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {styles} from '../../assets/styles/product/Product';
 import {addToCart, setSourceType} from '../../slice/Slice';
-import {CartItem} from '../../components/types/screenTypes/ScreenTypes';
-import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
+import ActionButtons from './ActionButtons';
+import AttributeSelector from './AttributeSelector';
+import ColorSelector from './ColorSelector';
+import FileUploader from './FileUploader';
+import OrderNotes from './OrderNotes';
+import QuantitySelector from './QuantitySelector';
+import SizeSelector from './SizeSelector';
+import {validateSelections, createCartItem} from './utils';
+import CustomModal from '../../components/common/errorModal/CustomModal';
 
 interface AttributesSectionProps {
   attributes: any[];
@@ -65,10 +57,11 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
 }) => {
   const dispatch = useDispatch();
   const [quantity, setQuantity] = useState(1);
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [modalMessage, setModalMessage] = useState<string>('');
+  const [modalTitle, setModalTitle] = useState<string>('Error');
 
-  // Pre-select the first option for each attribute and size on mount or when attributes/productData change
   useEffect(() => {
-    // Pre-select first attribute options
     const defaultAttributeValues: {[key: string]: string} = {};
     let hasNewAttributes = false;
     attributes.forEach(attr => {
@@ -89,7 +82,6 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
       });
     }
 
-    // Pre-select first size option if available
     if (
       productData?.size_variations &&
       productData.size_variations.length > 0 &&
@@ -106,91 +98,48 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
     setSelectedSize,
   ]);
 
-  // Optional: Log attributeValues for debugging in a separate effect
   useEffect(() => {
     console.log('Updated attributeValues:', attributeValues);
   }, [attributeValues]);
 
-  const handleChange = (
-    key: string,
-    value: string | {id: number; name: string}[] | string[],
-  ) => {
-    const processedValue = Array.isArray(value)
-      ? value
-          .map(item => (typeof item === 'string' ? item : item.name))
-          .join(', ')
-      : value;
-    setAttributeValues({
-      ...attributeValues,
-      [key]: processedValue,
-    });
-  };
-
-  const pickDocument = async (setFile: Function) => {
-    try {
-      const res = await DocumentPicker.pickSingle({
-        type: [DocumentPicker.types.images],
-      });
-      setFile(res);
-    } catch (err) {
-      console.log(
-        DocumentPicker.isCancel(err)
-          ? 'User cancelled'
-          : 'Error picking document:',
-        err,
-      );
-    }
-  };
-
   const colorOptions =
     productData?.labels.map((label: any) => label.label_color) || [];
 
-  const getHexColor = (colorName: string) =>
-    /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(colorName)
-      ? colorName
-      : '#808080';
-
-  const createCartItem = (): CartItem => {
-    return {
-      id: productData.id,
-      productUuid,
-      name: productData.name || 'Unnamed Product',
-      price: finalPrice,
-      quantity: quantity || 1,
-      selectedColor: selectedColor ? getHexColor(selectedColor) : undefined,
-      frontFile: frontFile ? {uri: frontFile.uri} : undefined,
-      backFile: backFile ? {uri: backFile.uri} : undefined,
-      orderNotes: reviewText || undefined,
-      attributes: {
-        ...attributeValues,
-        size: selectedSize || undefined,
-      },
-      deliveryPrice: productData?.shipping?.shipping_cost || 0,
-    };
-  };
-
-  const validateSelections = () => {
-    if (colorOptions.length > 0 && !selectedColor) {
-      Alert.alert('Error', 'Please select a color before proceeding.');
-      return false;
-    }
-    if (
-      productData?.size_variations &&
-      productData.size_variations.length > 0 &&
-      !selectedSize
-    ) {
-      Alert.alert('Error', 'Please select a size before proceeding.');
-      return false;
-    }
-    return true;
-  };
-
   const handleChooseForMe = () => {
-    if (!productUuid || !productData || !validateSelections()) {
+    if (!productUuid || !productData) {
+      setModalTitle('Error');
+      setModalMessage('Product data or UUID is missing.');
+      setModalVisible(true);
       return;
     }
 
-    const cartItem = createCartItem();
+    const validationResult = validateSelections(
+      colorOptions,
+      selectedColor,
+      productData,
+      selectedSize,
+      frontFile,
+      backFile,
+    );
+    if (!validationResult.success && validationResult.error) {
+      setModalTitle(validationResult.error.title);
+      setModalMessage(validationResult.error.message);
+      setModalVisible(true);
+      return;
+    }
+
+    const cartItem = createCartItem(
+      productData,
+      productUuid,
+      finalPrice,
+      quantity,
+      selectedColor,
+      frontFile,
+      backFile,
+      reviewText,
+      attributeValues,
+      selectedSize,
+    );
     console.log('Dispatching cartItem:', cartItem);
     navigation.navigate('Cart');
     dispatch(addToCart(cartItem));
@@ -198,62 +147,65 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
   };
 
   const handleRequestQuote = async () => {
-    if (!productUuid || !productData || !validateSelections()) {
+    if (!productUuid || !productData) {
+      setModalTitle('Error');
+      setModalMessage('Product data or UUID is missing.');
+      setModalVisible(true);
       return;
     }
 
-    const cartItem = createCartItem();
-
-    const formData = new FormData();
-    formData.append('product_id', cartItem.id.toString());
-    formData.append('quantity', cartItem.quantity?.toString() || '1');
-    formData.append('note', cartItem.orderNotes || '');
-
-    if (cartItem.attributes) {
-      Object.entries(cartItem.attributes).forEach(([key, value]) => {
-        if (value) {
-          formData.append(`details[${key}]`, value);
-        }
-      });
+    const validationResult = validateSelections(
+      colorOptions,
+      selectedColor,
+      productData,
+      selectedSize,
+      frontFile,
+      backFile,
+    );
+    if (!validationResult.success && validationResult.error) {
+      setModalTitle(validationResult.error.title);
+      setModalMessage(validationResult.error.message);
+      setModalVisible(true);
+      return;
     }
-
-    if (cartItem.frontFile && frontFile) {
-      formData.append('front_image', {
-        uri: frontFile.uri,
-        type: frontFile.type || 'image/jpeg',
-        name: frontFile.name || 'front_image.jpg',
-      });
-    }
-    if (cartItem.backFile && backFile) {
-      formData.append('back_image', {
-        uri: backFile.uri,
-        type: backFile.type || 'image/jpeg',
-        name: backFile.name || 'back_image.jpg',
-      });
-    }
-
-    try {
-      const result: {success: boolean; [key: string]: any} = await apiHelper({
-        method: 'POST',
-        endpoint: 'quote-requests',
-        data: formData,
-      });
-
-      console.log('Quote Request Response:', result);
-      navigation.navigate('Quote');
-    } catch (error) {
-      console.error('Error making quote request:', error);
-    }
-
-    dispatch(setSourceType('quote'));
+    // FormData and API logic handled in ActionButtons
   };
 
   const handleMarketplace = () => {
-    if (!productUuid || !productData || !validateSelections()) {
+    if (!productUuid || !productData) {
+      setModalTitle('Error');
+      setModalMessage('Product data or UUID is missing.');
+      setModalVisible(true);
       return;
     }
 
-    const cartItem = createCartItem();
+    const validationResult = validateSelections(
+      colorOptions,
+      selectedColor,
+      productData,
+      selectedSize,
+      frontFile,
+      backFile,
+    );
+    if (!validationResult.success && validationResult.error) {
+      setModalTitle(validationResult.error.title);
+      setModalMessage(validationResult.error.message);
+      setModalVisible(true);
+      return;
+    }
+
+    const cartItem = createCartItem(
+      productData,
+      productUuid,
+      finalPrice,
+      quantity,
+      selectedColor,
+      frontFile,
+      backFile,
+      reviewText,
+      attributeValues,
+      selectedSize,
+    );
     console.log('Dispatching cartItem:', cartItem);
     navigation.navigate('MarketPlace', {
       fromProduct: true,
@@ -265,162 +217,67 @@ const AttributesSection: React.FC<AttributesSectionProps> = ({
 
   return (
     <View style={styles.attributeContainer}>
-      {productData?.size_variations.length > 0 && (
-        <View style={{marginBottom: hp(2)}}>
-          <Text style={[styles.label, {color: theme.text}]}>Size *</Text>
-          <CustomTextInput
-            placeholder="Select Size"
-            value={selectedSize || ''}
-            width={wp(90)}
-            onChangeText={text => setSelectedSize(text as string)}
-            isMultiSelect={false}
-            options={productData.size_variations.map((v: any) => v.size_name)}
-          />
-        </View>
-      )}
-      {attributes.map(attr => (
-        <View key={attr.key} style={{marginBottom: hp(2)}}>
-          <Text style={[styles.label, {color: theme.text}]}>{attr.label}</Text>
-          <CustomTextInput
-            placeholder={attr.placeholder}
-            value={attributeValues[attr.key] || ''}
-            width={wp(90)}
-            onChangeText={text => handleChange(attr.key, text)}
-            isMultiSelect={false}
-            options={attr.options}
-          />
-        </View>
-      ))}
-      {colorOptions.length > 0 && (
-        <>
-          <Text style={[styles.label, {color: theme.text}]}>Color *</Text>
-          <View style={styles.colorOptionsContainer}>
-            {colorOptions.map((color: string, index: number) => (
-              <TouchableOpacity
-                key={index}
-                style={[
-                  styles.colorOption,
-                  {backgroundColor: getHexColor(color)},
-                  selectedColor === color && styles.selectedBorder,
-                ]}
-                onPress={() => setSelectedColor(color)}
-              />
-            ))}
-          </View>
-        </>
-      )}
-      <View style={{marginBottom: hp(2)}}>
-        <Text style={[styles.label, {color: theme.text}]}>Quantity</Text>
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            width: wp(30),
-            justifyContent: 'space-between',
-            marginTop: hp(1),
-          }}>
-          <TouchableOpacity
-            style={{
-              width: wp(8),
-              height: wp(8),
-              borderRadius: wp(4),
-              backgroundColor: theme.backgroundColor,
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-            onPress={() => setQuantity(prev => Math.max(1, prev - 1))}
-            disabled={quantity <= 1}>
-            <Text style={{color: theme.input, fontSize: wp(5)}}>-</Text>
-          </TouchableOpacity>
-          <Text
-            style={{
-              fontSize: wp(4.5),
-              color: theme.text,
-              width: wp(10),
-              textAlign: 'center',
-            }}>
-            {quantity}
-          </Text>
-          <TouchableOpacity
-            style={{
-              width: wp(8),
-              height: wp(8),
-              borderRadius: wp(4),
-              backgroundColor: theme.backgroundColor,
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-            onPress={() => setQuantity(prev => prev + 1)}>
-            <Text style={{color: theme.input, fontSize: wp(5)}}>+</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-      <Text style={[styles.label, {color: theme.text}]}>
-        Upload Logo/Artwork
-      </Text>
-      <View style={styles.uploadContainer}>
-        <TouchableOpacity
-          style={styles.uploadBox}
-          onPress={() => pickDocument(setFrontFile)}>
-          {frontFile ? (
-            <Image source={{uri: frontFile.uri}} style={styles.uploadedImage} />
-          ) : (
-            <>
-              <File width={wp(10)} height={wp(10)} style={styles.fileIcon} />
-              <Text style={[styles.uploadText, {color: theme.text}]}>
-                Front Image
-              </Text>
-            </>
-          )}
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.uploadBox}
-          onPress={() => pickDocument(setBackFile)}>
-          {backFile ? (
-            <Image source={{uri: backFile.uri}} style={styles.uploadedImage} />
-          ) : (
-            <>
-              <File width={wp(10)} height={wp(10)} style={styles.fileIcon} />
-              <Text style={[styles.uploadText, {color: theme.text}]}>
-                Back Image
-              </Text>
-            </>
-          )}
-        </TouchableOpacity>
-      </View>
-      <Text style={[styles.label, {color: theme.text}]}>Order Notes</Text>
-      <TextInput
-        style={[
-          styles.input,
-          {color: theme.input, backgroundColor: theme.backgroundColor},
-        ]}
-        placeholder="Write description"
-        multiline
-        value={reviewText}
-        onChangeText={setReviewText}
-        placeholderTextColor={'#9c9c9c'}
+      <SizeSelector
+        productData={productData}
+        selectedSize={selectedSize}
+        setSelectedSize={setSelectedSize}
+        theme={theme}
       />
-      <View style={styles.buttonContainer}>
-        <View style={styles.row}>
-          <TouchableOpacity style={styles.button} onPress={handleChooseForMe}>
-            <Text style={[styles.buttonText, {color: theme.backgroundColor}]}>
-              Choose for me
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.button} onPress={handleRequestQuote}>
-            <Text style={[styles.buttonText, {color: theme.backgroundColor}]}>
-              Request a Quote
-            </Text>
-          </TouchableOpacity>
-        </View>
-        <TouchableOpacity
-          style={[styles.button, styles.fullWidthButton]}
-          onPress={handleMarketplace}>
-          <Text style={[styles.buttonText, {color: theme.backgroundColor}]}>
-            Add Marketplace
-          </Text>
-        </TouchableOpacity>
-      </View>
+      <AttributeSelector
+        attributes={attributes}
+        attributeValues={attributeValues}
+        setAttributeValues={setAttributeValues}
+        theme={theme}
+      />
+      <ColorSelector
+        colorOptions={colorOptions}
+        selectedColor={selectedColor}
+        setSelectedColor={setSelectedColor}
+        theme={theme}
+      />
+      <QuantitySelector
+        quantity={quantity}
+        setQuantity={setQuantity}
+        theme={theme}
+      />
+      <FileUploader
+        frontFile={frontFile}
+        setFrontFile={setFrontFile}
+        backFile={backFile}
+        setBackFile={setBackFile}
+        theme={theme}
+      />
+      <OrderNotes
+        reviewText={reviewText}
+        setReviewText={setReviewText}
+        theme={theme}
+      />
+      <ActionButtons
+        handleChooseForMe={handleChooseForMe}
+        handleRequestQuote={handleRequestQuote}
+        handleMarketplace={handleMarketplace}
+        theme={theme}
+        productData={productData}
+        cartItem={createCartItem(
+          productData,
+          productUuid,
+          finalPrice,
+          quantity,
+          selectedColor,
+          frontFile,
+          backFile,
+          reviewText,
+          attributeValues,
+          selectedSize,
+        )}
+        navigation={navigation}
+      />
+      <CustomModal
+        visible={modalVisible}
+        title={modalTitle}
+        message={modalMessage}
+        onClose={() => setModalVisible(false)}
+      />
     </View>
   );
 };

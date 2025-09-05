@@ -16,7 +16,6 @@ import {PersistGate} from 'redux-persist/integration/react';
 import DrawerNavigator from './src/components/navigators/drawer/Drawer';
 import Address from './src/screens/address/Address';
 import Booking from './src/screens/booking/Booking';
-import AddCard from './src/screens/card/AddCard';
 import Cart from './src/screens/cart/Cart';
 import Checkout from './src/screens/checkout/Checkout';
 import DisputeChat from './src/screens/disputes/DisputeChat';
@@ -182,7 +181,6 @@ const AppContent: React.FC = () => {
       <Stack.Screen name="Photo" component={Photo} />
       <Stack.Screen name="Drawer" component={DrawerNavigator} />
       <Stack.Screen name="Subscription" component={Subscription} />
-      <Stack.Screen name="AddCard" component={AddCard} />
       <Stack.Screen name="Notification" component={Notification} />
       <Stack.Screen name="Service" component={Service} />
       <Stack.Screen name="Search" component={Search} />

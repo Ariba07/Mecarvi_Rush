@@ -25,7 +25,6 @@ interface OrderListProps {
   loadMoreError: string | null;
   onLoadMore: () => void;
   onOpenOrderModal: (order: Order) => void;
-  onOpenStatusModal: (orderUuid: string) => void;
   onOpenTrackingModal: (orderUuid: string) => void;
   onOpenCancelModal: (orderUuid: string) => void;
   onOpenDisputeModal: (orderId: number) => void;
@@ -44,7 +43,6 @@ const OrderList: React.FC<OrderListProps> = ({
   loadMoreError,
   onLoadMore,
   onOpenOrderModal,
-  onOpenStatusModal,
   onOpenTrackingModal,
   onOpenCancelModal,
   onOpenDisputeModal,
@@ -126,7 +124,6 @@ const OrderList: React.FC<OrderListProps> = ({
               order={item}
               role={role}
               onOpenOrderModal={onOpenOrderModal}
-              onOpenStatusModal={onOpenStatusModal}
               onOpenTrackingModal={onOpenTrackingModal}
               onOpenCancelModal={onOpenCancelModal}
               onOpenDisputeModal={onOpenDisputeModal}

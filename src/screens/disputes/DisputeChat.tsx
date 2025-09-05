@@ -1,6 +1,6 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, {useState, useEffect, useContext, useCallback} from 'react';
-import {SafeAreaView, View, Alert, Platform} from 'react-native';
+import {SafeAreaView, View, Platform} from 'react-native';
 import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {
@@ -15,15 +15,25 @@ import Header from '../../components/common/header/Header';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import {styles} from '../../assets/styles/disputes/DisputeChatStyles';
-import * as Animatable from 'react-native-animatable'; // Import animatable
-import {useSelector} from 'react-redux'; // Import Redux
-import {selectUserId} from '../../slice/Slice'; // Import user UUID selector
+import * as Animatable from 'react-native-animatable';
+import {useSelector} from 'react-redux';
+import {selectUserId} from '../../slice/Slice';
 import {heightPercentageToDP as hp} from 'react-native-responsive-screen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {STORAGE_KEY} from '../login/types';
+import CustomModal from '../../components/common/errorModal/CustomModal';
 
 type TicketRouteProp = RouteProp<RootStackParamList, 'DisputeChat'>;
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+
+interface ActionResult {
+  success: boolean;
+  data?: any;
+  error?: {
+    title: string;
+    message: string;
+  };
+}
 
 const DisputeChat: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
@@ -36,9 +46,13 @@ const DisputeChat: React.FC = () => {
   const [selectedImages, setSelectedImages] = useState<
     {uri: string; type: string; name: string}[]
   >([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false); // Add loading state
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isSending, setIsSending] = useState<boolean>(false);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [modalMessage, setModalMessage] = useState<string>('');
+  const [modalTitle, setModalTitle] = useState<string>('Error');
   const reduxUserId = useSelector(selectUserId);
-
   const [userId, setUserId] = useState<number | null>(null);
 
   useEffect(() => {
@@ -57,10 +71,16 @@ const DisputeChat: React.FC = () => {
     };
     fetchUserData();
   }, [reduxUserId]);
-  const fetchChatMessages = useCallback(async () => {
+
+  const fetchChatMessages = useCallback(async (): Promise<ActionResult> => {
     if (!disputeUuid) {
-      Alert.alert('Error', 'Dispute UUID is missing.');
-      return;
+      return {
+        success: false,
+        error: {
+          title: 'Error',
+          message: 'Dispute UUID is missing.',
+        },
+      };
     }
     setIsLoading(true);
     try {
@@ -96,34 +116,63 @@ const DisputeChat: React.FC = () => {
             })
           : [];
         setMessages(fetchedMessages);
+        return {
+          success: true,
+          data: fetchedMessages,
+        };
       } else {
-        Alert.alert(
-          'Error',
-          response.message || 'Failed to load chat messages.',
-        );
+        return {
+          success: false,
+          error: {
+            title: 'Error',
+            message: response.message || 'Failed to load chat messages.',
+          },
+        };
       }
     } catch (error: any) {
-      Alert.alert(
-        'Error',
-        'Failed to fetch chat messages. Please check your network.',
-      );
+      return {
+        success: false,
+        error: {
+          title: 'Error',
+          message: 'Failed to fetch chat messages. Please check your network.',
+        },
+      };
     } finally {
       setIsLoading(false);
+      setRefreshing(false);
     }
   }, [disputeUuid, userId]);
 
-  const handleSelectImages = async () => {
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    const result = await fetchChatMessages();
+    if (!result.success && result.error) {
+      setModalTitle(result.error.title);
+      setModalMessage(result.error.message);
+      setModalVisible(true);
+    }
+  }, [fetchChatMessages]);
+
+  const handleSelectImages = async (): Promise<ActionResult> => {
+    if (isSending) {
+      return {success: false};
+    }
     try {
       const result = await launchImageLibrary({
         mediaType: 'photo',
         selectionLimit: 0,
       });
       if (result.didCancel) {
-        return;
+        return {success: false};
       }
       if (result.errorCode) {
-        Alert.alert('Error', `Image selection failed: ${result.errorMessage}`);
-        return;
+        return {
+          success: false,
+          error: {
+            title: 'Error',
+            message: `Image selection failed: ${result.errorMessage}`,
+          },
+        };
       }
       if (result.assets) {
         const compressedImages = await Promise.all(
@@ -151,31 +200,54 @@ const DisputeChat: React.FC = () => {
             }
           }),
         );
-        const validImages = compressedImages.filter(img => img !== null) as {
-          uri: string;
-          type: string;
-          name: string;
-        }[];
+        const validImages = compressedImages.filter(
+          (img): img is {uri: string; type: string; name: string} =>
+            img !== null,
+        );
         if (validImages.length === 0) {
-          Alert.alert('Error', 'Failed to compress selected images.');
-          return;
+          return {
+            success: false,
+            error: {
+              title: 'Error',
+              message: 'Failed to compress selected images.',
+            },
+          };
         }
         setSelectedImages(prev => [...prev, ...validImages]);
+        return {success: true, data: validImages};
       }
+      return {success: false};
     } catch (error) {
-      Alert.alert('Error', 'Failed to select images.');
+      return {
+        success: false,
+        error: {
+          title: 'Error',
+          message: 'Failed to select images.',
+        },
+      };
     }
   };
 
-  const createChat = useCallback(async () => {
+  const createChat = useCallback(async (): Promise<ActionResult> => {
     if (!disputeId) {
-      Alert.alert('Error', 'Ticket ID is missing.');
-      return false;
+      return {
+        success: false,
+        error: {
+          title: 'Error',
+          message: 'Ticket ID is missing.',
+        },
+      };
     }
     if (!newMessage.trim() && selectedImages.length === 0) {
-      Alert.alert('Error', 'Please enter a message or select an image.');
-      return false;
+      return {
+        success: false,
+        error: {
+          title: 'Error',
+          message: 'Please enter a message or select an image.',
+        },
+      };
     }
+    setIsSending(true);
     try {
       const formData = new FormData();
       formData.append('message', newMessage);
@@ -192,29 +264,62 @@ const DisputeChat: React.FC = () => {
         data: formData,
       })) as any;
       if (response.status === 1) {
-        return true;
+        return {
+          success: true,
+          error: {
+            title: 'Success',
+            message: 'Message sent successfully!',
+          },
+        };
       }
-      Alert.alert('Error', response.message || 'Failed to send message.');
-      return false;
+      return {
+        success: false,
+        error: {
+          title: 'Error',
+          message: response.message || 'Failed to send message.',
+        },
+      };
     } catch (error: any) {
-      Alert.alert(
-        'Error',
-        'Failed to send message. Please check your network.',
-      );
-      return false;
+      return {
+        success: false,
+        error: {
+          title: 'Error',
+          message: 'Failed to send message. Please check your network.',
+        },
+      };
+    } finally {
+      setIsSending(false);
     }
   }, [disputeId, newMessage, selectedImages]);
 
   useEffect(() => {
-    fetchChatMessages();
+    const loadMessages = async () => {
+      const result = await fetchChatMessages();
+      if (!result.success && result.error) {
+        setModalTitle(result.error.title);
+        setModalMessage(result.error.message);
+        setModalVisible(true);
+      }
+    };
+    loadMessages();
   }, [fetchChatMessages]);
 
-  const handleSendMessage = async () => {
-    const success = await createChat();
-    if (success) {
+  const onSendMessage = async () => {
+    if (isSending) {
+      return;
+    } // Prevent multiple sends
+    const result = await createChat();
+    if (result.success && result.error) {
       setNewMessage('');
       setSelectedImages([]);
       await fetchChatMessages();
+      setModalTitle(result.error.title);
+      setModalMessage(result.error.message);
+      setModalVisible(true);
+    } else if (!result.success && result.error) {
+      setModalTitle(result.error.title);
+      setModalMessage(result.error.message);
+      setModalVisible(true);
     }
   };
 
@@ -232,7 +337,11 @@ const DisputeChat: React.FC = () => {
           </Animatable.Text>
         ) : (
           <Animatable.View animation="slideInUp" duration={600}>
-            <MessageList messages={messages} />
+            <MessageList
+              messages={messages}
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+            />
           </Animatable.View>
         )}
         <MessageInput
@@ -241,7 +350,14 @@ const DisputeChat: React.FC = () => {
           selectedImages={selectedImages}
           setSelectedImages={setSelectedImages}
           onSelectImages={handleSelectImages}
-          onSendMessage={handleSendMessage}
+          onSendMessage={onSendMessage}
+          isSending={isSending}
+        />
+        <CustomModal
+          visible={modalVisible}
+          title={modalTitle}
+          message={modalMessage}
+          onClose={() => setModalVisible(false)}
         />
       </View>
     </SafeAreaView>

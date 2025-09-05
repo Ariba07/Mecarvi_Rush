@@ -4,7 +4,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import {widthPercentageToDP as wp} from 'react-native-responsive-screen';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 import {styles} from '../../assets/styles/disputes/DisputeChatStyles';
-import * as Animatable from 'react-native-animatable'; // Import animatable
+import * as Animatable from 'react-native-animatable';
 
 interface MessageInputProps {
   newMessage: string;
@@ -15,6 +15,7 @@ interface MessageInputProps {
   ) => void;
   onSelectImages: () => void;
   onSendMessage: () => void;
+  isSending: boolean;
 }
 
 const MessageInput: React.FC<MessageInputProps> = ({
@@ -24,6 +25,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
   setSelectedImages,
   onSelectImages,
   onSendMessage,
+  isSending,
 }) => {
   const {theme} = React.useContext(ThemeContext);
 
@@ -37,8 +39,13 @@ const MessageInput: React.FC<MessageInputProps> = ({
         <Animatable.View animation="bounceIn" duration={800}>
           <TouchableOpacity
             onPress={onSelectImages}
-            style={styles.attachmentButton}>
-            <Icon name="attach-file" size={wp(6)} color="#fff" />
+            style={styles.attachmentButton}
+            disabled={isSending}>
+            <Icon
+              name="attach-file"
+              size={wp(6)}
+              color={isSending ? '#ccc' : '#fff'}
+            />
           </TouchableOpacity>
         </Animatable.View>
         <TextInput
@@ -54,12 +61,18 @@ const MessageInput: React.FC<MessageInputProps> = ({
           placeholder="Type a message..."
           placeholderTextColor={theme.text ? theme.text + '80' : '#999'}
           multiline
+          editable={!isSending}
         />
         <Animatable.View animation="bounceIn" duration={800} delay={200}>
-          <TouchableOpacity onPress={onSendMessage} style={styles.sendButton}>
-            <Animatable.View>
-              <Icon name="send" size={wp(6)} color="#fff" />
-            </Animatable.View>
+          <TouchableOpacity
+            onPress={onSendMessage}
+            style={[styles.sendButton, isSending && styles.sendButtonDisabled]}
+            disabled={isSending}>
+            <Icon
+              name="send"
+              size={wp(6)}
+              color={isSending ? '#ccc' : '#fff'}
+            />
           </TouchableOpacity>
         </Animatable.View>
       </View>
@@ -75,7 +88,8 @@ const MessageInput: React.FC<MessageInputProps> = ({
             </Text>
             <TouchableOpacity
               onPress={() => setSelectedImages([])}
-              style={styles.clearImagesButton}>
+              style={styles.clearImagesButton}
+              disabled={isSending}>
               <Text style={styles.clearImagesButtonText}>Clear</Text>
             </TouchableOpacity>
           </View>

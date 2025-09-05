@@ -2,7 +2,6 @@
 import {
   View,
   SafeAreaView,
-  Alert,
   Platform,
   PermissionsAndroid,
   Modal,
@@ -53,6 +52,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
+import CustomModal from '../../components/common/errorModal/CustomModal';
 
 const STORAGE_KEY = '@login_credentials';
 
@@ -91,6 +91,9 @@ const Checkout: React.FC = () => {
   const [isPayButtonDisabled, setIsPayButtonDisabled] =
     useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [modalMessage, setModalMessage] = useState<string>('');
+  const [modalTitle, setModalTitle] = useState<string>('Error');
 
   const delivery = cart.reduce(
     (sum, item) => sum + (item.deliveryPrice ?? 0),
@@ -124,10 +127,9 @@ const Checkout: React.FC = () => {
   const getCurrentLocation = useCallback(async () => {
     const hasPermission = await requestLocationPermission();
     if (!hasPermission) {
-      Alert.alert(
-        'Permission Denied',
-        'Location access is required for pickup.',
-      );
+      setModalTitle('Permission Denied');
+      setModalMessage('Location access is required for pickup.');
+      setModalVisible(true);
       return;
     }
 
@@ -138,7 +140,9 @@ const Checkout: React.FC = () => {
       },
       error => {
         console.warn('Location error:', error);
-        Alert.alert('Error', 'Unable to fetch location. Please try again.');
+        setModalTitle('Error');
+        setModalMessage('Unable to fetch location. Please try again.');
+        setModalVisible(true);
       },
       {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
     );
@@ -183,10 +187,11 @@ const Checkout: React.FC = () => {
     setIsPayButtonDisabled(true);
 
     if (selectedPayment === 'wallet' && wallet < orderPrice) {
-      Alert.alert(
-        'Error',
+      setModalTitle('Error');
+      setModalMessage(
         'Insufficient wallet balance. Please choose another payment method.',
       );
+      setModalVisible(true);
       setIsPaying(false);
       setIsPayButtonDisabled(false);
       return;
@@ -195,7 +200,7 @@ const Checkout: React.FC = () => {
     try {
       let currentOrderUuid = orderUuid;
       if (!currentOrderUuid) {
-        currentOrderUuid = await createOrder({
+        const orderResult = await createOrder({
           cart,
           addressType: addressType || '',
           sourceType: sourceType || '',
@@ -207,41 +212,63 @@ const Checkout: React.FC = () => {
           quoteOrder,
           quote_uuid: quote_uuid ?? null,
         });
-        if (!currentOrderUuid) {
+        if (!orderResult.success) {
+          setModalTitle(orderResult.error?.title || 'Error');
+          setModalMessage(
+            orderResult.error?.message || 'Failed to create order.',
+          );
+          setModalVisible(true);
           setIsPaying(false);
           setIsPayButtonDisabled(false);
           return;
         }
+        currentOrderUuid = orderResult.data;
         setOrderUuid(currentOrderUuid);
       }
 
       if (selectedPayment === 'stripe') {
-        const cards = await fetchUserCards();
-        setUserCards(cards);
+        const cardsResult = await fetchUserCards();
+        if (!cardsResult.success) {
+          setModalTitle(cardsResult.error?.title || 'Error');
+          setModalMessage(
+            cardsResult.error?.message || 'Failed to fetch cards.',
+          );
+          setModalVisible(true);
+          setIsPaying(false);
+          setIsPayButtonDisabled(false);
+          return;
+        }
+        setUserCards(cardsResult.data);
         setIsCardModalVisible(true);
       } else {
         setIsLoading(true);
-        const success = await createPayment(
+        const paymentResult = await createPayment(
           currentOrderUuid,
           null,
-          navigation,
-          dispatch,
           addressType || '',
           location,
           selectedPayment,
           orderPrice,
           delivery,
         );
-        if (success) {
+        if (paymentResult.success) {
           await new Promise(resolve => setTimeout(resolve, 3000));
           navigation.navigate('Receipt');
           dispatch(clearCart());
         } else {
+          setModalTitle(paymentResult.error?.title || 'Error');
+          setModalMessage(
+            paymentResult.error?.message || 'Failed to process payment.',
+          );
+          setModalVisible(true);
           setIsPayButtonDisabled(false);
         }
         setIsLoading(false);
       }
     } catch (error) {
+      setModalTitle('Error');
+      setModalMessage('An unexpected error occurred. Please try again.');
+      setModalVisible(true);
       setIsPayButtonDisabled(false);
       setIsLoading(false);
     } finally {
@@ -254,21 +281,23 @@ const Checkout: React.FC = () => {
   };
 
   const handleCardSubmit = async (paymentMethodId: string) => {
-    const newCardUuid = await createCard(
+    const cardResult = await createCard(
       paymentMethodId,
       cardName,
       async () => {
-        const cards = await fetchUserCards();
-        setUserCards(cards);
-        return cards;
+        const cardsResult = await fetchUserCards();
+        return cardsResult.success ? cardsResult.data : [];
       },
       setIsCardModalVisible,
     );
-    if (newCardUuid) {
-      setSelectedCardId(newCardUuid);
+    if (cardResult.success && cardResult.data) {
+      setSelectedCardId(cardResult.data);
       setIsAddCardModalVisible(false);
       setIsCardModalVisible(true);
     } else {
+      setModalTitle(cardResult.error?.title || 'Error');
+      setModalMessage(cardResult.error?.message || 'Failed to create card.');
+      setModalVisible(true);
       setIsPayButtonDisabled(false);
     }
   };
@@ -278,28 +307,33 @@ const Checkout: React.FC = () => {
       setIsCardModalVisible(false);
       setIsPaying(true);
       setIsLoading(true);
-      const success = await createPayment(
+      const paymentResult = await createPayment(
         orderUuid,
         selectedCardId,
-        navigation,
-        dispatch,
         addressType || '',
         location,
         selectedPayment,
         orderPrice,
         delivery,
       );
-      if (success) {
+      if (paymentResult.success) {
         await new Promise(resolve => setTimeout(resolve, 3000));
         navigation.navigate('Receipt');
         dispatch(clearCart());
       } else {
+        setModalTitle(paymentResult.error?.title || 'Error');
+        setModalMessage(
+          paymentResult.error?.message || 'Failed to process payment.',
+        );
+        setModalVisible(true);
         setIsPayButtonDisabled(false);
       }
       setIsPaying(false);
       setIsLoading(false);
     } else {
-      Alert.alert('Error', 'Please select a card to proceed.');
+      setModalTitle('Error');
+      setModalMessage('Please select a card to proceed.');
+      setModalVisible(true);
       setIsPayButtonDisabled(false);
     }
   };
@@ -406,6 +440,12 @@ const Checkout: React.FC = () => {
             </View>
           </View>
         </Modal>
+        <CustomModal
+          visible={modalVisible}
+          title={modalTitle}
+          message={modalMessage}
+          onClose={() => setModalVisible(false)}
+        />
       </View>
     </SafeAreaView>
   );

@@ -10,6 +10,14 @@ export const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: Platform.select({ios: wp(6), android: wp(5)}),
   },
+  sendButtonDisabled: {
+    opacity: 0.5,
+    backgroundColor: '#ccc',
+  },
+  inputDisabled: {
+    opacity: 0.5,
+    backgroundColor: '#f0f0f0',
+  },
   chatContainer: {paddingBottom: hp(15)},
   messageContainer: {marginBottom: hp(2)},
   sentMessageContainer: {alignItems: 'flex-end'},
@@ -38,11 +46,6 @@ export const styles = StyleSheet.create({
     marginBottom: hp(1),
     borderWidth: 1,
     borderColor: '#ccc',
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
   },
   timestamp: {fontSize: wp(3), marginTop: hp(0.5)},
   inputContainer: {

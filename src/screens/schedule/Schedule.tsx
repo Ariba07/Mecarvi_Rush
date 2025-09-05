@@ -42,7 +42,7 @@ const Schedule: React.FC = () => {
   const defaultCity = useSelector(selectDefaultCity);
   const defaultCountry = useSelector(selectDefaultCountry);
   const [isAsap, setIsAsap] = useState<boolean>(true);
-  const dispatch = useDispatch(); // Add useDispatch hook
+  const dispatch = useDispatch();
 
   // Get the formatted date and time
   const {currentDate, currentTime} = getFormattedDateTime();
@@ -57,8 +57,8 @@ const Schedule: React.FC = () => {
     const minutes = String(now.getMinutes()).padStart(2, '0');
 
     return {
-      date: `${year}-${month}-${day}`, // e.g., "2025-04-09"
-      time: `${hours}:${minutes}`, // e.g., "15:55"
+      date: `${year}-${month}-${day}`, // e.g., "2025-07-19"
+      time: `${hours}:${minutes}`, // e.g., "13:15"
     };
   };
 
@@ -73,18 +73,24 @@ const Schedule: React.FC = () => {
     dispatch(setDeliveryTime(time)); // Dispatch current time (H:i)
   };
 
-  // Function to handle Schedule selection (optional: reset or set different values)
+  // Function to handle Schedule selection
   const handleScheduleSelection = () => {
     setIsAsap(false);
     // Optionally dispatch different values or reset if needed
   };
+
+  // Check if navigation is allowed
+  // For ASAP: requires valid address (defaultCity and defaultCountry not null)
+  // For Schedule: always allowed
+  const isNavigationAllowed =
+    !isAsap || (defaultCity !== null && defaultCountry !== null);
 
   return (
     <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
       <View style={styles.container}>
         <Header title="Schedule" onBackPress={() => navigation.goBack()} />
 
-        {/* Location Section with Custom Dropdown */}
+        {/* Location Section with Custom Dropdown (only for ASAP) */}
         {isAsap && (
           <TouchableOpacity
             style={[
@@ -112,8 +118,7 @@ const Schedule: React.FC = () => {
               isAsap ? styles.selectedOption : {},
               {backgroundColor: theme.backgroundColor},
             ]}
-            onPress={handleAsapSelection} // Update to use the new handler
-          >
+            onPress={handleAsapSelection}>
             <View
               style={[
                 styles.radioCircle,
@@ -132,8 +137,7 @@ const Schedule: React.FC = () => {
               !isAsap ? styles.selectedOption : {},
               {backgroundColor: theme.backgroundColor},
             ]}
-            onPress={handleScheduleSelection} // Update to use the new handler
-          >
+            onPress={handleScheduleSelection}>
             <View
               style={[
                 styles.radioCircle,
@@ -160,14 +164,27 @@ const Schedule: React.FC = () => {
           </Text>
         </View>
 
+        {/* Error Message for Missing Address (only for ASAP) */}
+        {isAsap && !isNavigationAllowed && (
+          <Text style={[styles.errorText, {color: theme.input || '#ff0000'}]}>
+            Please select a valid address to proceed.
+          </Text>
+        )}
+
+        {/* Proceed to Pay Button */}
         <View style={styles.payButton}>
           <CustomButton
             title="Proceed to Pay"
             onPress={() => {
-              isAsap
-                ? navigation.navigate('Checkout')
-                : navigation.navigate('Booking');
+              if (isNavigationAllowed) {
+                navigation.navigate(isAsap ? 'Checkout' : 'Booking');
+              } else {
+                console.warn(
+                  'Please select a valid address to proceed with ASAP delivery.',
+                );
+              }
             }}
+            disabled={!isNavigationAllowed}
           />
         </View>
       </View>
@@ -261,6 +278,13 @@ const styles = StyleSheet.create({
     bottom: Platform.select({ios: hp(4), android: hp(8)}),
     left: Platform.select({ios: wp(6), android: wp(5)}),
     right: Platform.select({ios: wp(6), android: wp(5)}),
+  },
+  errorText: {
+    fontSize: wp(3.5),
+    color: '#ff0000',
+    marginTop: hp(1),
+    marginLeft: wp(4),
+    textAlign: 'center',
   },
 });
 

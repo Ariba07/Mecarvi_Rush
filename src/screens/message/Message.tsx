@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useContext, useEffect, useState, useCallback} from 'react';
 import {
   SafeAreaView,
   KeyboardAvoidingView,
@@ -39,6 +39,7 @@ const MessageScreen: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [text, setText] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isSending, setIsSending] = useState<boolean>(false); // Added loading state
   const currentUserUuid = useSelector(selectUserUuidId);
   const {theme} = useContext(ThemeContext);
 
@@ -103,17 +104,21 @@ const MessageScreen: React.FC = () => {
       }
     };
   }, [chatId, currentUserUuid, navigation]);
-  console.log(messages);
 
-  const sendMessage = async () => {
-    if (!text.trim() || !currentUserUuid || !chatId) {
-      setErrorMessage(
-        !text.trim()
-          ? 'Message text is empty'
-          : 'Invalid chat or session. Please try again.',
-      );
+  // Debounced sendMessage function
+  const sendMessage = useCallback(async () => {
+    if (!text.trim() || !currentUserUuid || !chatId || isSending) {
+      if (!isSending) {
+        setErrorMessage(
+          !text.trim()
+            ? 'Message text is empty'
+            : 'Invalid chat or session. Please try again.',
+        );
+      }
       return;
     }
+
+    setIsSending(true);
     try {
       const messagesRef = collection(db, 'chats', chatId, 'messages');
       await addDoc(messagesRef, {
@@ -125,8 +130,10 @@ const MessageScreen: React.FC = () => {
       setErrorMessage(null);
     } catch (error: any) {
       setErrorMessage(getUserFriendlyMessage(error));
+    } finally {
+      setIsSending(false);
     }
-  };
+  }, [text, currentUserUuid, chatId, isSending]);
 
   const otherParticipantUuid = Object.keys(participantNames).find(
     uuid => uuid !== currentUserUuid,
@@ -159,7 +166,12 @@ const MessageScreen: React.FC = () => {
             participantNames={participantNames}
           />
         )}
-        <MessageInput text={text} setText={setText} onSend={sendMessage} />
+        <MessageInput
+          text={text}
+          setText={setText}
+          onSend={sendMessage}
+          isSending={isSending}
+        />
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

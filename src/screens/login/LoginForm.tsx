@@ -79,22 +79,25 @@ const LoginForm: React.FC<LoginFormProps> = ({
               <TouchableOpacity
                 style={styles.checkboxContainer}
                 onPress={() => setIsChecked(!isChecked)}>
-                <Animatable.View
-                  animation={isChecked ? 'bounceIn' : 'bounceOut'}
-                  duration={300}
+                <View
                   style={[
                     styles.checkbox,
-                    isChecked && styles.checkboxChecked,
+                    {
+                      backgroundColor: isChecked
+                        ? theme.button
+                        : theme.backgroundColor, // Slightly off-white for contrast
+                      borderColor: theme.input,
+                    },
                   ]}>
                   {isChecked && (
                     <Icon
                       name="checkmark"
-                      size={wp(3)}
+                      size={wp(3.5)} // Slightly larger icon for visibility
                       color="#fff"
                       type="ionicon"
                     />
                   )}
-                </Animatable.View>
+                </View>
                 <Text
                   style={[styles.rememberText, {color: theme.text || '#333'}]}>
                   Remember me

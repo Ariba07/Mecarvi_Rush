@@ -4,7 +4,6 @@ import {
   StyleSheet,
   TouchableWithoutFeedback,
   ActivityIndicator,
-  Alert,
   View,
   Text,
   Image,
@@ -19,12 +18,12 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import {ThemeContext} from '../helperUtils/theme/ThemeContext';
+import CustomModal from '../common/errorModal/CustomModal';
 
 interface CardPaymentBottomSheetProps {
   isVisible: boolean;
   onClose: () => void;
   onSubmit: (paymentMethodId: string) => void;
-
   setCardName?: (name: string) => void;
   cardName?: string;
   isCard?: boolean;
@@ -34,7 +33,6 @@ const CardPaymentBottomSheet: React.FC<CardPaymentBottomSheetProps> = ({
   isVisible,
   onClose,
   onSubmit,
-
   setCardName,
   cardName,
   isCard,
@@ -43,15 +41,19 @@ const CardPaymentBottomSheet: React.FC<CardPaymentBottomSheetProps> = ({
   const [loading, setLoading] = useState(false);
   const [cardDetails, setCardDetails] = useState<any>(null);
   const {theme} = useContext(ThemeContext);
+  const [errorModalVisible, setErrorModalVisible] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handlePayment = async () => {
     if (!stripe) {
-      Alert.alert('Error', 'Stripe is not initialized');
+      setErrorMessage('Stripe is not initialized');
+      setErrorModalVisible(true);
       return;
     }
 
     if (!cardDetails?.complete) {
-      Alert.alert('Error', 'Please enter complete card details.');
+      setErrorMessage('Please enter complete card details.');
+      setErrorModalVisible(true);
       return;
     }
 
@@ -68,109 +70,119 @@ const CardPaymentBottomSheet: React.FC<CardPaymentBottomSheetProps> = ({
       });
 
       if (error) {
-        Alert.alert('Error', error.message || 'Payment method creation failed');
+        setErrorMessage(error.message || 'Payment method creation failed');
+        setErrorModalVisible(true);
         setLoading(false);
         return;
       }
 
       if (paymentMethod?.id) {
-        onSubmit(paymentMethod.id); // Pass payment method ID to create subscription on backend
+        onSubmit(paymentMethod.id);
         console.log(paymentMethod.id);
       }
       onClose();
     } catch (err) {
-      Alert.alert('Error', 'An unexpected error occurred.');
+      setErrorMessage('An unexpected error occurred.');
+      setErrorModalVisible(true);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Modal
-      visible={isVisible}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}>
-      <View style={styles.modalOverlay}>
-        <TouchableWithoutFeedback>
-          <View
-            style={[
-              styles.modalContent,
-              {backgroundColor: theme.backgroundColor},
-            ]}>
-            <ScrollView
-              contentContainerStyle={styles.scrollViewContent}
-              keyboardShouldPersistTaps="handled">
-              <View style={styles.contentContainer}>
-                <View style={styles.headerContainer}>
-                  <Image
-                    source={{
-                      uri: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Stripe_Logo%2C_revised_2016.svg/1200px-Stripe_Logo%2C_revised_2016.svg.png', // Example Stripe logo URL
-                    }}
-                    style={styles.stripeLogo}
-                  />
-                </View>
-                <View style={styles.divider} />
-                <View style={{paddingHorizontal: wp(3)}}>
-                  <CardField
-                    postalCodeEnabled={false}
-                    placeholders={{
-                      number: 'Card Number',
-                    }}
-                    cardStyle={{
-                      backgroundColor: theme.whole,
-                      textColor: theme.input,
-                      placeholderColor: '#A9A9A9',
-                      borderWidth: 1,
-                      borderColor: '#CCCCCC',
-                      borderRadius: 10,
-                    }}
-                    style={{
-                      height: hp(6),
-                      marginVertical: hp(2),
-                    }}
-                    onCardChange={details => setCardDetails(details)}
-                  />
-                  {isCard && (
-                    <View style={styles.inputContainer}>
-                      <Text style={[styles.label, {color: theme.text}]}>
-                        Card Name
-                      </Text>
-                      <TextInput
-                        style={[
-                          styles.textInput,
-                          {backgroundColor: theme.whole, color: theme.input},
-                        ]}
-                        value={cardName}
-                        onChangeText={setCardName}
-                        placeholder="Enter card name"
-                        placeholderTextColor="#A9A9A9"
-                      />
-                    </View>
-                  )}
-                </View>
-                <View style={styles.buttonContainer}>
-                  {loading ? (
-                    <ActivityIndicator size="large" color="#FF0080" />
-                  ) : (
+    <>
+      <Modal
+        visible={isVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={onClose}>
+        <View style={styles.modalOverlay}>
+          <TouchableWithoutFeedback>
+            <View
+              style={[
+                styles.modalContent,
+                {backgroundColor: theme.backgroundColor},
+              ]}>
+              <ScrollView
+                contentContainerStyle={styles.scrollViewContent}
+                keyboardShouldPersistTaps="handled">
+                <View style={styles.contentContainer}>
+                  <View style={styles.headerContainer}>
+                    <Image
+                      source={{
+                        uri: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Stripe_Logo%2C_revised_2016.svg/1200px-Stripe_Logo%2C_revised_2016.svg.png',
+                      }}
+                      style={styles.stripeLogo}
+                    />
+                  </View>
+                  <View style={styles.divider} />
+                  <View style={{paddingHorizontal: wp(3)}}>
+                    <CardField
+                      postalCodeEnabled={false}
+                      placeholders={{
+                        number: 'Card Number',
+                      }}
+                      cardStyle={{
+                        backgroundColor: theme.whole,
+                        textColor: theme.input,
+                        placeholderColor: '#A9A9A9',
+                        borderWidth: 1,
+                        borderColor: '#CCCCCC',
+                        borderRadius: 10,
+                      }}
+                      style={{
+                        height: hp(6),
+                        marginVertical: hp(2),
+                      }}
+                      onCardChange={details => setCardDetails(details)}
+                    />
+                    {isCard && (
+                      <View style={styles.inputContainer}>
+                        <Text style={[styles.label, {color: theme.text}]}>
+                          Card Name
+                        </Text>
+                        <TextInput
+                          style={[
+                            styles.textInput,
+                            {backgroundColor: theme.whole, color: theme.input},
+                          ]}
+                          value={cardName}
+                          onChangeText={setCardName}
+                          placeholder="Enter card name"
+                          placeholderTextColor="#A9A9A9"
+                        />
+                      </View>
+                    )}
+                  </View>
+                  <View style={styles.buttonContainer}>
+                    {loading ? (
+                      <ActivityIndicator size="large" color="#FF0080" />
+                    ) : (
+                      <TouchableOpacity
+                        style={styles.button}
+                        onPress={handlePayment}>
+                        <Text style={styles.buttonText}>Subscribe</Text>
+                      </TouchableOpacity>
+                    )}
                     <TouchableOpacity
-                      style={styles.button}
-                      onPress={handlePayment}>
-                      <Text style={styles.buttonText}>Subscribe</Text>
+                      style={styles.cancelButton}
+                      onPress={onClose}>
+                      <Text style={styles.cancelText}>Cancel</Text>
                     </TouchableOpacity>
-                  )}
-                  <TouchableOpacity
-                    style={styles.cancelButton}
-                    onPress={onClose}>
-                    <Text style={styles.cancelText}>Cancel</Text>
-                  </TouchableOpacity>
+                  </View>
                 </View>
-              </View>
-            </ScrollView>
-          </View>
-        </TouchableWithoutFeedback>
-      </View>
-    </Modal>
+              </ScrollView>
+            </View>
+          </TouchableWithoutFeedback>
+        </View>
+      </Modal>
+      <CustomModal
+        visible={errorModalVisible}
+        title="Error"
+        message={errorMessage}
+        onClose={() => setErrorModalVisible(false)}
+      />
+    </>
   );
 };
 
@@ -178,7 +190,7 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     justifyContent: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.2)', // Semi-transparent overlay
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
   },
   modalContent: {
     backgroundColor: '#fff',

@@ -36,14 +36,14 @@ export const styles = StyleSheet.create({
   },
   checkboxContainer: {flexDirection: 'row', alignItems: 'center'},
   checkbox: {
-    width: hp(2),
-    height: hp(2),
     borderWidth: 1,
-    borderColor: '#333',
-    borderRadius: wp(1),
+    borderRadius: 2,
+    justifyContent: 'center', // Center the checkmark
+    alignItems: 'center',
+    width: wp(4),
+    height: wp(4),
     marginRight: wp(2),
   },
-  checkboxChecked: {backgroundColor: '#03A7A7'},
   label: {
     fontSize: wp(3.5),
     color: '#333',

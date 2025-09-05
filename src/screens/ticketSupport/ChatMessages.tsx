@@ -1,17 +1,22 @@
 /* eslint-disable react-native/no-inline-styles */
 import React from 'react';
-import {View, Text, FlatList, Image} from 'react-native';
+import {View, Text, FlatList, Image, RefreshControl} from 'react-native';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
-
 import {heightPercentageToDP as hp} from 'react-native-responsive-screen';
 import {Message} from '../../components/types/screenTypes/ScreenTypes';
 import {styles} from '../../assets/styles/ticket/TicketSTyles';
 
 interface ChatMessagesProps {
   messages: Message[];
+  refreshing: boolean;
+  onRefresh: () => void;
 }
 
-const ChatMessages: React.FC<ChatMessagesProps> = ({messages}) => {
+const ChatMessages: React.FC<ChatMessagesProps> = ({
+  messages,
+  refreshing,
+  onRefresh,
+}) => {
   const {theme} = React.useContext(ThemeContext);
 
   const renderMessage = ({item}: {item: Message}) => (
@@ -77,6 +82,15 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({messages}) => {
       keyExtractor={item => item.id ?? ''}
       contentContainerStyle={styles.chatContainer}
       showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={[theme.status || '#00C4B4']}
+          tintColor={theme.status || '#00C4B4'}
+          title="Pull to refresh"
+        />
+      }
     />
   );
 };

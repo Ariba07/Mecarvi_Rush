@@ -1,4 +1,3 @@
-/* eslint-disable react-native/no-inline-styles */
 import React from 'react';
 import {View, Text, TouchableOpacity} from 'react-native';
 import {Icon} from 'react-native-elements';
@@ -9,13 +8,12 @@ import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes
 import {Order, formatDate} from './types';
 import {widthPercentageToDP as wp} from 'react-native-responsive-screen';
 import {styles} from '../../assets/styles/orders/OrderStyles';
-import * as Animatable from 'react-native-animatable'; // Import animatable
+import * as Animatable from 'react-native-animatable';
 
 interface OrderCardProps {
   order: Order;
   role: string | null;
   onOpenOrderModal: (order: Order) => void;
-  onOpenStatusModal: (orderUuid: string) => void;
   onOpenTrackingModal: (orderUuid: string) => void;
   onOpenCancelModal: (orderUuid: string) => void;
   onOpenDisputeModal: (orderId: number) => void;
@@ -25,7 +23,6 @@ const OrderCard: React.FC<OrderCardProps> = ({
   order,
   role,
   onOpenOrderModal,
-  onOpenStatusModal,
   onOpenTrackingModal,
   onOpenCancelModal,
   onOpenDisputeModal,
@@ -38,10 +35,10 @@ const OrderCard: React.FC<OrderCardProps> = ({
     <Animatable.View
       animation="fadeInUp"
       duration={600}
-      delay={100} // Staggered delay for multiple cards
-      style={styles.cardContainer}>
+      delay={100}
+      style={[styles.cardContainer, {backgroundColor: theme.backgroundColor}]}>
       <TouchableOpacity
-        style={[styles.card, {backgroundColor: theme.backgroundColor}]}
+        style={styles.card}
         onPress={() => onOpenOrderModal(order)}>
         <View style={styles.cardContent}>
           <View style={styles.detailsContainer}>
@@ -56,7 +53,7 @@ const OrderCard: React.FC<OrderCardProps> = ({
                     <TouchableOpacity
                       style={styles.menuButton}
                       onPress={() => onOpenCancelModal(order.order_uuid)}>
-                      <Animatable.View>
+                      <Animatable.View animation="bounceIn" duration={500}>
                         <Icon
                           name="ellipsis-vertical-outline"
                           size={wp(5)}
@@ -69,9 +66,8 @@ const OrderCard: React.FC<OrderCardProps> = ({
                   {order.status === 'Completed' && (
                     <TouchableOpacity
                       style={styles.menuButton}
-                      onPress={() => onOpenDisputeModal(order.id)}
-                    >
-                      <Animatable.View>
+                      onPress={() => onOpenDisputeModal(order.id)}>
+                      <Animatable.View animation="bounceIn" duration={500}>
                         <Icon
                           name="ellipsis-vertical-outline"
                           size={wp(5)}
@@ -84,72 +80,76 @@ const OrderCard: React.FC<OrderCardProps> = ({
                 </>
               )}
             </View>
-            <View
-              style={{flexDirection: 'row', justifyContent: 'space-between'}}>
-              {role === 'service_provider' ? (
-                <TouchableOpacity
-                  onPress={() => onOpenStatusModal(order.order_uuid)}>
-                  <Text
-                    style={[
-                      styles.status,
-                      {color: '#00A19D', textDecorationLine: 'underline'},
-                    ]}>
-                    {order.status || 'Pending'}
-                  </Text>
-                </TouchableOpacity>
-              ) : (
-                <Text style={[styles.status, {color: '#00A19D'}]}>
-                  {order.status || 'Pending'}
-                </Text>
-              )}
-              <Text style={[styles.priceText, {color: '#FF0080'}]}>
+            <View style={styles.statusPriceRow}>
+              <Text style={[styles.status, {color: theme.status}]}>
+                {order.status || 'Pending'}
+              </Text>
+              <Text style={[styles.priceText, {color: theme.text}]}>
                 ${parseFloat(order.total_price.toString()).toFixed(2)}
               </Text>
             </View>
-            <Text style={[styles.dateText, {color: '#6c757d'}]}>
-              Created On: {formatDate(order.created_at)}
+            <Text style={[styles.dateText, {color: theme.text + '80'}]}>
+              Created: {formatDate(order.created_at)}
             </Text>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}>
-              <TouchableOpacity
-                style={styles.trackingButton}
-                onPress={() => onOpenTrackingModal(order.order_uuid)}>
-                <Text style={styles.trackingButtonText}>Tracking Status</Text>
-              </TouchableOpacity>
-              {order.status === 'Completed' && role === 'customer' && (
+            <View style={styles.buttonRow}>
+              <Animatable.View animation="bounceIn" duration={600}>
                 <TouchableOpacity
-                  style={styles.ratingButton}
-                  onPress={() =>
-                    navigation.navigate('Review', {order_id: order.id})
-                  }>
-                  <Text style={styles.ratingButtonText}>Rate Order</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-            {role === 'service_provider' && (
-              <View style={styles.buttonRow}>
-                <View style={styles.paymentStatus}>
-                  <Text style={styles.paymentStatusText}>
-                    {order.payment_status === 'paid' ? 'Paid' : 'Pending'}
+                  style={[
+                    styles.actionButton,
+                    styles.trackingButton,
+                    {backgroundColor: theme.button},
+                  ]}
+                  onPress={() => onOpenTrackingModal(order.order_uuid)}>
+                  <Text style={[styles.buttonText, {color: theme.input}]}>
+                    Track
                   </Text>
-                </View>
-                {order.status === 'Processing' && (
+                </TouchableOpacity>
+              </Animatable.View>
+              {order.status === 'Completed' && role === 'customer' && (
+                <Animatable.View
+                  animation="bounceIn"
+                  duration={600}
+                  delay={100}>
                   <TouchableOpacity
-                    style={styles.feedbackButton}
+                    style={[
+                      styles.actionButton,
+                      styles.ratingButton,
+                      {backgroundColor: theme.button},
+                    ]}
+                    onPress={() => {
+                      navigation.navigate('Review', {
+                        order_id: order.id,
+                        name: order.service_provider_name,
+                        image: order.service_provider_logo,
+                      });
+                    }}>
+                    <Text style={[styles.buttonText, {color: theme.input}]}>
+                      Rate
+                    </Text>
+                  </TouchableOpacity>
+                </Animatable.View>
+              )}
+              {order.order_proofs !== 0 && role === 'customer' && (
+                <Animatable.View
+                  animation="bounceIn"
+                  duration={600}
+                  delay={200}>
+                  <TouchableOpacity
+                    style={[
+                      styles.actionButton,
+                      styles.feedbackButton,
+                      {backgroundColor: theme.button},
+                    ]}
                     onPress={() =>
                       navigation.navigate('Feedback', {order_id: order.id})
                     }>
-                    <Text style={styles.feedbackButtonText}>
-                      Ask for Feedback
+                    <Text style={[styles.buttonText, {color: theme.input}]}>
+                      Feedback
                     </Text>
                   </TouchableOpacity>
-                )}
-              </View>
-            )}
+                </Animatable.View>
+              )}
+            </View>
           </View>
         </View>
       </TouchableOpacity>

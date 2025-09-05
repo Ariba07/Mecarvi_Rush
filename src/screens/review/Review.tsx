@@ -29,14 +29,14 @@ type ReviewRouteProp = RouteProp<RootStackParamList, 'Review'>;
 
 const Review = () => {
   const route = useRoute<ReviewRouteProp>();
-  const {order_id} = route.params;
+  const {order_id, name, image} = route.params;
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [rating, setRating] = useState<number>(0);
   const [reviewText, setReviewText] = useState<string>('');
   const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
   const userId = useSelector(selectUserId);
-
+  const date = new Date();
   const handleStarPress = (index: number) => {
     setRating(index);
   };
@@ -56,8 +56,8 @@ const Review = () => {
         data: review,
       });
 
-      console.log('Profile updated successfully:', response);
-      navigation.navigate('Orders'); // Navigate to the Orders screen after submission
+      console.log('Review successfully:', response);
+      navigation.replace('Orders'); // Navigate to the Orders screen after submission
 
       // Refetch the profile data after a successful update
     } catch (error) {
@@ -74,14 +74,12 @@ const Review = () => {
           {/* Profile Image & Name */}
           <View style={styles.profileContainer}>
             <Image
-              source={require('../../assets/images/Orders.png')} // Replace with your image
+              source={{uri: image}} // Replace with your image
               style={styles.profileImage}
             />
-            <Text style={[styles.storeName, {color: theme.input}]}>
-              Creative Ink Solutions
-            </Text>
+            <Text style={[styles.storeName, {color: theme.input}]}>{name}</Text>
             <Text style={[styles.date, {color: theme.text}]}>
-              Date: 02 March 2025
+              {date.toDateString()}
             </Text>
           </View>
 

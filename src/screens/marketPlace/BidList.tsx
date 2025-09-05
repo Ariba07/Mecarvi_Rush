@@ -28,6 +28,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import ProviderCard from './ProviderCard';
 import {styles} from '../../assets/styles/bidList/BidListStyles';
 import {widthPercentageToDP as wp} from 'react-native-responsive-screen';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const BidList: React.FC = () => {
   const navigation =
@@ -38,8 +39,23 @@ const BidList: React.FC = () => {
   const [quoteData, setQuoteData] = useState<BusinessProvider[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [acceptedBidUuid, setAcceptedBidUuid] = useState<string | null>(null);
 
   useEffect(() => {
+    const loadAcceptedBid = async () => {
+      try {
+        const storedUuid = await AsyncStorage.getItem('acceptedBidUuid');
+        if (storedUuid) {
+          setAcceptedBidUuid(storedUuid);
+        }
+      } catch (storageError) {
+        console.warn(
+          'Failed to load accepted bid from AsyncStorage:',
+          storageError,
+        );
+      }
+    };
+
     const fetchQuote = async () => {
       if (!uuid) {
         setError('No quote request selected');
@@ -59,19 +75,18 @@ const BidList: React.FC = () => {
               id: bid.id,
               quote_bid_uuid: bid.quote_bid_uuid,
               service_provider_id: bid.service_provider_id,
-              service_provider_uuid: undefined,
-              service_provider_user_uuid: undefined,
               service_provider_name: bid.service_provider.service_provider_name,
               logo:
                 bid.service_provider.service_provider_logo ||
                 'https://via.placeholder.com/150',
               address: undefined,
-              price: `$${bid.bid_price}`,
+              price: bid.bid_price,
               product_id: bid.quote_request_id.product_id,
               quantity: bid.quote_request_id.quantity,
             }),
           );
           setQuoteData(providers);
+          console.log('Fetched quote data:', providers);
         } else {
           setError('No bids found for this quote request');
         }
@@ -81,6 +96,8 @@ const BidList: React.FC = () => {
         setTimeout(() => setLoading(false), 3000);
       }
     };
+
+    loadAcceptedBid();
     fetchQuote();
   }, [uuid]);
 
@@ -91,13 +108,15 @@ const BidList: React.FC = () => {
         endpoint: `quote-bids/${item.quote_bid_uuid}/accept`,
       });
       if (response.status === 1) {
+        await AsyncStorage.setItem('acceptedBidUuid', item.quote_bid_uuid);
+        setAcceptedBidUuid(item.quote_bid_uuid);
         navigation.navigate('Schedule');
         dispatch(setQuoteUuid(item.quote_bid_uuid));
         dispatch(
           setAcceptedBidDetails({
             product_id: item.product_id,
             quantity: item.quantity,
-            bid_price: parseFloat(item.price.replace('$', '')),
+            bid_price: parseFloat(item.price),
             servicer_id: item.service_provider_id,
           }),
         );
@@ -111,6 +130,9 @@ const BidList: React.FC = () => {
   };
 
   const handleReject = async (quote_bid_uuid: string) => {
+    if (acceptedBidUuid) {
+      return;
+    } // Prevent rejecting if a bid is already accepted
     try {
       const response: ApiResponse = await apiHelper({
         method: 'POST',
@@ -158,6 +180,8 @@ const BidList: React.FC = () => {
                 item={item}
                 onAccept={handleAccept}
                 onReject={handleReject}
+                acceptedBidUuid={acceptedBidUuid}
+                isAnyBidAccepted={!!acceptedBidUuid}
               />
             )}
             keyExtractor={item => item.id.toString()}

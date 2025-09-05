@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useContext, useState, useCallback} from 'react';
 import {
   View,
   Text,
@@ -22,56 +22,64 @@ import {useSelector} from 'react-redux';
 import {
   selectPointsEarned,
   selectProfileImage,
-  selectRole,
   selectUserName,
 } from '../../slice/Slice';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
 
 const STORAGE_KEY = '@login_credentials';
 
 const SideMenu: React.FC = () => {
-  const {theme} = useContext(ThemeContext); // Access theme and toggleTheme
+  const {theme} = useContext(ThemeContext);
   const [userName, setUserName] = useState<string | null>(null);
+  const [totalPoints, setTotalPoints] = useState<number>(0);
+  const [profileImage, setProfileImage] = useState<string | null>(null); // Local state for profile image
   const reduxUserName = useSelector(selectUserName);
-  const reduxRole = useSelector(selectRole);
+  const reduxTotalPoints = useSelector(selectPointsEarned);
+  const reduxProfileImage = useSelector(selectProfileImage);
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const reduxtotalPoints = useSelector(selectPointsEarned); // Define the max points required for gold
-  const [totalPoints, setTotalPoints] = useState<number>(0);
-  const profileImage = useSelector(selectProfileImage);
 
-  useEffect(() => {
-    const getUserId = async () => {
-      try {
-        const credentials = await AsyncStorage.getItem(STORAGE_KEY);
-        if (credentials) {
-          const parsedCredentials = JSON.parse(credentials);
-
-          if (
-            parsedCredentials.name &&
-            parsedCredentials.role &&
-            parsedCredentials.pointsEarned
-          ) {
-            setUserName(parsedCredentials.name);
-            setTotalPoints(parsedCredentials.pointsEarned);
-            return;
+  // Use useFocusEffect to refresh data when screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      // Function to fetch user data, including profile image
+      const fetchUserData = async () => {
+        try {
+          const credentials = await AsyncStorage.getItem(STORAGE_KEY);
+          if (credentials) {
+            const parsedCredentials = JSON.parse(credentials);
+            if (
+              parsedCredentials.name &&
+              parsedCredentials.role &&
+              parsedCredentials.pointsEarned &&
+              parsedCredentials.profileImage
+            ) {
+              setUserName(parsedCredentials.name);
+              setTotalPoints(parsedCredentials.pointsEarned);
+              setProfileImage(parsedCredentials.profileImage); // Set profile image from AsyncStorage
+              return;
+            }
           }
+          // Fallback to Redux if AsyncStorage doesn't have data
+          setUserName(reduxUserName ?? null);
+          setTotalPoints(reduxTotalPoints ?? 0);
+          setProfileImage(reduxProfileImage ?? null); // Fallback to Redux profile image
+        } catch (error) {
+          console.warn('Error retrieving user data from AsyncStorage:', error);
+          // Fallback to Redux on error
+          setUserName(reduxUserName ?? null);
+          setTotalPoints(reduxTotalPoints ?? 0);
+          setProfileImage(reduxProfileImage ?? null);
         }
-        // Fallback to Redux if AsyncStorage doesn't have userId
-        setUserName(reduxUserName ?? null);
-        setTotalPoints(reduxtotalPoints ?? 0);
-      } catch (error) {
-        console.warn('Error retrieving user ID from AsyncStorage:', error);
-        // Fallback to Redux on error
-        setUserName(reduxUserName ?? null);
-        setTotalPoints(reduxtotalPoints ?? 0);
-      }
-    };
-
-    getUserId();
-  }, [reduxRole, reduxUserName, reduxtotalPoints]);
+      };
+      fetchUserData(); // Optional cleanup function (runs when screen loses focus)
+      return () => {
+        console.log('Screen unfocused, cleanup if needed');
+      };
+    }, [reduxUserName, reduxTotalPoints, reduxProfileImage]), // Added reduxProfileImage to dependencies
+  );
 
   return (
     <SafeAreaView
@@ -87,7 +95,7 @@ const SideMenu: React.FC = () => {
                 ? {uri: profileImage}
                 : {
                     uri: 'https://media.istockphoto.com/id/1147544807/vector/thumbnail-image-vector-graphic.jpg?s=612x612&w=0&k=20&c=rnCKVbdxqkjlcs3xH87-9gocETqpspHFXu5dIGB4wuM=',
-                  } // Fallback to default image
+                  }
             }
             style={styles.profileImage}
             resizeMode="cover"
@@ -172,18 +180,6 @@ const styles = StyleSheet.create({
   },
   editIcon: {
     padding: wp(2),
-  },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: hp(2),
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
-    gap: wp(4),
-    paddingLeft: wp(1.5),
-  },
-  menuText: {
-    fontSize: wp(4),
   },
 });
 

@@ -1,5 +1,5 @@
 import React, {useCallback, useContext, useEffect, useState} from 'react';
-import {SafeAreaView, View, Alert} from 'react-native';
+import {SafeAreaView, View} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
@@ -13,6 +13,16 @@ import OrderList from './OrderList';
 import OrderModals from './OrderModals';
 import {STORAGE_KEY, Order, debounce} from './types';
 import {styles} from '../../assets/styles/orders/OrderStyles';
+import CustomModal from '../../components/common/errorModal/CustomModal';
+
+interface ActionResult {
+  success: boolean;
+  data?: any;
+  error?: {
+    title: string;
+    message: string;
+  };
+}
 
 const Orders: React.FC = () => {
   const navigation =
@@ -50,6 +60,9 @@ const Orders: React.FC = () => {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [loadMoreError, setLoadMoreError] = useState<string | null>(null);
   const [fetchOrdersError, setFetchOrdersError] = useState<string | null>(null);
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [modalMessage, setModalMessage] = useState<string>('');
+  const [modalTitle, setModalTitle] = useState<string>('Error');
 
   useEffect(() => {
     const fetchRoleFromStorage = async () => {
@@ -135,10 +148,7 @@ const Orders: React.FC = () => {
     setLoadMoreError(null);
     try {
       const nextPage = currentPage + 1;
-      const endpoint =
-        role === 'service_provider'
-          ? `service-provider/orders/all/?per_page=6&page=${nextPage}`
-          : `orders?per_page=6&page=${nextPage}`;
+      const endpoint = `orders?per_page=6&page=${nextPage}`;
       const response = (await apiHelper({
         method: 'GET',
         endpoint,
@@ -159,11 +169,11 @@ const Orders: React.FC = () => {
     } finally {
       setIsLoadingMore(false);
     }
-  }, [currentPage, isLoadingMore, loadMoreError, orders, role, totalPages]);
+  }, [currentPage, isLoadingMore, loadMoreError, orders, totalPages]);
 
-  const fetchTrackingStatuses = useCallback(async () => {
+  const fetchTrackingStatuses = useCallback(async (): Promise<ActionResult> => {
     if (orders.length === 0) {
-      return;
+      return {success: true};
     }
     try {
       const trackingPromises = orders.map(async order => {
@@ -202,8 +212,15 @@ const Orders: React.FC = () => {
         },
       );
       setTrackingStatuses(statusMap);
+      return {success: true, data: statusMap};
     } catch (error) {
-      Alert.alert('Error', 'Failed to fetch tracking statuses.');
+      return {
+        success: false,
+        error: {
+          title: 'Error',
+          message: 'Failed to fetch tracking statuses.',
+        },
+      };
     }
   }, [orders]);
 
@@ -213,7 +230,12 @@ const Orders: React.FC = () => {
     setCurrentPage(1);
     setFetchOrdersError(null);
     await fetchOrders();
-    await fetchTrackingStatuses();
+    const trackingResult = await fetchTrackingStatuses();
+    if (!trackingResult.success && trackingResult.error) {
+      setModalTitle(trackingResult.error.title);
+      setModalMessage(trackingResult.error.message);
+      setModalVisible(true);
+    }
     setRefreshing(false);
   };
 
@@ -222,14 +244,30 @@ const Orders: React.FC = () => {
   }, [fetchOrders]);
 
   useEffect(() => {
-    fetchTrackingStatuses();
+    const loadTrackingStatuses = async () => {
+      const result = await fetchTrackingStatuses();
+      if (!result.success && result.error) {
+        setModalTitle(result.error.title);
+        setModalMessage(result.error.message);
+        setModalVisible(true);
+      }
+    };
+    loadTrackingStatuses();
   }, [fetchTrackingStatuses]);
 
-  const updateOrderStatus = async (orderUuid: string, newStatus: string) => {
+  const updateOrderStatus = async (
+    orderUuid: string,
+    newStatus: string,
+  ): Promise<ActionResult> => {
     const trackingInfo = trackingStatuses[orderUuid];
     if (!trackingInfo) {
-      Alert.alert('Error', 'Tracking information not available.');
-      return;
+      return {
+        success: false,
+        error: {
+          title: 'Error',
+          message: 'Tracking information not available.',
+        },
+      };
     }
     try {
       const formData = new FormData();
@@ -245,23 +283,70 @@ const Orders: React.FC = () => {
         ...prev,
         [orderUuid]: {...prev[orderUuid], status: newStatus},
       }));
-      Alert.alert('Success', `Order status updated to ${newStatus}.`);
-      setStatusModalVisible(false);
-      setOrderForStatusUpdate(null);
+      return {
+        success: true,
+        data: {status: newStatus},
+      };
     } catch (error) {
-      Alert.alert('Error', 'Failed to update order status. Please try again.');
+      console.warn('Error updating order status:', error);
+      return {
+        success: false,
+        error: {
+          title: 'Error',
+          message: 'Failed to update order status. Please try again.',
+        },
+      };
     }
   };
 
-  const cancelOrder = async (orderUuid: string) => {
+  const cancelOrder = async (orderUuid: string): Promise<ActionResult> => {
     try {
       await apiHelper({method: 'POST', endpoint: `orders/${orderUuid}/cancel`});
       await fetchOrders();
-      Alert.alert('Success', 'Order has been cancelled.');
+      return {
+        success: true,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: {
+          title: 'Error',
+          message: 'Failed to cancel order. Please try again.',
+        },
+      };
+    }
+  };
+
+  const handleUpdateOrderStatus = async (
+    orderUuid: string,
+    newStatus: string,
+  ) => {
+    const result = await updateOrderStatus(orderUuid, newStatus);
+    if (result.success) {
+      setModalTitle('Success');
+      setModalMessage(`Order status updated to ${newStatus}.`);
+      setModalVisible(true);
+      setStatusModalVisible(false);
+      setOrderForStatusUpdate(null);
+    } else if (result.error) {
+      setModalTitle(result.error.title);
+      setModalMessage(result.error.message);
+      setModalVisible(true);
+    }
+  };
+
+  const handleCancelOrder = async (orderUuid: string) => {
+    const result = await cancelOrder(orderUuid);
+    if (result.success) {
+      setModalTitle('Success');
+      setModalMessage('Order has been cancelled.');
+      setModalVisible(true);
       setCancelModalVisible(false);
       setOrderForCancel(null);
-    } catch (error) {
-      Alert.alert('Error', 'Failed to cancel order. Please try again.');
+    } else if (result.error) {
+      setModalTitle(result.error.title);
+      setModalMessage(result.error.message);
+      setModalVisible(true);
     }
   };
 
@@ -285,10 +370,6 @@ const Orders: React.FC = () => {
           loadMoreError={loadMoreError}
           onLoadMore={debounce(loadMore, 300)}
           onOpenOrderModal={setSelectedOrder}
-          onOpenStatusModal={orderUuid => {
-            setOrderForStatusUpdate(orderUuid);
-            setStatusModalVisible(true);
-          }}
           onOpenTrackingModal={orderUuid => {
             setOrderForTracking(orderUuid);
             setTrackingModalVisible(true);
@@ -331,8 +412,14 @@ const Orders: React.FC = () => {
             setDisputeModalVisible(false);
             setOrderForDispute(null);
           }}
-          onUpdateOrderStatus={updateOrderStatus}
-          onCancelOrder={cancelOrder}
+          onUpdateOrderStatus={handleUpdateOrderStatus}
+          onCancelOrder={handleCancelOrder}
+        />
+        <CustomModal
+          visible={modalVisible}
+          title={modalTitle}
+          message={modalMessage}
+          onClose={() => setModalVisible(false)}
         />
       </View>
     </SafeAreaView>

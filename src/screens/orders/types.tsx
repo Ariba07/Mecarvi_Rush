@@ -8,12 +8,15 @@ export interface OrderDetail {
 export interface Order {
   id: number;
   order_uuid: string;
+  service_provider_name: string;
+  service_provider_logo: string;
   total_price: string | number;
   created_at: string;
   payment_status?: string;
   order_details: OrderDetail[];
   order_number: string;
   status: string;
+  order_proofs: number; // Add order_proofs
   order_tracking?: {
     id: number;
     order_tracking_uuid: string;

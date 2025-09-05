@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useContext, useCallback} from 'react';
-import {SafeAreaView, View, Alert} from 'react-native';
+import {SafeAreaView, View, Platform} from 'react-native';
 import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {
@@ -13,16 +13,24 @@ import {launchImageLibrary} from 'react-native-image-picker';
 import ImageResizer from 'react-native-image-resizer';
 import ChatMessages from './ChatMessages';
 import MessageInput from './MessageInput';
-
-import {Platform} from 'react-native';
 import {styles} from '../../assets/styles/ticket/TicketSTyles';
 import {useSelector} from 'react-redux';
 import {selectUserId} from '../../slice/Slice';
 import {STORAGE_KEY} from '../login/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import CustomModal from '../../components/common/errorModal/CustomModal';
 
 type TicketRouteProp = RouteProp<RootStackParamList, 'Ticket'>;
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+
+interface ActionResult {
+  success: boolean;
+  data?: any;
+  error?: {
+    title: string;
+    message: string;
+  };
+}
 
 const Ticket: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
@@ -35,9 +43,12 @@ const Ticket: React.FC = () => {
   const [selectedImages, setSelectedImages] = useState<
     {uri: string; type: string; name: string}[]
   >([]);
-
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [modalMessage, setModalMessage] = useState<string>('');
+  const [modalTitle, setModalTitle] = useState<string>('Error');
+  const [isSending, setIsSending] = useState<boolean>(false);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
   const reduxUserId = useSelector(selectUserId);
-
   const [userId, setUserId] = useState<number | null>(null);
 
   useEffect(() => {
@@ -57,10 +68,15 @@ const Ticket: React.FC = () => {
     fetchUserData();
   }, [reduxUserId]);
 
-  const fetchChatMessages = useCallback(async () => {
+  const fetchChatMessages = useCallback(async (): Promise<ActionResult> => {
     if (!ticketUuid) {
-      Alert.alert('Error', 'Dispute UUID is missing.');
-      return;
+      return {
+        success: false,
+        error: {
+          title: 'Error',
+          message: 'Ticket UUID is missing.',
+        },
+      };
     }
     try {
       const response = (await apiHelper({
@@ -93,32 +109,62 @@ const Ticket: React.FC = () => {
           };
         });
         setMessages(fetchedMessages);
+        return {
+          success: true,
+          data: fetchedMessages,
+        };
       } else {
-        Alert.alert(
-          'Error',
-          response.message || 'Failed to load chat messages.',
-        );
+        return {
+          success: false,
+          error: {
+            title: 'Error',
+            message: response.message || 'Failed to load chat messages.',
+          },
+        };
       }
     } catch (error: any) {
-      Alert.alert(
-        'Error',
-        'Failed to fetch chat messages. Please check your network.',
-      );
+      return {
+        success: false,
+        error: {
+          title: 'Error',
+          message: 'Failed to fetch chat messages. Please check your network.',
+        },
+      };
+    } finally {
+      setRefreshing(false);
     }
   }, [ticketUuid, userId]);
 
-  const handleSelectImages = async () => {
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    const result = await fetchChatMessages();
+    if (!result.success && result.error) {
+      setModalTitle(result.error.title);
+      setModalMessage(result.error.message);
+      setModalVisible(true);
+    }
+  }, [fetchChatMessages]);
+
+  const handleSelectImages = useCallback(async (): Promise<ActionResult> => {
+    if (isSending) {
+      return {success: false};
+    }
     try {
       const result = await launchImageLibrary({
         mediaType: 'photo',
         selectionLimit: 0,
       });
       if (result.didCancel) {
-        return;
+        return {success: false};
       }
       if (result.errorCode) {
-        Alert.alert('Error', `Image selection failed: ${result.errorMessage}`);
-        return;
+        return {
+          success: false,
+          error: {
+            title: 'Error',
+            message: `Image selection failed: ${result.errorMessage}`,
+          },
+        };
       }
       if (result.assets) {
         const compressedImages = await Promise.all(
@@ -151,25 +197,49 @@ const Ticket: React.FC = () => {
             img !== null,
         );
         if (validImages.length === 0) {
-          Alert.alert('Error', 'Failed to compress selected images.');
-          return;
+          return {
+            success: false,
+            error: {
+              title: 'Error',
+              message: 'Failed to compress selected images.',
+            },
+          };
         }
         setSelectedImages(prev => [...prev, ...validImages]);
+        return {success: true, data: validImages};
       }
+      return {success: false};
     } catch (error) {
-      Alert.alert('Error', 'Failed to select images.');
+      return {
+        success: false,
+        error: {
+          title: 'Error',
+          message: 'Failed to select images.',
+        },
+      };
     }
-  };
+  }, [isSending]);
 
-  const createChat = useCallback(async () => {
+  const createChat = useCallback(async (): Promise<ActionResult> => {
     if (!ticketId) {
-      Alert.alert('Error', 'Ticket ID is missing.');
-      return false;
+      return {
+        success: false,
+        error: {
+          title: 'Error',
+          message: 'Ticket ID is missing.',
+        },
+      };
     }
     if (!newMessage.trim() && selectedImages.length === 0) {
-      Alert.alert('Error', 'Please enter a message or select an image.');
-      return false;
+      return {
+        success: false,
+        error: {
+          title: 'Error',
+          message: 'Please enter a message or select an image.',
+        },
+      };
     }
+    setIsSending(true);
     try {
       const formData = new FormData();
       formData.append('message', newMessage);
@@ -186,29 +256,75 @@ const Ticket: React.FC = () => {
         data: formData,
       })) as any;
       if (response.status === 1) {
-        return true;
+        return {
+          success: true,
+          error: {
+            title: 'Success',
+            message: 'Message sent successfully!',
+          },
+        };
       }
-      Alert.alert('Error', response.message || 'Failed to send message.');
-      return false;
+      return {
+        success: false,
+        error: {
+          title: 'Error',
+          message: response.message || 'Failed to send message.',
+        },
+      };
     } catch (error: any) {
-      Alert.alert(
-        'Error',
-        'Failed to send message. Please check your network.',
-      );
-      return false;
+      return {
+        success: false,
+        error: {
+          title: 'Error',
+          message: 'Failed to send message. Please check your network.',
+        },
+      };
+    } finally {
+      setIsSending(false);
     }
   }, [newMessage, selectedImages, ticketId]);
 
   useEffect(() => {
-    fetchChatMessages();
+    const loadMessages = async () => {
+      const result = await fetchChatMessages();
+      if (!result.success && result.error) {
+        setModalTitle(result.error.title);
+        setModalMessage(result.error.message);
+        setModalVisible(true);
+      }
+    };
+    loadMessages();
   }, [fetchChatMessages]);
 
-  const handleSendMessage = async () => {
-    const success = await createChat();
-    if (success) {
+  const onSelectImages = async () => {
+    const result = await handleSelectImages();
+    if (!result.success && result.error) {
+      setModalTitle(result.error.title);
+      setModalMessage(result.error.message);
+      setModalVisible(true);
+    }
+  };
+
+  const onSendMessage = async () => {
+    if (isSending) {
+      return;
+    }
+    const result = await createChat();
+    if (result.success && result.error) {
       setNewMessage('');
       setSelectedImages([]);
       await fetchChatMessages();
+      setModalTitle(result.error.title);
+      setModalMessage(result.error.message);
+      setModalVisible(true);
+    } else if (!result.error) {
+      setNewMessage('');
+      setSelectedImages([]);
+      await fetchChatMessages();
+    } else if (!result.success && result.error) {
+      setModalTitle(result.error.title);
+      setModalMessage(result.error.message);
+      setModalVisible(true);
     }
   };
 
@@ -217,14 +333,25 @@ const Ticket: React.FC = () => {
       style={[styles.safeArea, {backgroundColor: theme.whole || '#f0f4f8'}]}>
       <View style={styles.container}>
         <Header title={ticketSubject} onBackPress={() => navigation.goBack()} />
-        <ChatMessages messages={messages} />
+        <ChatMessages
+          messages={messages}
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+        />
         <MessageInput
           newMessage={newMessage}
           setNewMessage={setNewMessage}
           selectedImages={selectedImages}
-          onSelectImages={handleSelectImages}
-          onSendMessage={handleSendMessage}
+          onSelectImages={onSelectImages}
+          onSendMessage={onSendMessage}
           onClearImages={() => setSelectedImages([])}
+          isSending={isSending}
+        />
+        <CustomModal
+          visible={modalVisible}
+          title={modalTitle}
+          message={modalMessage}
+          onClose={() => setModalVisible(false)}
         />
       </View>
     </SafeAreaView>

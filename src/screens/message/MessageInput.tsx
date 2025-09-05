@@ -9,9 +9,15 @@ interface MessageInputProps {
   text: string;
   setText: (text: string) => void;
   onSend: () => void;
+  isSending: boolean; // Added isSending prop
 }
 
-const MessageInput: React.FC<MessageInputProps> = ({text, setText, onSend}) => {
+const MessageInput: React.FC<MessageInputProps> = ({
+  text,
+  setText,
+  onSend,
+  isSending,
+}) => {
   const {theme} = React.useContext(ThemeContext);
 
   return (
@@ -23,9 +29,13 @@ const MessageInput: React.FC<MessageInputProps> = ({text, setText, onSend}) => {
         onChangeText={setText}
         placeholder="Type a message..."
         placeholderTextColor="#999"
+        editable={!isSending} // Disable input while sending
       />
-      <TouchableOpacity onPress={onSend} style={styles.sendButton}>
-        <Icon name="send" size={wp(6)} color="#fff" />
+      <TouchableOpacity
+        onPress={onSend}
+        style={[styles.sendButton, isSending && styles.disabledButton]}
+        disabled={isSending}>
+        <Icon name="send" size={wp(6)} color={isSending ? '#999' : '#fff'} />
       </TouchableOpacity>
     </View>
   );

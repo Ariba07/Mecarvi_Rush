@@ -2,13 +2,7 @@
 import React, {useEffect} from 'react';
 import {View, Text} from 'react-native';
 import * as Animatable from 'react-native-animatable';
-import BestSeller from '../../assets/images/BestSeller.svg';
-import {renderStars} from '../../components/common/review/RenderStars';
 import {styles} from '../../assets/styles/product/Product';
-import {
-  widthPercentageToDP as wp,
-  heightPercentageToDP as hp,
-} from 'react-native-responsive-screen';
 
 interface ProductDetailsProps {
   productData: any;
@@ -80,25 +74,11 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
       animation="fadeInUp"
       duration={800}
       style={styles.productDetailsContainer}>
-      <Animatable.View
-        animation="bounceIn"
-        duration={800}
-        delay={200}
-        style={styles.bestSellerBadge}>
-        <BestSeller width={wp(3)} height={hp(3)} />
-        <Text style={[styles.bestSellerText, {color: theme.bottom}]}>
-          Best Seller
-        </Text>
-      </Animatable.View>
       <View style={styles.productInfoContainer}>
         <Animatable.View animation="fadeInUp" duration={800} delay={400}>
           <Text style={[styles.productTitle, {color: theme.input}]}>
             {productData?.name || 'Signage'}
           </Text>
-          <View style={styles.ratingContainer}>
-            {renderStars(Number('4.5'))}
-            <Text style={[styles.ratingText, {color: theme.input}]}>4.5</Text>
-          </View>
         </Animatable.View>
         <Animatable.View
           animation="fadeInUp"

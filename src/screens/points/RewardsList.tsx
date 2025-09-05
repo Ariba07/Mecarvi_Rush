@@ -24,9 +24,11 @@ const RewardsList: React.FC<RewardsListProps> = ({
   redeemingUuid,
 }) => {
   const {theme} = React.useContext(ThemeContext);
+  console.log('Orders', orders);
 
   // Filter orders to exclude those with points as null
   const validOrders = orders.filter(order => order.points !== null);
+console.log('Valid Orders', validOrders);
 
   return (
     <View

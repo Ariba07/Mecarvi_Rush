@@ -6,12 +6,9 @@ import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
 import {Order, OrderDetail, statusOptions} from './types';
-import {
-  widthPercentageToDP as wp,
-  heightPercentageToDP as hp,
-} from 'react-native-responsive-screen';
+
 import {styles} from '../../assets/styles/orders/OrderStyles';
-import * as Animatable from 'react-native-animatable'; // Import animatable
+import * as Animatable from 'react-native-animatable';
 
 interface OrderModalsProps {
   selectedOrder: Order | null;
@@ -74,23 +71,31 @@ const OrderModals: React.FC<OrderModalsProps> = ({
         onRequestClose={onCloseOrderModal}>
         <View style={styles.modalOverlay}>
           <Animatable.View
-            animation="slideInUp"
+            animation="zoomIn"
             duration={400}
-            style={[styles.modalContent, {backgroundColor: theme.whole}]}
-            onAnimationEnd={selectedOrder ? undefined : onCloseOrderModal}>
+            style={[
+              styles.modalContent,
+              {backgroundColor: theme.backgroundColor},
+            ]}>
             <Text style={[styles.modalTitle, {color: theme.text}]}>
-              Order Items (Order #{selectedOrder?.id})
+              Order #{selectedOrder?.id}
             </Text>
             <ScrollView
               style={styles.itemsContainer}
               showsVerticalScrollIndicator={false}>
               {selectedOrder?.order_details.map((detail: OrderDetail) => (
-                <View key={detail.id} style={styles.itemCard}>
+                <View
+                  key={detail.id}
+                  style={[styles.itemCard, {backgroundColor: theme.whole}]}>
                   <Text style={[styles.itemTitle, {color: theme.text}]}>
                     {detail.product_name}
                   </Text>
                   <View style={styles.itemDetailRow}>
-                    <Text style={[styles.itemDetailLabel, {color: '#6c757d'}]}>
+                    <Text
+                      style={[
+                        styles.itemDetailLabel,
+                        {color: theme.text + '80'},
+                      ]}>
                       Price:
                     </Text>
                     <Text style={[styles.itemDetailValue, {color: theme.text}]}>
@@ -98,7 +103,11 @@ const OrderModals: React.FC<OrderModalsProps> = ({
                     </Text>
                   </View>
                   <View style={styles.itemDetailRow}>
-                    <Text style={[styles.itemDetailLabel, {color: '#6c757d'}]}>
+                    <Text
+                      style={[
+                        styles.itemDetailLabel,
+                        {color: theme.text + '80'},
+                      ]}>
                       Quantity:
                     </Text>
                     <Text style={[styles.itemDetailValue, {color: theme.text}]}>
@@ -108,15 +117,20 @@ const OrderModals: React.FC<OrderModalsProps> = ({
                 </View>
               ))}
             </ScrollView>
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => {
-                onCloseOrderModal();
-              }}>
-              <Animatable.View>
-                <Text style={styles.closeButtonText}>Close</Text>
-              </Animatable.View>
-            </TouchableOpacity>
+            <Animatable.View animation="bounceIn" duration={600}>
+              <TouchableOpacity
+                style={[
+                  styles.closeButton,
+                  {
+                    backgroundColor: theme.status,
+
+                    alignSelf: 'center',
+                  },
+                ]}
+                onPress={onCloseOrderModal}>
+                <Text style={[styles.closeButtonText]}>Close</Text>
+              </TouchableOpacity>
+            </Animatable.View>
           </Animatable.View>
         </View>
       </Modal>
@@ -129,17 +143,14 @@ const OrderModals: React.FC<OrderModalsProps> = ({
           onRequestClose={onCloseStatusModal}>
           <View style={styles.modalOverlay}>
             <Animatable.View
-              animation="slideInUp"
+              animation="zoomIn"
               duration={400}
               style={[
-                styles.statusModalContent,
-                {backgroundColor: theme.whole},
-              ]}
-              onAnimationEnd={
-                statusModalVisible ? undefined : onCloseStatusModal
-              }>
+                styles.modalContent,
+                {backgroundColor: theme.backgroundColor},
+              ]}>
               <Text style={[styles.modalTitle, {color: theme.text}]}>
-                Update Order Status
+                Update Status
               </Text>
               <View style={styles.statusCirclesContainer}>
                 {statusOptions.map(status => (
@@ -156,13 +167,9 @@ const OrderModals: React.FC<OrderModalsProps> = ({
                           backgroundColor:
                             trackingStatuses[orderForStatusUpdate!]?.status ===
                             status
-                              ? '#00A19D'
+                              ? theme.status
                               : 'transparent',
-                          borderColor:
-                            trackingStatuses[orderForStatusUpdate!]?.status ===
-                            status
-                              ? '#00A19D'
-                              : '#6c757d',
+                          borderColor: theme.text,
                         },
                       ]}
                     />
@@ -173,15 +180,13 @@ const OrderModals: React.FC<OrderModalsProps> = ({
                   </TouchableOpacity>
                 ))}
               </View>
-              <TouchableOpacity
-                style={styles.closeButton}
-                onPress={() => {
-                  onCloseStatusModal();
-                }}>
-                <Animatable.View>
+              <Animatable.View animation="bounceIn" duration={600}>
+                <TouchableOpacity
+                  style={[styles.closeButton, {backgroundColor: theme.status}]}
+                  onPress={onCloseStatusModal}>
                   <Text style={styles.closeButtonText}>Cancel</Text>
-                </Animatable.View>
-              </TouchableOpacity>
+                </TouchableOpacity>
+              </Animatable.View>
             </Animatable.View>
           </View>
         </Modal>
@@ -194,30 +199,25 @@ const OrderModals: React.FC<OrderModalsProps> = ({
         onRequestClose={onCloseTrackingModal}>
         <View style={styles.modalOverlay}>
           <Animatable.View
-            animation="slideInUp"
+            animation="zoomIn"
             duration={400}
             style={[
-              styles.trackingModalContent,
-              {backgroundColor: theme.whole},
-            ]}
-            onAnimationEnd={
-              trackingModalVisible ? undefined : onCloseTrackingModal
-            }>
+              styles.modalContent,
+              {backgroundColor: theme.backgroundColor},
+            ]}>
             <Text style={[styles.modalTitle, {color: theme.text}]}>
               Tracking Status
             </Text>
             <Text style={[styles.trackingStatusText, {color: theme.text}]}>
               {trackingStatuses[orderForTracking!]?.status || 'Pending'}
             </Text>
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => {
-                onCloseTrackingModal();
-              }}>
-              <Animatable.View>
+            <Animatable.View animation="bounceIn" duration={600}>
+              <TouchableOpacity
+                style={[styles.closeButton, {backgroundColor: theme.status}]}
+                onPress={onCloseTrackingModal}>
                 <Text style={styles.closeButtonText}>Close</Text>
-              </Animatable.View>
-            </TouchableOpacity>
+              </TouchableOpacity>
+            </Animatable.View>
           </Animatable.View>
         </View>
       </Modal>
@@ -230,38 +230,39 @@ const OrderModals: React.FC<OrderModalsProps> = ({
           onRequestClose={onCloseCancelModal}>
           <View style={styles.modalOverlay}>
             <Animatable.View
-              animation="slideInUp"
+              animation="zoomIn"
               duration={400}
               style={[
-                styles.cancelModalContent,
-                {backgroundColor: theme.whole},
-              ]}
-              onAnimationEnd={
-                cancelModalVisible ? undefined : onCloseCancelModal
-              }>
+                styles.modalContent,
+                {backgroundColor: theme.backgroundColor},
+              ]}>
               <Text style={[styles.modalTitle, {color: theme.text}]}>
                 Order Actions
               </Text>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: wp(8),
-                }}>
-                <TouchableOpacity
-                  style={styles.cancelButton}
-                  onPress={() => onCancelOrder(orderForCancel!)}>
-                  <Text style={styles.cancelButtonText}>Cancel Order</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.closeButton}
-                  onPress={() => {
-                    onCloseCancelModal();
-                  }}>
-                  <Animatable.View>
+              <View style={styles.actionButtonRow}>
+                <Animatable.View animation="bounceIn" duration={600}>
+                  <TouchableOpacity
+                    style={[
+                      styles.cancelButton,
+                      {backgroundColor: theme.status},
+                    ]}
+                    onPress={() => onCancelOrder(orderForCancel!)}>
+                    <Text style={styles.cancelButtonText}>Cancel Order</Text>
+                  </TouchableOpacity>
+                </Animatable.View>
+                <Animatable.View
+                  animation="bounceIn"
+                  duration={600}
+                  delay={100}>
+                  <TouchableOpacity
+                    style={[
+                      styles.closeButton,
+                      {backgroundColor: theme.status},
+                    ]}
+                    onPress={onCloseCancelModal}>
                     <Text style={styles.closeButtonText}>Close</Text>
-                  </Animatable.View>
-                </TouchableOpacity>
+                  </TouchableOpacity>
+                </Animatable.View>
               </View>
             </Animatable.View>
           </View>
@@ -276,44 +277,45 @@ const OrderModals: React.FC<OrderModalsProps> = ({
           onRequestClose={onCloseDisputeModal}>
           <View style={styles.modalOverlay}>
             <Animatable.View
-              animation="slideInUp"
+              animation="zoomIn"
               duration={400}
               style={[
-                styles.cancelModalContent,
-                {backgroundColor: theme.whole},
-              ]}
-              onAnimationEnd={
-                disputeModalVisible ? undefined : onCloseDisputeModal
-              }>
+                styles.modalContent,
+                {backgroundColor: theme.backgroundColor},
+              ]}>
               <Text style={[styles.modalTitle, {color: theme.text}]}>
                 Order Actions
               </Text>
-              <View
-                style={{
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: hp(2),
-                }}>
-                <TouchableOpacity
-                  style={styles.disputeButton}
-                  onPress={() => {
-                    navigation.navigate('CreateTicket', {
-                      order_id: orderForDispute,
-                      fromOrders: true,
-                    });
-                    onCloseDisputeModal();
-                  }}>
-                  <Text style={styles.disputeButtonText}>Create Dispute</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.closeButton}
-                  onPress={() => {
-                    onCloseDisputeModal();
-                  }}>
-                  <Animatable.View>
+              <View style={styles.actionButtonRow}>
+                <Animatable.View animation="bounceIn" duration={600}>
+                  <TouchableOpacity
+                    style={[
+                      styles.disputeButton,
+                      {backgroundColor: theme.status},
+                    ]}
+                    onPress={() => {
+                      navigation.navigate('CreateTicket', {
+                        order_id: orderForDispute,
+                        fromOrders: true,
+                      });
+                      onCloseDisputeModal();
+                    }}>
+                    <Text style={styles.disputeButtonText}>Create Dispute</Text>
+                  </TouchableOpacity>
+                </Animatable.View>
+                <Animatable.View
+                  animation="bounceIn"
+                  duration={600}
+                  delay={100}>
+                  <TouchableOpacity
+                    style={[
+                      styles.closeButton,
+                      {backgroundColor: theme.status},
+                    ]}
+                    onPress={onCloseDisputeModal}>
                     <Text style={styles.closeButtonText}>Close</Text>
-                  </Animatable.View>
-                </TouchableOpacity>
+                  </TouchableOpacity>
+                </Animatable.View>
               </View>
             </Animatable.View>
           </View>

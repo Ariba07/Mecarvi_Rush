@@ -1,5 +1,5 @@
 import React, {useCallback, useContext, useEffect, useState} from 'react';
-import {SafeAreaView, View, Alert} from 'react-native';
+import {SafeAreaView, View} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
@@ -22,6 +22,16 @@ import PointsHeader from './PointsHeader';
 import RewardsList from './RewardsList';
 import {STORAGE_KEY, Order} from './types';
 import {styles} from '../../assets/styles/points/PointsStyles';
+import CustomModal from '../../components/common/errorModal/CustomModal';
+
+interface ActionResult {
+  success: boolean;
+  data?: any;
+  error?: {
+    title: string;
+    message: string;
+  };
+}
 
 const Points: React.FC = () => {
   const navigation =
@@ -41,7 +51,10 @@ const Points: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [totalPoints, setTotalPoints] = useState<number>(0);
   const [usedPoints, setUsedPoints] = useState<number>(0);
-  const [redeemingUuid, setRedeemingUuid] = useState<string | null>(null); // Track redeeming order
+  const [redeemingUuid, setRedeemingUuid] = useState<string | null>(null);
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [modalMessage, setModalMessage] = useState<string>('');
+  const [modalTitle, setModalTitle] = useState<string>('Error');
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -144,7 +157,7 @@ const Points: React.FC = () => {
     try {
       const endpoint = 'orders?per_page=6&page=1';
       const response = (await apiHelper({
-        method: 'GET', // Changed to POST to match typical order retrieval
+        method: 'GET',
         endpoint,
       })) as {data: Order[]; meta: {pagination: {last_page: number}}};
       const fetchedOrders = Array.isArray(response?.data) ? response.data : [];
@@ -160,19 +173,17 @@ const Points: React.FC = () => {
     fetchOrders();
   }, [fetchOrders]);
 
-  const handleRedeem = async (uuid: string) => {
-    setRedeemingUuid(uuid); // Set loading state for specific order
+  const handleRedeem = async (uuid: string): Promise<ActionResult> => {
+    setRedeemingUuid(uuid);
     try {
       const response = (await apiHelper({
         method: 'POST',
         endpoint: `redeem/${uuid}`,
       })) as any;
 
-      // Handle different possible API response structures
       const updatedOrder = response?.data?.order || response?.data;
 
       if (updatedOrder) {
-        // Update the specific order in the list
         setOrders(prevOrders =>
           prevOrders
             .map(order =>
@@ -186,18 +197,46 @@ const Points: React.FC = () => {
             )
             .sort((a, b) => b.id - a.id),
         );
-        Alert.alert('Success', 'Order redeemed successfully!');
-        fetchProfileData();
+        await fetchProfileData();
+        return {
+          success: true,
+          data: updatedOrder,
+        };
       } else {
-        // If no updated order, refetch all orders to ensure consistency
         await fetchOrders();
-        Alert.alert('Success', 'Order redeemed, list updated.');
+        return {
+          success: true,
+          data: null,
+        };
       }
     } catch (redeemError: any) {
-      Alert.alert('Error', 'Failed to redeem order. Please try again.');
       console.warn('Error redeeming order:', redeemError);
+      return {
+        success: false,
+        error: {
+          title: 'Error',
+          message: 'Failed to redeem order. Please try again.',
+        },
+      };
     } finally {
       setRedeemingUuid(null);
+    }
+  };
+
+  const onRedeem = async (uuid: string) => {
+    const result = await handleRedeem(uuid);
+    if (result.success) {
+      setModalTitle('Success');
+      setModalMessage(
+        result.data
+          ? 'Order redeemed successfully!'
+          : 'Order redeemed, list updated.',
+      );
+      setModalVisible(true);
+    } else if (result.error) {
+      setModalTitle(result.error.title);
+      setModalMessage(result.error.message);
+      setModalVisible(true);
     }
   };
 
@@ -218,8 +257,14 @@ const Points: React.FC = () => {
           orders={orders}
           isLoading={isLoading}
           error={error}
-          onRedeem={handleRedeem}
-          redeemingUuid={redeemingUuid} // Pass redeeming state
+          onRedeem={onRedeem}
+          redeemingUuid={redeemingUuid}
+        />
+        <CustomModal
+          visible={modalVisible}
+          title={modalTitle}
+          message={modalMessage}
+          onClose={() => setModalVisible(false)}
         />
       </View>
     </SafeAreaView>

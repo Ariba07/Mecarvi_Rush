@@ -5,32 +5,43 @@ import {
 } from 'react-native-responsive-screen';
 
 export const styles = StyleSheet.create({
-  safeArea: {flex: 1, backgroundColor: '#f5f5f5'},
+  safeArea: {flex: 1},
   container: {
     flex: 1,
-    paddingHorizontal: Platform.select({ios: wp(6), android: wp(5)}),
-    paddingBottom: Platform.select({ios: hp(7), android: hp(10)}),
+    paddingHorizontal: Platform.select({ios: wp(5), android: wp(4)}),
+    paddingBottom: Platform.select({ios: hp(8), android: hp(10)}),
   },
   tabWrapper: {
-    backgroundColor: '#ffffff',
     borderRadius: wp(3),
     marginVertical: hp(2),
-    padding: hp(1),
+    padding: hp(1.5),
   },
-  tabContainer: {paddingHorizontal: wp(2), alignItems: 'center'},
+  tabContainer: {
+    paddingHorizontal: wp(2),
+    alignItems: 'center',
+  },
   tabButton: {
     paddingVertical: hp(1.2),
     paddingHorizontal: wp(4),
     marginRight: wp(1.5),
     borderRadius: wp(2),
-    backgroundColor: '#f8f9fa',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  activeTabButton: {backgroundColor: '#FF0080'},
-  tabText: {fontSize: wp(4), fontWeight: '600', color: '#333333'},
-  activeTabText: {color: '#ffffff', fontWeight: '700'},
-  listContainer: {paddingBottom: hp(2)},
+  activeTabButton: {
+    backgroundColor: '#00C4B4',
+  },
+  tabText: {
+    fontSize: wp(4.2),
+    fontWeight: Platform.OS === 'ios' ? '600' : 'bold',
+  },
+  activeTabText: {
+    color: '#ffffff',
+    fontWeight: '700',
+  },
+  listContainer: {
+    paddingBottom: hp(2),
+  },
   noOrdersContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -39,14 +50,16 @@ export const styles = StyleSheet.create({
   },
   noOrdersText: {
     fontSize: wp(5),
-    fontWeight: '600',
-    color: '#333333',
+    fontWeight: Platform.OS === 'ios' ? '600' : 'bold',
     textAlign: 'center',
     marginBottom: hp(2),
+    opacity: 0.8,
   },
-  cardContainer: {marginBottom: hp(1.5)},
+  cardContainer: {
+    marginBottom: hp(2),
+    borderRadius: wp(3),
+  },
   card: {
-    backgroundColor: 'white',
     borderRadius: wp(3),
     padding: wp(4),
     flexDirection: 'column',
@@ -56,169 +69,213 @@ export const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-start',
   },
-  detailsContainer: {flex: 1},
+  detailsContainer: {
+    flex: 1,
+  },
   orderHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    marginBottom: hp(1),
   },
-  orderNumber: {fontSize: wp(4.5), fontWeight: 'bold', color: '#000000'},
-  status: {fontSize: wp(4.2), fontWeight: '500', marginBottom: hp(0.5)},
-  dateText: {fontSize: wp(3.8), marginBottom: hp(0.5), color: '#6c757d'},
-  priceText: {fontSize: wp(4.5), fontWeight: 'bold'},
-  buttonRow: {
+  orderNumber: {
+    fontSize: wp(4.8),
+    fontWeight: '700',
+  },
+  statusPriceRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: hp(0.5),
+    marginBottom: hp(1),
   },
-  paymentStatus: {
-    backgroundColor: '#00A19D',
-    paddingVertical: wp(1.5),
-    paddingHorizontal: wp(5),
-    borderRadius: wp(1),
+  status: {
+    fontSize: wp(4.2),
+    fontWeight: Platform.OS === 'ios' ? '600' : 'bold',
   },
-  paymentStatusText: {color: 'white', fontSize: wp(3.5), fontWeight: 'bold'},
-  feedbackButton: {
-    backgroundColor: '#FF0080',
-    paddingVertical: wp(1.5),
-    paddingHorizontal: wp(5),
-    borderRadius: wp(1),
+  dateText: {
+    fontSize: wp(3.8),
+    marginBottom: hp(1.5),
+    opacity: 0.8,
   },
-  feedbackButtonText: {color: 'white', fontSize: wp(3.5), fontWeight: 'bold'},
-  ratingButton: {
-    backgroundColor: '#00A19D',
-    paddingVertical: wp(2),
-    paddingHorizontal: wp(5),
+  priceText: {
+    fontSize: wp(4.5),
+    fontWeight: '700',
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginTop: hp(1),
+  },
+  actionButton: {
+    paddingVertical: hp(1.5),
+    paddingHorizontal: wp(4),
     borderRadius: wp(2),
     alignSelf: 'flex-start',
-    marginTop: hp(0.5),
   },
-  ratingButtonText: {color: 'white', fontSize: wp(3.8), fontWeight: '600'},
-  trackingButton: {
-    backgroundColor: '#5C6BC0',
-    paddingVertical: wp(2),
-    paddingHorizontal: wp(5),
-    borderRadius: wp(2),
-    alignSelf: 'flex-start',
-    marginTop: hp(0.5),
+  trackingButton: {},
+  trackingButtonText: {
+    color: '#ffffff',
+    fontSize: wp(3.8),
+    fontWeight: Platform.OS === 'ios' ? '600' : 'bold',
   },
-  trackingButtonText: {color: 'white', fontSize: wp(3.8), fontWeight: '600'},
-  menuButton: {},
+  ratingButton: {},
+  ratingButtonText: {
+    color: '#ffffff',
+    fontSize: wp(3.8),
+    fontWeight: Platform.OS === 'ios' ? '600' : 'bold',
+  },
+  feedbackButton: {},
+  feedbackButtonText: {
+    color: '#ffffff',
+    fontSize: wp(3.8),
+    fontWeight: Platform.OS === 'ios' ? '600' : 'bold',
+  },
+  menuButton: {
+    padding: wp(2),
+  },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: 'white',
-    borderRadius: wp(4),
+    borderRadius: wp(3),
     padding: wp(5),
-    width: wp(85),
-    maxHeight: hp(70),
-  },
-  statusModalContent: {borderRadius: wp(4), padding: wp(5), width: wp(85)},
-  trackingModalContent: {
-    borderRadius: wp(4),
-    padding: wp(5),
-    width: wp(85),
-    alignItems: 'center',
-  },
-  cancelModalContent: {
-    borderRadius: wp(4),
-    padding: wp(5),
-    width: wp(85),
-    alignItems: 'center',
+    width: wp(90),
+    maxHeight: hp(80),
   },
   modalTitle: {
-    fontSize: wp(5),
-    fontWeight: 'bold',
-    marginBottom: hp(2),
+    fontSize: wp(5.5),
+    fontWeight: '700',
+    marginBottom: hp(2.5),
     textAlign: 'center',
-    color: '#333',
   },
-  itemsContainer: {flexGrow: 0, marginBottom: hp(2)},
+  itemsContainer: {
+    flexGrow: 0,
+    marginBottom: hp(2),
+  },
   itemCard: {
-    backgroundColor: 'rgba(0, 161, 157, 0.1)',
     borderRadius: wp(3),
     padding: wp(4),
     marginBottom: hp(1.5),
   },
   itemTitle: {
-    fontSize: wp(5),
-    fontWeight: 'bold',
+    fontSize: wp(4.8),
+    fontWeight: Platform.OS === 'ios' ? '600' : 'bold',
     marginBottom: hp(1),
-    color: '#333',
   },
   itemDetailRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: hp(0.5),
   },
-  itemDetailLabel: {fontSize: wp(3.8), color: '#6c757d'},
-  itemDetailValue: {fontSize: wp(3.8), fontWeight: '500', color: '#333'},
+  itemDetailLabel: {
+    fontSize: wp(4),
+    fontWeight: '500',
+  },
+  itemDetailValue: {
+    fontSize: wp(4),
+    fontWeight: '500',
+  },
   statusCirclesContainer: {
     marginBottom: hp(2),
     justifyContent: 'center',
     alignItems: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: wp(4),
   },
   statusCircleWrapper: {
     alignItems: 'center',
-    marginHorizontal: wp(3),
     marginVertical: hp(1),
     flexDirection: 'row',
     gap: wp(2),
   },
   statusCircle: {
-    width: wp(3),
-    height: wp(3),
-    borderRadius: wp(4),
+    width: wp(3.5),
+    height: wp(3.5),
+    borderRadius: wp(2),
     borderWidth: 2,
   },
-  statusCircleText: {fontSize: wp(4), color: '#333'},
-  trackingStatusText: {
-    fontSize: wp(4.5),
+  statusCircleText: {
+    fontSize: wp(4.2),
     fontWeight: '500',
+  },
+  trackingStatusText: {
+    fontSize: wp(4.8),
+    fontWeight: Platform.OS === 'ios' ? '600' : 'bold',
     marginBottom: hp(2),
     textAlign: 'center',
   },
+  // Unified button styles
   cancelButton: {
-    backgroundColor: '#FF0000',
-    paddingVertical: wp(3),
-    width: wp(30),
+    width: wp(40), // Same width for all buttons
+    paddingVertical: hp(1.5), // Same height via padding
+    paddingHorizontal: wp(4),
     borderRadius: wp(3),
-    alignSelf: 'center',
-    marginBottom: hp(2),
     alignItems: 'center',
+    justifyContent: 'center', // Ensure content is centered
   },
-  cancelButtonText: {color: 'white', fontSize: wp(4.2), fontWeight: 'bold'},
+  cancelButtonText: {
+    color: '#ffffff',
+    fontSize: wp(4.2),
+    fontWeight: '700',
+  },
   disputeButton: {
-    backgroundColor: '#FF0080',
-    paddingVertical: wp(3),
-    width: wp(40),
+    width: wp(40), // Same width for all buttons
+    paddingVertical: hp(1.5), // Same height via padding
+    paddingHorizontal: wp(4),
     borderRadius: wp(3),
-    alignSelf: 'center',
     alignItems: 'center',
+    justifyContent: 'center', // Ensure content is centered
   },
-  disputeButtonText: {color: 'white', fontSize: wp(4.2), fontWeight: 'bold'},
+  disputeButtonText: {
+    color: '#ffffff',
+    fontSize: wp(4.2),
+    fontWeight: '700',
+  },
   closeButton: {
-    backgroundColor: '#00A19D',
-    paddingVertical: wp(3),
-    width: wp(30),
+    width: wp(40), // Same width for all buttons
+    paddingVertical: hp(1.5), // Same height via padding
+    paddingHorizontal: wp(4),
     borderRadius: wp(3),
-    alignSelf: 'center',
+    alignItems: 'center',
+    justifyContent: 'center', // Ensure content is centered
+  },
+  closeButtonText: {
+    fontSize: wp(4.2),
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+  actionButtonRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: wp(4),
     marginBottom: hp(2),
+  },
+  footerContainer: {
+    padding: hp(2),
     alignItems: 'center',
   },
-  closeButtonText: {color: 'white', fontSize: wp(4.2), fontWeight: 'bold'},
-  footerContainer: {padding: hp(2), alignItems: 'center'},
-  footerText: {fontSize: wp(4), color: '#333', marginBottom: hp(1)},
+  footerText: {
+    fontSize: wp(4),
+    marginBottom: hp(1),
+    opacity: 0.8,
+  },
   retryButton: {
-    backgroundColor: '#00A19D',
     paddingVertical: hp(1.5),
     paddingHorizontal: wp(5),
     borderRadius: wp(2),
+    backgroundColor: '#00C4B4',
   },
-  retryButtonText: {color: 'white', fontSize: wp(4), fontWeight: '600'},
+  retryButtonText: {
+    color: '#ffffff',
+    fontSize: wp(4),
+    fontWeight: Platform.OS === 'ios' ? '600' : 'bold',
+  },
+  buttonText: {
+    fontSize: wp(4.2),
+    fontWeight: Platform.OS === 'ios' ? '600' : 'bold',
+  },
 });

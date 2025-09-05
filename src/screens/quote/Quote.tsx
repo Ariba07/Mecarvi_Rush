@@ -29,7 +29,7 @@ const Quote = () => {
         </Text>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => navigation.navigate('Drawer')}>
+          onPress={() => navigation.replace('Drawer')}>
           <Text style={[styles.buttonText, {color: theme.backgroundColor}]}>
             Back to home
           </Text>

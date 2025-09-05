@@ -1,6 +1,6 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, {useContext, useState} from 'react';
-import {SafeAreaView, View} from 'react-native';
+import {SafeAreaView, View, ActivityIndicator} from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
@@ -13,16 +13,52 @@ import {useSubscriptionLogic} from './SubscriptionLogic';
 import {styles} from './Styles';
 import PlanCard from './PlanCard';
 import {ScrollView} from 'react-native';
+import {widthPercentageToDP as wp} from 'react-native-responsive-screen';
+import CustomModal from '../../components/common/errorModal/CustomModal';
+
+interface ActionResult {
+  success: boolean;
+  data?: any;
+  error?: {
+    title: string;
+    message: string;
+  };
+}
 
 const Subscription = () => {
-  const [selectedPlan, setSelectedPlan] = useState<string>(
-    'price_1RSFzsQGkbRqDEDilPZLb5g6',
-  );
+  const [selectedPlan, setSelectedPlan] = useState<string>('');
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [modalMessage, setModalMessage] = useState<string>('');
+  const [modalTitle, setModalTitle] = useState<string>('Error');
   const {theme} = useContext(ThemeContext);
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const {plans, handleSubscriptionSubmit} = useSubscriptionLogic();
+
+  const handleSubscription = async (paymentMethodId: string) => {
+    setIsLoading(true);
+    try {
+      const result: ActionResult = await handleSubscriptionSubmit(
+        paymentMethodId,
+      );
+      if (result.success) {
+        setModalTitle('Success');
+        setModalMessage(
+          `Subscription ${result.data ? 'created' : 'updated'} successfully!`,
+        );
+        setModalVisible(true);
+      } else if (result.error) {
+        setModalTitle(result.error.title);
+        setModalMessage(result.error.message);
+        setModalVisible(true);
+      }
+    } finally {
+      setIsLoading(false);
+      setIsModalVisible(false);
+    }
+  };
 
   return (
     <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
@@ -41,7 +77,9 @@ const Subscription = () => {
             style={styles.heading}>
             Choose Your Plan
           </Animatable.Text>
-          <ScrollView showsVerticalScrollIndicator={false}>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{flexGrow: 1, paddingBottom: wp(50)}}>
             {plans.length > 0 ? (
               plans.map((plan, index) => (
                 <PlanCard
@@ -62,14 +100,25 @@ const Subscription = () => {
                 Loading plans...
               </Animatable.Text>
             )}
+            <Animatable.View
+              animation="pulse"
+              iterationCount={1}
+              duration={1000}>
+              <CustomButton
+                title={isLoading ? 'Processing...' : 'Choose Plan'}
+                onPress={() => setIsModalVisible(true)}
+                disabled={isLoading || !selectedPlan}
+              />
+              {isLoading && (
+                <ActivityIndicator
+                  size="large"
+                  color={theme.text || '#FF0080'}
+                  style={{marginTop: wp(2)}}
+                />
+              )}
+            </Animatable.View>
           </ScrollView>
         </View>
-        <Animatable.View animation="pulse" iterationCount={1} duration={1000}>
-          <CustomButton
-            title="Choose Plan"
-            onPress={() => setIsModalVisible(true)}
-          />
-        </Animatable.View>
       </View>
       <Animatable.View
         animation={isModalVisible ? 'fadeInUp' : 'fadeOutDown'}
@@ -77,9 +126,15 @@ const Subscription = () => {
         <CardPaymentBottomSheet
           isVisible={isModalVisible}
           onClose={() => setIsModalVisible(false)}
-          onSubmit={handleSubscriptionSubmit}
+          onSubmit={handleSubscription}
         />
       </Animatable.View>
+      <CustomModal
+        visible={modalVisible}
+        title={modalTitle}
+        message={modalMessage}
+        onClose={() => setModalVisible(false)}
+      />
     </SafeAreaView>
   );
 };

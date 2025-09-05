@@ -88,7 +88,7 @@ const Settings = () => {
     },
     {
       id: '8',
-      title: theme.backgroundColor === '#000000' ? 'Light Theme' : 'Dark Theme',
+      title: theme.backgroundColor === '#0D0D0D' ? 'Light Theme' : 'Dark Theme',
       icon: <Theme width={wp(5)} height={wp(5)} />,
       bgColor: '#5C6B96',
       // No route here, we'll handle it separately

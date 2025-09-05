@@ -1,4 +1,3 @@
-import {Alert} from 'react-native';
 import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 import {convertTo24HourFormat} from '../../components/helperUtils/timeFormat/TimeUtils';
 import {UserCard} from './types';
@@ -16,6 +15,15 @@ interface CreateOrderParams {
   quote_uuid: string | null;
 }
 
+interface ActionResult {
+  success: boolean;
+  data?: any;
+  error?: {
+    title: string;
+    message: string;
+  };
+}
+
 export const createOrder = async ({
   cart,
   addressType,
@@ -27,59 +35,89 @@ export const createOrder = async ({
   marketPlaceUuid,
   quoteOrder,
   quote_uuid,
-}: CreateOrderParams): Promise<string | null> => {
+}: CreateOrderParams): Promise<ActionResult> => {
   try {
     const formattedTime = Time ? convertTo24HourFormat(Time) : '';
     if (addressType === 'delivery' && !addressId) {
-      Alert.alert(
-        'Error',
-        'Please select a delivery address before proceeding.',
-      );
-      throw new Error('User address ID is required for delivery');
+      return {
+        success: false,
+        error: {
+          title: 'Error',
+          message: 'Please select a delivery address before proceeding.',
+        },
+      };
     }
 
-    const baseOrderData = {
-      items: cart.map(item => ({
-        product_id: item.id.toString(),
-        quantity: item.quantity,
-        price:
-          addressType === 'delivery'
-            ? (item.price + (item.deliveryPrice ?? 0)).toString()
-            : item.price.toString(),
-        name: item.name,
-        ...(item.attributes && Object.keys(item.attributes).length > 0
-          ? {attributes: item.attributes}
-          : {}),
-      })),
-      fulfillment_type: addressType,
-      source_type: sourceType,
-      fulfillment_time: formattedTime,
-      fulfillment_date: date,
-      user_address_id: addressType === 'delivery' ? addressId : undefined,
-    };
+    const formData = new FormData();
 
-    const orderData =
-      sourceType === 'cart'
-        ? baseOrderData
-        : {
-            ...baseOrderData,
-            service_provider_id:
-              sourceType === 'quote' &&
-              quoteOrder &&
-              quoteOrder.length > 0 &&
-              quoteOrder[0]?.servicer_id
-                ? quoteOrder[0].servicer_id
-                : serviceProviderId,
-            ...(sourceType === 'quote' &&
-              quoteOrder &&
-              quoteOrder.length > 0 && {
-                items: quoteOrder.map(item => ({
-                  product_id: item.product_id.toString(),
-                  quantity: item.quantity,
-                  price: item.bid_price.toString(),
-                })),
-              }),
-          };
+    // Append items array
+    cart.forEach((item, index) => {
+      formData.append(`items[${index}][product_id]`, item.id.toString());
+      formData.append(`items[${index}][quantity]`, item.quantity.toString());
+      formData.append(
+        `items[${index}][price]`,
+        addressType === 'delivery'
+          ? (item.price + (item.deliveryPrice ?? 0)).toString()
+          : item.price.toString(),
+      );
+      formData.append(`items[${index}][name]`, item.name);
+
+      // Append variation_detail if it exists
+      if (item.attributes && Object.keys(item.attributes).length > 0) {
+        Object.entries(item.attributes).forEach(([key, value]) => {
+          formData.append(`items[${index}][variation_detail][${key}]`, value);
+        });
+      }
+
+      // Append images directly under items[${index}][images]
+      if (item.frontFile) {
+        formData.append(`items[${index}][images][front_image]`, {
+          uri: item.frontFile.uri,
+          type: item.frontFile.type || 'image/jpeg',
+          name: item.frontFile.name || 'front_image.jpg',
+        });
+      }
+      if (item.backFile) {
+        formData.append(`items[${index}][images][back_image]`, {
+          uri: item.backFile.uri,
+          type: item.backFile.type || 'image/png',
+          name: item.backFile.name || 'back_image.png',
+        });
+      }
+    });
+
+    // Append other order data
+    formData.append('fulfillment_type', addressType);
+    formData.append('source_type', sourceType);
+    if (formattedTime) {
+      formData.append('fulfillment_time', formattedTime);
+    }
+    if (date) {
+      formData.append('fulfillment_date', date);
+    }
+    if (addressType === 'delivery' && addressId) {
+      formData.append('user_address_id', addressId);
+    }
+
+    // Handle quote-specific data
+    if (sourceType === 'quote' && quoteOrder && quoteOrder.length > 0) {
+      formData.append(
+        'service_provider_id',
+        quoteOrder[0]?.servicer_id || serviceProviderId,
+      );
+      quoteOrder.forEach((item, index) => {
+        formData.append(
+          `items[${index}][product_id]`,
+          item.product_id.toString(),
+        );
+        formData.append(`items[${index}][quantity]`, item.quantity.toString());
+        formData.append(`items[${index}][price]`, item.bid_price.toString());
+      });
+    } else if (sourceType !== 'cart' && serviceProviderId) {
+      formData.append('service_provider_id', serviceProviderId);
+    }
+
+    console.log(formData, 'FormData:');
 
     const endpoint =
       sourceType === 'quote'
@@ -91,13 +129,22 @@ export const createOrder = async ({
     const response = (await apiHelper({
       method: 'POST',
       endpoint,
-      data: orderData,
+      data: formData,
     })) as {data: {order_uuid: string}};
 
     if (response.data.order_uuid) {
-      return response.data.order_uuid;
+      return {
+        success: true,
+        data: response.data.order_uuid,
+      };
     }
-    throw new Error('No valid order_uuid in response');
+    return {
+      success: false,
+      error: {
+        title: 'Error',
+        message: 'No valid order_uuid in response',
+      },
+    };
   } catch (error: any) {
     console.warn('Error creating order:', error);
     const message =
@@ -106,42 +153,55 @@ export const createOrder = async ({
         : error.response?.data?.message ||
           error.message ||
           'Failed to create order. Please try again.';
-    Alert.alert(
-      error.response?.status === 500 ? 'Server Error' : 'Error',
-      message,
-    );
-    return null;
+    return {
+      success: false,
+      error: {
+        title: error.response?.status === 500 ? 'Server Error' : 'Error',
+        message,
+      },
+    };
   }
 };
 
-export const fetchUserCards = async (): Promise<UserCard[]> => {
+export const fetchUserCards = async (): Promise<ActionResult> => {
   try {
     const response = (await apiHelper({
       method: 'GET',
       endpoint: 'user-cards',
     })) as {data: UserCard[]};
-    return response.data || [];
+    return {
+      success: true,
+      data: response.data || [],
+    };
   } catch (error) {
     console.warn('Error fetching user cards:', error);
-    Alert.alert('Error', 'Failed to fetch user cards. Please try again.');
-    return [];
+    return {
+      success: false,
+      error: {
+        title: 'Error',
+        message: 'Failed to fetch user cards. Please try again.',
+      },
+    };
   }
 };
 
 export const createPayment = async (
   orderUuid: string | null,
   cardId: string | null,
-  navigation: any,
-  dispatch: any,
   addressType: string,
   location: {latitude: number; longitude: number} | null,
   paymentMethod: string,
   orderPrice: number,
   delivery: number,
-) => {
+): Promise<ActionResult> => {
   if (!orderUuid) {
-    Alert.alert('Error', 'Order UUID is missing. Payment cannot proceed.');
-    return false;
+    return {
+      success: false,
+      error: {
+        title: 'Error',
+        message: 'Order UUID is missing. Payment cannot proceed.',
+      },
+    };
   }
 
   if (
@@ -149,8 +209,13 @@ export const createPayment = async (
     (paymentMethod === 'stripe' || paymentMethod === 'wallet') &&
     !location
   ) {
-    Alert.alert('Error', 'Location is required for pickup payment.');
-    return false;
+    return {
+      success: false,
+      error: {
+        title: 'Error',
+        message: 'Location is required for pickup payment.',
+      },
+    };
   }
 
   try {
@@ -189,14 +254,18 @@ export const createPayment = async (
       data,
     });
 
-    return true;
+    return {
+      success: true,
+    };
   } catch (error) {
     console.warn(`Error initiating ${paymentMethod} payment:`, error);
-    Alert.alert(
-      'Error',
-      `Failed to initiate ${paymentMethod} payment. Please try again.`,
-    );
-    return false;
+    return {
+      success: false,
+      error: {
+        title: 'Error',
+        message: `Failed to initiate ${paymentMethod} payment. Please try again.`,
+      },
+    };
   }
 };
 
@@ -205,7 +274,7 @@ export const createCard = async (
   cardName: string,
   fetchUserCardsFn: () => Promise<UserCard[]>,
   setIsCardModalVisible: (visible: boolean) => void,
-): Promise<string | null> => {
+): Promise<ActionResult> => {
   try {
     const response = (await apiHelper({
       method: 'POST',
@@ -219,10 +288,18 @@ export const createCard = async (
     await fetchUserCardsFn();
     setIsCardModalVisible(true);
 
-    return response.data.user_card_uuid || null;
+    return {
+      success: true,
+      data: response.data.user_card_uuid || null,
+    };
   } catch (error) {
     console.warn('Error creating card:', error);
-    Alert.alert('Error', 'Failed to create card. Please try again.');
-    return null;
+    return {
+      success: false,
+      error: {
+        title: 'Error',
+        message: 'Failed to create card. Please try again.',
+      },
+    };
   }
 };

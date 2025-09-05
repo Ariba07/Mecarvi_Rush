@@ -52,11 +52,6 @@ const styles = StyleSheet.create({
     padding: wp(5),
     borderRadius: wp(3),
     alignItems: 'center',
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
   },
   errorTitle: {
     fontSize: wp(5),

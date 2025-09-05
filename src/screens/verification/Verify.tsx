@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useState, useRef, useEffect, useContext} from 'react';
+import React, {useState, useRef, useContext} from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,6 @@ import {
   Dimensions,
   TouchableWithoutFeedback,
   Keyboard,
-  BackHandler,
 } from 'react-native';
 import {
   widthPercentageToDP as wp,
@@ -42,22 +41,6 @@ const Verify = () => {
     theme.backgroundColor === '#ffffff'
       ? require('../../assets/images/BG.png') // Light theme
       : require('../../assets/images/dark.png'); // Dark theme
-
-  useEffect(() => {
-    const backAction = () => {
-      navigation.navigate('Login'); // Navigate to Login screen
-      return true; // Prevent default behavior (exiting the app)
-    };
-
-    // Add event listener
-    const backHandler = BackHandler.addEventListener(
-      'hardwareBackPress',
-      backAction,
-    );
-
-    // Cleanup function
-    return () => backHandler.remove();
-  }, [navigation]);
 
   const handleVerify = async () => {
     try {

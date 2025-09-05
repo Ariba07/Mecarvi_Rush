@@ -5,7 +5,6 @@ import {
   View,
   Keyboard,
   TouchableWithoutFeedback,
-  Alert,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
@@ -26,7 +25,17 @@ import ProfileForm from './ProfileForm';
 import {heightPercentageToDP as hp} from 'react-native-responsive-screen';
 import {STORAGE_KEY} from '../login/types';
 import {styles} from '../../assets/styles/profile/ProfileStyles';
-import * as Animatable from 'react-native-animatable'; // Import animatable
+import * as Animatable from 'react-native-animatable';
+import CustomModal from '../../components/common/errorModal/CustomModal';
+
+interface ActionResult {
+  success: boolean;
+  data?: any;
+  error?: {
+    title: string;
+    message: string;
+  };
+}
 
 const Profile: React.FC = () => {
   const navigation =
@@ -42,6 +51,9 @@ const Profile: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState<string | null>(null);
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [modalMessage, setModalMessage] = useState<string>('');
+  const [modalTitle, setModalTitle] = useState<string>('Error');
 
   useEffect(() => {
     const getUserId = async () => {
@@ -94,25 +106,46 @@ const Profile: React.FC = () => {
     fetchProfileData();
   }, [dispatch]);
 
-  const handleImagePick = () => {
+  const handleImagePick = async (): Promise<ActionResult> => {
     const options = {mediaType: 'photo' as const, quality: 1} as any;
-    launchImageLibrary(options, response => {
-      if (response.didCancel) {
-        console.log('User cancelled image picker');
-      } else if (response.errorCode) {
-        Alert.alert('Error', 'Failed to pick an image. Please try again.');
-      } else if (response.assets && response.assets.length > 0) {
-        const asset = response.assets[0];
-        setSelectedImage({
-          uri: asset.uri,
-          type: asset.type,
-          name: asset.fileName || 'profile_image.jpg',
-        });
-      }
+    return new Promise(resolve => {
+      launchImageLibrary(options, response => {
+        if (response.didCancel) {
+          console.log('User cancelled image picker');
+          resolve({success: false});
+        } else if (response.errorCode) {
+          resolve({
+            success: false,
+            error: {
+              title: 'Error',
+              message: 'Failed to pick an image. Please try again.',
+            },
+          });
+        } else if (response.assets && response.assets.length > 0) {
+          const asset = response.assets[0];
+          setSelectedImage({
+            uri: asset.uri,
+            type: asset.type,
+            name: asset.fileName || 'profile_image.jpg',
+          });
+          resolve({success: true});
+        } else {
+          resolve({success: false});
+        }
+      });
     });
   };
 
-  const handleUpdate = async () => {
+  const onImagePick = async () => {
+    const result = await handleImagePick();
+    if (!result.success && result.error) {
+      setModalTitle(result.error.title);
+      setModalMessage(result.error.message);
+      setModalVisible(true);
+    }
+  };
+
+  const handleUpdate = async (): Promise<ActionResult> => {
     try {
       const formData = new FormData();
       formData.append('full_name', fullName);
@@ -151,9 +184,31 @@ const Profile: React.FC = () => {
         setProfilePic(updatedProfile.image || null);
         setSelectedImage(null);
       }
-      Alert.alert('Success', 'Profile updated successfully!');
+      return {
+        success: true,
+        data: updatedProfile,
+      };
     } catch (error: any) {
-      Alert.alert('Error', 'Failed to update profile. Please try again.');
+      return {
+        success: false,
+        error: {
+          title: 'Error',
+          message: 'Failed to update profile. Please try again.',
+        },
+      };
+    }
+  };
+
+  const onUpdate = async () => {
+    const result = await handleUpdate();
+    if (result.success) {
+      setModalTitle('Success');
+      setModalMessage('Profile updated successfully!');
+      setModalVisible(true);
+    } else if (result.error) {
+      setModalTitle(result.error.title);
+      setModalMessage(result.error.message);
+      setModalVisible(true);
     }
   };
 
@@ -188,7 +243,7 @@ const Profile: React.FC = () => {
             userName={userName}
             profileImage={profileImage}
             selectedImage={selectedImage}
-            onImagePick={handleImagePick}
+            onImagePick={onImagePick}
           />
           <ProfileForm
             fullName={fullName}
@@ -197,7 +252,13 @@ const Profile: React.FC = () => {
             setFullName={setFullName}
             setEmail={setEmail}
             setPhoneNumber={setPhoneNumber}
-            onUpdate={handleUpdate}
+            onUpdate={onUpdate}
+          />
+          <CustomModal
+            visible={modalVisible}
+            title={modalTitle}
+            message={modalMessage}
+            onClose={() => setModalVisible(false)}
           />
         </View>
       </SafeAreaView>

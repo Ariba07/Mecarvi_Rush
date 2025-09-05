@@ -28,6 +28,10 @@ export const styles = StyleSheet.create({
   receivedMessageContainer: {
     alignItems: 'flex-start',
   },
+  sendButtonDisabled: {
+    backgroundColor: '#ccc',
+    opacity: 0.5,
+  },
   messageBubble: {
     maxWidth: wp(70),
     padding: wp(3),
@@ -60,11 +64,6 @@ export const styles = StyleSheet.create({
     marginBottom: hp(1),
     borderWidth: 1,
     borderColor: '#ccc',
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
   },
   timestamp: {
     fontSize: wp(3),

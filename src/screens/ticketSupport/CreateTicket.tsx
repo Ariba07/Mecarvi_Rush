@@ -6,7 +6,6 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  Alert,
 } from 'react-native';
 import {
   widthPercentageToDP as wp,
@@ -18,8 +17,18 @@ import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes
 import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 import Header from '../../components/common/header/Header';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import CustomModal from '../../components/common/errorModal/CustomModal';
 
 type TicketRouteProp = RouteProp<RootStackParamList, 'CreateTicket'>;
+
+interface ActionResult {
+  success: boolean;
+  data?: any;
+  error?: {
+    title: string;
+    message: string;
+  };
+}
 
 const CreateTicket = () => {
   const navigation =
@@ -28,29 +37,43 @@ const CreateTicket = () => {
   const {order_id, fromOrders} = route.params || {};
   const [subject, setSubject] = useState<string>('');
   const [message, setMessage] = useState<string>('');
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [modalMessage, setModalMessage] = useState<string>('');
+  const [modalTitle, setModalTitle] = useState<string>('Error');
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const {theme} = useContext(ThemeContext);
   console.log(order_id);
   console.log(fromOrders);
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (): Promise<ActionResult> => {
     if (!subject.trim()) {
-      Alert.alert('Error', 'Please enter a subject.');
-      return;
+      return {
+        success: false,
+        error: {
+          title: 'Error',
+          message: 'Please enter a subject.',
+        },
+      };
     }
 
     if (!message.trim()) {
-      Alert.alert('Error', 'Please enter your concern.');
-      return;
+      return {
+        success: false,
+        error: {
+          title: 'Error',
+          message: 'Please enter your concern.',
+        },
+      };
     }
 
+    setIsSubmitting(true);
     try {
       const formData = new FormData();
       formData.append('subject', subject);
       formData.append('message', message);
 
-      // Include order_id if fromOrders is true and order_id exists
       if (fromOrders && order_id) {
-        formData.append('order_id', order_id);
+        formData.append('order_id', order_id.toString());
       }
 
       console.log('Submitting ticket:', {
@@ -62,7 +85,6 @@ const CreateTicket = () => {
       const endpoint = fromOrders
         ? 'disputes/create'
         : 'support-tickets/create';
-
       console.log(endpoint);
 
       const response = (await apiHelper({
@@ -73,20 +95,53 @@ const CreateTicket = () => {
 
       if (response.status === 1) {
         console.log('Ticket created successfully:', response);
-        Alert.alert('Success', 'Ticket created successfully!');
-        setSubject('');
-        setMessage('');
-        navigation.goBack();
+        return {
+          success: true,
+          error: {
+            title: 'Success',
+            message: 'Ticket created successfully!',
+          },
+        };
       } else {
         console.warn('Error creating ticket:', response);
-        Alert.alert('Error', response?.message || 'Failed to create ticket.');
+        return {
+          success: false,
+          error: {
+            title: 'Error',
+            message: response?.message || 'Failed to create ticket.',
+          },
+        };
       }
     } catch (error) {
       console.warn('Create ticket error:', error);
-      Alert.alert(
-        'Error',
-        'Failed to create ticket. Please check your network.',
-      );
+      return {
+        success: false,
+        error: {
+          title: 'Error',
+          message: 'Failed to create ticket. Please check your network.',
+        },
+      };
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const onSubmit = async () => {
+    if (isSubmitting) {
+      return;
+    }
+    const result = await handleSubmit();
+    if (result.success && result.error) {
+      setModalTitle(result.error.title);
+      setModalMessage(result.error.message);
+      setModalVisible(true);
+      setSubject('');
+      setMessage('');
+      navigation.goBack();
+    } else if (!result.success && result.error) {
+      setModalTitle(result.error.title);
+      setModalMessage(result.error.message);
+      setModalVisible(true);
     }
   };
 
@@ -104,11 +159,13 @@ const CreateTicket = () => {
               style={[
                 styles.input,
                 {backgroundColor: theme.backgroundColor, color: theme.input},
+                isSubmitting && styles.inputDisabled,
               ]}
               placeholder="Write a Subject"
               placeholderTextColor="#A9A9A9"
               value={subject}
               onChangeText={setSubject}
+              editable={!isSubmitting}
             />
           </View>
 
@@ -120,6 +177,7 @@ const CreateTicket = () => {
                 styles.input,
                 styles.messageInput,
                 {backgroundColor: theme.backgroundColor, color: theme.input},
+                isSubmitting && styles.inputDisabled,
               ]}
               placeholder="Write Your concern..."
               placeholderTextColor="#A9A9A9"
@@ -127,14 +185,25 @@ const CreateTicket = () => {
               value={message}
               onChangeText={setMessage}
               textAlignVertical="top"
+              editable={!isSubmitting}
             />
           </View>
 
           {/* Submit Button */}
-          <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+          <TouchableOpacity
+            style={[styles.submitButton, isSubmitting && styles.buttonDisabled]}
+            onPress={onSubmit}
+            disabled={isSubmitting}>
             <Text style={styles.submitButtonText}>Submit</Text>
           </TouchableOpacity>
         </View>
+
+        <CustomModal
+          visible={modalVisible}
+          title={modalTitle}
+          message={modalMessage}
+          onClose={() => setModalVisible(false)}
+        />
       </View>
     </SafeAreaView>
   );
@@ -190,6 +259,14 @@ const styles = StyleSheet.create({
     fontSize: wp(4.5),
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  buttonDisabled: {
+    opacity: 0.5,
+    backgroundColor: '#ccc',
+  },
+  inputDisabled: {
+    opacity: 0.5,
+    backgroundColor: '#f0f0f0',
   },
 });
 

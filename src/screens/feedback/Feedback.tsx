@@ -8,7 +8,7 @@ import {
   TextInput,
   TouchableOpacity,
   FlatList,
-  Alert,
+  RefreshControl,
 } from 'react-native';
 import {
   widthPercentageToDP as wp,
@@ -16,16 +16,15 @@ import {
 } from 'react-native-responsive-screen';
 import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 import {
-  API_BASE_URL,
-  apiHelper,
-} from '../../components/helperUtils/apiHelper/ApiHelper';
+  ApiResponse,
+  RootStackParamList,
+} from '../../components/types/screenTypes/ScreenTypes';
+import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
 import Header from '../../components/common/header/Header';
-import {useSelector} from 'react-redux';
-import {selectToken} from '../../slice/Slice';
-import * as Animatable from 'react-native-animatable'; // Import animatable
+import * as Animatable from 'react-native-animatable';
+import CustomModal from '../../components/common/errorModal/CustomModal';
 
 type FeedbackRouteProp = RouteProp<RootStackParamList, 'Feedback'>;
 
@@ -51,6 +50,15 @@ interface FeedbackItem {
   created_at: string;
 }
 
+interface ActionResult {
+  success: boolean;
+  data?: any;
+  error?: {
+    title: string;
+    message: string;
+  };
+}
+
 const Feedback = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -59,72 +67,93 @@ const Feedback = () => {
   const order_id = route.params?.order_id;
   const [note, setNote] = useState<string>('');
   const [feedbackData, setFeedbackData] = useState<FeedbackItem[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false); // Add loading state
-  const token = useSelector(selectToken);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [modalMessage, setModalMessage] = useState<string>('');
+  const [modalTitle, setModalTitle] = useState<string>('Error');
 
-  // Fetch feedback data
-  const fetchFeedback = useCallback(async () => {
+  const fetchFeedback = useCallback(async (): Promise<ActionResult> => {
     if (!order_id) {
-      Alert.alert('Error', 'Order ID is missing.');
-      return;
+      return {
+        success: false,
+        error: {
+          title: 'Error',
+          message: 'Order ID is missing.',
+        },
+      };
     }
 
     setIsLoading(true);
     try {
-      const response = await fetch(
-        `${API_BASE_URL}orders/order-proofs/${order_id}`,
-        {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: 'application/json',
-          },
-        },
-      );
-
-      const result = await response.json();
-
-      if (response.status >= 200 && response.status < 300) {
-        console.log('Feedback fetched successfully:', result);
-        if (Array.isArray(result.data)) {
-          setFeedbackData(result.data);
-        } else {
-          console.warn('Unexpected feedback data:', result.data);
-          Alert.alert('Warning', 'Received invalid feedback data.');
-        }
-      } else {
-        console.warn('Error fetching feedback:', result);
-        Alert.alert('Error', result?.message || 'Failed to fetch feedback.');
-      }
+      const response = (await apiHelper<ApiResponse>({
+        method: 'GET',
+        endpoint: `orders/order-proofs/${order_id}`,
+      })) as any;
+      console.log('Feedback fetched successfully:', response);
+      setFeedbackData(response.data);
+      return {
+        success: true,
+        data: response.data,
+      };
     } catch (error) {
-      console.warn('Fetch feedback error:', error);
-      Alert.alert(
-        'Error',
-        'Failed to fetch feedback. Please check your network.',
-      );
+      console.log('Fetch feedback error:', error);
+      return {
+        success: false,
+        error: {
+          title: 'Error',
+          message: 'Failed to fetch feedback. Please check your network.',
+        },
+      };
     } finally {
       setIsLoading(false);
+      setRefreshing(false);
     }
-  }, [order_id, token]);
+  }, [order_id]);
 
-  // Fetch feedback on mount and when order_id/token changes
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    const result = await fetchFeedback();
+    if (!result.success && result.error) {
+      setModalTitle(result.error.title);
+      setModalMessage(result.error.message);
+      setModalVisible(true);
+    }
+  }, [fetchFeedback]);
+
   useEffect(() => {
-    fetchFeedback();
+    const loadFeedback = async () => {
+      const result = await fetchFeedback();
+      if (!result.success && result.error) {
+        setModalTitle(result.error.title);
+        setModalMessage(result.error.message);
+        setModalVisible(true);
+      }
+    };
+    loadFeedback();
   }, [fetchFeedback]);
 
   const handleAction = async (action: 'approve' | 'reject') => {
+    if (isSubmitting) {return;} // Prevent multiple submissions
     if (action === 'reject' && !note.trim()) {
-      Alert.alert('Error', 'Please write feedback before rejecting.');
+      setModalTitle('Error');
+      setModalMessage('Please write feedback before rejecting.');
+      setModalVisible(true);
       return;
     }
 
     if (!order_id) {
-      Alert.alert('Error', 'Order ID is missing. Please try again.');
+      setModalTitle('Error');
+      setModalMessage('Order ID is missing. Please try again.');
+      setModalVisible(true);
       return;
     }
 
     if (feedbackData.length === 0) {
-      Alert.alert('Error', 'No feedback available to approve or reject.');
+      setModalTitle('Error');
+      setModalMessage('No feedback available to approve or reject.');
+      setModalVisible(true);
       return;
     }
 
@@ -136,33 +165,35 @@ const Feedback = () => {
     const uuid = latestFeedback.uuid;
 
     try {
-      setIsLoading(true);
+      setIsSubmitting(true);
       console.log(`Submitting ${action} action:`, {
         status: action === 'approve' ? 'approved' : 'rejected',
         feedback: action === 'reject' ? note : undefined,
         uuid,
       });
-      const response = (await apiHelper({
+      await apiHelper({
         method: 'POST',
         endpoint: `orders/order-proofs/${uuid}?_method=patch`,
         data: {
           feedback: action === 'reject' ? note : undefined,
           status: action === 'approve' ? 'approved' : 'rejected',
         },
-      })) as any;
+      });
 
-      console.log(`${action} action submitted successfully:`, response);
-      Alert.alert('Success', `Feedback ${action}d successfully!`);
+      setModalTitle('Success');
+      setModalMessage(`Feedback ${action}d successfully!`);
+      setModalVisible(true);
       setNote('');
-      await fetchFeedback(); // Refresh feedback list
+      navigation.goBack();
     } catch (error) {
       console.warn(`Submit ${action} error:`, error);
-      Alert.alert(
-        'Error',
+      setModalTitle('Error');
+      setModalMessage(
         `Failed to ${action} feedback. Please check your network.`,
       );
+      setModalVisible(true);
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -189,14 +220,19 @@ const Feedback = () => {
     <Animatable.View
       animation="fadeInUp"
       duration={600}
-      delay={index * 100} // Staggered animation
-      style={styles.feedbackItem}>
+      delay={index * 100}
+      style={[styles.feedbackItem]}>
       {item.note && (
         <View style={styles.customerFeedbackContainer}>
           <Text style={[styles.feedbackHeading, {color: theme.text}]}>
             From Provider
           </Text>
-          <View style={[styles.feedbackBubble, styles.customerBubble]}>
+          <View
+            style={[
+              styles.feedbackBubble,
+              styles.customerBubble,
+              {backgroundColor: theme.button},
+            ]}>
             <Text style={[styles.feedbackText, {color: theme.header}]}>
               {item.note}
             </Text>
@@ -218,7 +254,7 @@ const Feedback = () => {
                 style={styles.feedbackImageList}
               />
             )}
-            <Text style={styles.timestamp}>
+            <Text style={[styles.timestamp, {color: theme.text}]}>
               {formatTimestamp(item.created_at)}
             </Text>
           </View>
@@ -226,11 +262,16 @@ const Feedback = () => {
       )}
       {item.feedback && (
         <View style={styles.serviceProviderNoteContainer}>
-          <View style={[styles.feedbackBubble, styles.providerBubble]}>
-            <Text style={[styles.feedbackText, {color: theme.text}]}>
+          <View
+            style={[
+              styles.feedbackBubble,
+              styles.providerBubble,
+              {backgroundColor: theme.button},
+            ]}>
+            <Text style={[styles.feedbackText, {color: theme.header}]}>
               {item.feedback}
             </Text>
-            <Text style={[styles.timestamp, {color: '#999'}]}>
+            <Text style={[styles.timestamp, {color: theme.text}]}>
               {formatTimestamp(item.created_at)}
             </Text>
           </View>
@@ -246,24 +287,17 @@ const Feedback = () => {
           <Header title="Feedback" onBackPress={() => navigation.goBack()} />
           {isLoading ? (
             <Animatable.Text
-              animation="fadeIn"
-              duration={800}
-              style={{
-                textAlign: 'center',
-                color: theme.text,
-                marginTop: hp(5),
-              }}>
+              animation="pulse"
+              easing="ease-out"
+              iterationCount="infinite"
+              style={[styles.loadingText, {color: theme.text}]}>
               Loading feedback...
             </Animatable.Text>
           ) : feedbackData.length === 0 ? (
             <Animatable.Text
               animation="fadeIn"
               duration={800}
-              style={{
-                textAlign: 'center',
-                color: theme.text,
-                marginTop: hp(5),
-              }}>
+              style={[styles.noFeedbackText, {color: theme.text}]}>
               No feedback available
             </Animatable.Text>
           ) : (
@@ -277,39 +311,61 @@ const Feedback = () => {
               keyExtractor={item => item.id.toString()}
               contentContainerStyle={styles.feedbackList}
               showsVerticalScrollIndicator={true}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={onRefresh}
+                  colors={[theme.status || '#00C4B4']}
+                  tintColor={theme.status || '#00C4B4'}
+                  title="Pull to refresh"
+                />
+              }
             />
           )}
-          {/* Feedback Section */}
-          <View style={[styles.createSection]}>
+          <View style={[styles.createSection, {backgroundColor: theme.bottom}]}>
             <Animatable.View
               animation="fadeInUp"
               duration={600}
-              style={[styles.section]}>
+              style={styles.section}>
               <TextInput
                 style={[
                   styles.noteInput,
-                  {color: theme.text, backgroundColor: theme.input},
+                  {
+                    color: theme.text,
+                    backgroundColor: theme.button,
+                    borderColor: theme.text,
+                  },
                 ]}
                 placeholder="Write feedback (required for reject)"
-                placeholderTextColor="#999"
+                placeholderTextColor={theme.text + '80'}
                 multiline
                 value={note}
                 onChangeText={setNote}
+                editable={!isSubmitting}
               />
             </Animatable.View>
             <View style={styles.buttonRow}>
               <TouchableOpacity
-                style={[styles.actionButton, styles.approveButton]}
+                style={[
+                  styles.actionButton,
+                  styles.approveButton,
+                  isSubmitting && styles.buttonDisabled,
+                ]}
                 onPress={() => handleAction('approve')}
-                disabled={isLoading}>
+                disabled={isSubmitting}>
                 <Animatable.View animation="bounceIn" duration={600}>
                   <Text style={styles.whiteButtonText}>Approve</Text>
                 </Animatable.View>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.actionButton, styles.rejectButton]}
+                style={[
+                  styles.actionButton,
+                  styles.rejectButton,
+                  {borderColor: theme.text},
+                  isSubmitting && styles.buttonDisabled,
+                ]}
                 onPress={() => handleAction('reject')}
-                disabled={isLoading}>
+                disabled={isSubmitting}>
                 <Animatable.View
                   animation="bounceIn"
                   duration={600}
@@ -321,6 +377,12 @@ const Feedback = () => {
               </TouchableOpacity>
             </View>
           </View>
+          <CustomModal
+            visible={modalVisible}
+            title={modalTitle}
+            message={modalMessage}
+            onClose={() => setModalVisible(false)}
+          />
         </View>
       </SafeAreaView>
     </View>
@@ -330,126 +392,141 @@ const Feedback = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#333',
   },
   container: {
     flex: 1,
-    paddingHorizontal: hp(2),
-    paddingVertical: hp(2),
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(3),
   },
   feedbackList: {
-    paddingBottom: hp(25),
+    paddingBottom: hp(30),
     paddingTop: hp(2),
     flexGrow: 1,
   },
   feedbackItem: {
-    marginVertical: hp(1),
+    marginVertical: hp(1.5),
+    borderRadius: wp(3),
   },
   customerFeedbackContainer: {
     alignItems: 'flex-start',
     paddingRight: wp(10),
   },
-  serviceProviderContainer: {
+  serviceProviderNoteContainer: {
     alignItems: 'flex-end',
-    paddingLeft: wp(10),
-    marginVertical: hp(2),
+    marginLeft: wp(10),
+    marginVertical: hp(1.5),
   },
   feedbackHeading: {
-    fontSize: wp(4),
-    fontWeight: 'bold',
-    marginBottom: hp(0.5),
-    color: '#999',
+    fontSize: wp(4.5),
+    fontWeight: '600',
+    marginBottom: hp(1),
+    opacity: 0.8,
   },
   feedbackBubble: {
-    maxWidth: wp(70),
-    padding: wp(3),
+    maxWidth: wp(75),
+    padding: wp(4),
+    borderRadius: wp(4),
   },
   customerBubble: {
-    backgroundColor: '#444',
-    borderTopRightRadius: wp(4),
-    borderBottomRightRadius: wp(20),
-    borderTopLeftRadius: 0,
-    borderBottomLeftRadius: wp(4),
+    borderTopRightRadius: wp(5),
+    borderBottomRightRadius: wp(5),
+    borderTopLeftRadius: wp(1),
+    borderBottomLeftRadius: wp(5),
   },
   providerBubble: {
-    backgroundColor: '#00C4B4',
-    borderTopLeftRadius: wp(4),
-    borderBottomLeftRadius: wp(4),
-    borderTopRightRadius: 0,
-    borderBottomRightRadius: wp(4),
+    borderTopLeftRadius: wp(5),
+    borderBottomLeftRadius: wp(5),
+    borderTopRightRadius: wp(1),
+    borderBottomRightRadius: wp(5),
   },
   feedbackText: {
-    fontSize: wp(4),
-    lineHeight: wp(5),
+    fontSize: wp(4.2),
+    lineHeight: wp(6),
+    fontWeight: '400',
   },
   timestamp: {
-    fontSize: wp(3),
-    color: '#666',
-    marginTop: hp(0.5),
+    fontSize: wp(3.5),
+    marginTop: hp(1),
     textAlign: 'right',
+    opacity: 0.6,
   },
   feedbackImageList: {
-    marginTop: hp(1),
-    marginBottom: hp(1),
-    maxHeight: hp(10),
+    marginTop: hp(1.5),
+    marginBottom: hp(1.5),
+    maxHeight: hp(15),
   },
   feedbackImage: {
-    width: wp(20),
-    height: hp(10),
-    marginRight: wp(2),
+    width: wp(25),
+    height: hp(15),
+    marginRight: wp(2.5),
     borderRadius: wp(2),
+    borderWidth: 1,
+    borderColor: '#00000020',
   },
   createSection: {
     position: 'absolute',
-    bottom: wp(8),
+    bottom: wp(6),
     left: wp(4),
     right: wp(4),
+    borderRadius: wp(3),
+    padding: wp(4),
   },
   section: {
     marginBottom: hp(2),
   },
   noteInput: {
-    borderRadius: wp(2),
+    borderRadius: wp(3),
     borderWidth: 1,
-    borderColor: '#666',
-    padding: wp(3),
-    fontSize: wp(4),
-    minHeight: hp(10),
+    padding: wp(4),
+    fontSize: wp(4.2),
+    minHeight: hp(12),
     textAlignVertical: 'top',
-    color: '#fff',
+    backgroundColor: '#ffffff10',
   },
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: wp(3),
+    gap: wp(4),
   },
   actionButton: {
     flex: 1,
-    paddingVertical: hp(1.5),
-    borderRadius: wp(2),
+    paddingVertical: hp(2),
+    borderRadius: wp(3),
     alignItems: 'center',
+    justifyContent: 'center',
   },
   approveButton: {
     backgroundColor: '#00C4B4',
   },
   rejectButton: {
-    backgroundColor: '#fff',
-    borderColor: '#00C4B4',
+    backgroundColor: 'transparent',
     borderWidth: 2,
   },
   whiteButtonText: {
     color: '#fff',
-    fontSize: wp(4.5),
-    fontWeight: '600',
+    fontSize: wp(4.8),
+    fontWeight: '700',
   },
   buttonText: {
-    fontSize: wp(4.5),
-    fontWeight: '600',
+    fontSize: wp(4.8),
+    fontWeight: '700',
   },
-  serviceProviderNoteContainer: {
-    alignItems: 'flex-end',
-    marginLeft: wp(10),
-    marginVertical: hp(1),
+  loadingText: {
+    textAlign: 'center',
+    fontSize: wp(4.5),
+    marginTop: hp(10),
+    fontWeight: '500',
+  },
+  noFeedbackText: {
+    textAlign: 'center',
+    fontSize: wp(4.5),
+    marginTop: hp(10),
+    fontWeight: '500',
+    opacity: 0.7,
+  },
+  buttonDisabled: {
+    opacity: 0.5,
+    backgroundColor: '#ccc',
   },
 });
 

@@ -56,4 +56,7 @@ export const styles = StyleSheet.create({
     borderRadius: 10,
     resizeMode: 'cover',
   },
+  loader: {
+    marginTop: 20,
+  },
 });

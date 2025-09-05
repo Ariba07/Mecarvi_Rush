@@ -7,11 +7,10 @@ import {
 } from '../../slice/Slice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
-import {Alert} from 'react-native';
-import {STORAGE_KEY} from '../login/types';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
+import {STORAGE_KEY} from '../login/types';
 
 type Plan = {
   id: string;
@@ -20,6 +19,15 @@ type Plan = {
   unit_amount: number;
   features: string[];
 };
+
+interface ActionResult {
+  success: boolean;
+  data?: any;
+  error?: {
+    title: string;
+    message: string;
+  };
+}
 
 const SUBSCRIPTION_HISTORY_KEY = '@subscription_history';
 
@@ -79,24 +87,38 @@ export const useSubscriptionLogic = () => {
     initializeSubscriptionState();
   }, [token, user, dispatch]);
 
-  const handleSubscriptionSubmit = async (paymentMethodId: string) => {
+  const handleSubscriptionSubmit = async (
+    paymentMethodId: string,
+  ): Promise<ActionResult> => {
     const selectedPlanData = plans.find(plan => plan.id);
     if (!selectedPlanData) {
-      Alert.alert('Error', 'Please select a valid plan.');
-      return;
+      return {
+        success: false,
+        error: {
+          title: 'Error',
+          message: 'Please select a valid plan.',
+        },
+      };
     }
 
     const planType = selectedPlanData.unit_amount === 0 ? 'free' : 'paid';
     if (planType === 'paid' && !paymentMethodId) {
-      Alert.alert('Error', 'Payment method is required for paid plans.');
-      return;
+      return {
+        success: false,
+        error: {
+          title: 'Error',
+          message: 'Payment method is required for paid plans.',
+        },
+      };
     }
     if (planType === 'free' && hasPreviousPaidPlan) {
-      Alert.alert(
-        'Error',
-        'You cannot select a free plan after having a paid plan.',
-      );
-      return;
+      return {
+        success: false,
+        error: {
+          title: 'Error',
+          message: 'You cannot select a free plan after having a paid plan.',
+        },
+      };
     }
 
     try {
@@ -153,19 +175,20 @@ export const useSubscriptionLogic = () => {
         await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
       }
 
-      Alert.alert(
-        'Success',
-        `Subscription ${
-          isFirstSubscription ? 'created' : 'updated'
-        } successfully!`,
-      );
       navigation.navigate('Drawer');
+      return {
+        success: true,
+        data: {subscriptionId},
+      };
     } catch (error: any) {
-      Alert.alert(
-        'Error',
-        error.message || 'An error occurred during subscription.',
-      );
       console.log('Subscription error:', error);
+      return {
+        success: false,
+        error: {
+          title: 'Error',
+          message: error.message || 'An error occurred during subscription.',
+        },
+      };
     }
   };
 

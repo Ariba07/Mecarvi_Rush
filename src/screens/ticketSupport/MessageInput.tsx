@@ -12,6 +12,7 @@ interface MessageInputProps {
   onSelectImages: () => void;
   onSendMessage: () => void;
   onClearImages: () => void;
+  isSending: boolean;
 }
 
 const MessageInput: React.FC<MessageInputProps> = ({
@@ -21,6 +22,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
   onSelectImages,
   onSendMessage,
   onClearImages,
+  isSending,
 }) => {
   const {theme} = React.useContext(ThemeContext);
 
@@ -33,8 +35,13 @@ const MessageInput: React.FC<MessageInputProps> = ({
         ]}>
         <TouchableOpacity
           onPress={onSelectImages}
-          style={styles.attachmentButton}>
-          <Icon name="attach-file" size={wp(6)} color="#fff" />
+          style={styles.attachmentButton}
+          disabled={isSending}>
+          <Icon
+            name="attach-file"
+            size={wp(6)}
+            color={isSending ? '#ccc' : '#fff'}
+          />
         </TouchableOpacity>
         <TextInput
           style={[
@@ -43,15 +50,20 @@ const MessageInput: React.FC<MessageInputProps> = ({
               backgroundColor: theme.whole || '#fff',
               color: theme.input || '#000',
             },
+            isSending && styles.inputDisabled,
           ]}
           value={newMessage}
           onChangeText={setNewMessage}
           placeholder="Type a message..."
           placeholderTextColor={theme.text ? theme.text + '80' : '#999'}
           multiline
+          editable={!isSending}
         />
-        <TouchableOpacity onPress={onSendMessage} style={styles.sendButton}>
-          <Icon name="send" size={wp(6)} color="#fff" />
+        <TouchableOpacity
+          onPress={onSendMessage}
+          style={[styles.sendButton, isSending && styles.sendButtonDisabled]}
+          disabled={isSending}>
+          <Icon name="send" size={wp(6)} color={isSending ? '#ccc' : '#fff'} />
         </TouchableOpacity>
       </View>
       {selectedImages.length > 0 && (
@@ -62,7 +74,8 @@ const MessageInput: React.FC<MessageInputProps> = ({
           </Text>
           <TouchableOpacity
             onPress={onClearImages}
-            style={styles.clearImagesButton}>
+            style={styles.clearImagesButton}
+            disabled={isSending}>
             <Text style={styles.clearImagesButtonText}>Clear</Text>
           </TouchableOpacity>
         </View>

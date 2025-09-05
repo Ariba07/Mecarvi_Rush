@@ -1,24 +1,30 @@
 /* eslint-disable react-native/no-inline-styles */
 import React from 'react';
-import {View, FlatList, Text} from 'react-native';
+import {View, FlatList, Text, RefreshControl} from 'react-native';
 import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
 import {Message} from '../../components/types/screenTypes/ScreenTypes';
 import {styles} from '../../assets/styles/disputes/DisputeChatStyles';
 import {heightPercentageToDP as hp} from 'react-native-responsive-screen';
-import * as Animatable from 'react-native-animatable'; // Import animatable
+import * as Animatable from 'react-native-animatable';
 
 interface MessageListProps {
   messages: Message[];
+  refreshing: boolean;
+  onRefresh: () => void;
 }
 
-const MessageList: React.FC<MessageListProps> = ({messages}) => {
+const MessageList: React.FC<MessageListProps> = ({
+  messages,
+  refreshing,
+  onRefresh,
+}) => {
   const {theme} = React.useContext(ThemeContext);
 
   const renderMessage = ({item, index}: {item: Message; index: number}) => (
     <Animatable.View
       animation="fadeInUp"
       duration={600}
-      delay={index * 100} // Staggered animation
+      delay={index * 100}
       style={[
         styles.messageContainer,
         item.isSent
@@ -82,6 +88,15 @@ const MessageList: React.FC<MessageListProps> = ({messages}) => {
       keyExtractor={item => item.id ?? ''}
       contentContainerStyle={styles.chatContainer}
       showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={[theme.status || '#00C4B4']}
+          tintColor={theme.status || '#00C4B4'}
+          title="Pull to refresh"
+        />
+      }
     />
   );
 };

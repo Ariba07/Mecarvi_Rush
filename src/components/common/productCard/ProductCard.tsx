@@ -46,17 +46,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
       <View style={styles.info}>
         <Text style={[styles.name, {color: theme.text}]}>{name}</Text>
 
-        {/* Ratings */}
-        {/* <View style={styles.ratingContainer}>
-          {Array(5)
-            .fill(0)
-            .map((_, index) => (
-              <Icon key={index} name="star" size={wp('4%')} color="#FFD700" />
-            ))}
-          <Text style={[styles.rating, {color: theme.text}]}>5.0</Text>
-        </View> */}
-
-        {/* Add to Cart Button */}
         <TouchableOpacity
           style={styles.cartButton}
           onPress={() => {

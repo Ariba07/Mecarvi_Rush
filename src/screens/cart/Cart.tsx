@@ -38,6 +38,8 @@ const Cart = () => {
   // Get cart items directly from Redux store
   const cartItems = useSelector(selectCart);
 
+  console.log(cartItems);
+
   // Functions to handle quantity changes and dispatch to Redux
   const increaseQuantity = (productUuid: string) => {
     dispatch(incrementQuantity(productUuid));

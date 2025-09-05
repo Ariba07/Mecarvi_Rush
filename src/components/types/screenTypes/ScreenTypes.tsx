@@ -1,3 +1,5 @@
+import {ImageData} from '../../../slice/Slice';
+
 // Define types for navigation params
 export type RootStackParamList = {
   Splash: undefined;
@@ -30,7 +32,7 @@ export type RootStackParamList = {
     participantNames: {[uuid: string]: string};
   };
   OrderDetails: undefined;
-  Review: {order_id: number};
+  Review: {order_id: number; name: string; image: string};
   Support: undefined;
   Profile: undefined;
   Points: undefined;
@@ -198,8 +200,8 @@ export interface CartItem {
   price: number;
   quantity: number;
   selectedColor?: string;
-  frontFile?: {uri: string};
-  backFile?: {uri: string};
+  frontFile?: ImageData;
+  backFile?: ImageData;
   orderNotes?: string;
   attributes: {[key: string]: string | undefined};
   deliveryPrice?: number;

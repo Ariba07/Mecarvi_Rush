@@ -244,7 +244,7 @@ export function initializeFCM(
         JSON.stringify(remoteMessage, null, 2),
       );
       await handleNotification(remoteMessage, navigation, dispatch);
-    });
+    }); 
 
     unsubscribeBackground = messaging.onNotificationOpenedApp(
       async remoteMessage => {
