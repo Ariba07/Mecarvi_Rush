@@ -18,13 +18,14 @@ import {useSelector} from 'react-redux';
 import {selectUserId} from '../../../store/authSlice';
 import {ThemeContext} from '@/context/ThemeContext';
 import CustomModal from '../../common/errorModal/CustomModal';
+import Config from 'react-native-config';
 
 interface AddressCreateProps {
   visible: boolean;
   onClose: () => void;
 }
 
-const GOOGLE_API_KEY = 'AIzaSyAU9bshzS-D9P2Equ-0HW9skO7Ro9wR9ZY';
+const GOOGLE_API_KEY = Config.GOOGLE_MAPS_API_KEY;
 const GEOCODE_API_URL = 'https://maps.google.com/maps/api/geocode/json';
 
 const AddressCreate: React.FC<AddressCreateProps> = ({visible, onClose}) => {

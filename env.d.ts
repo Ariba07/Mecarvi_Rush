@@ -9,6 +9,7 @@ declare module 'react-native-config' {
     FIREBASE_APP_ID_ANDROID: string;
     STRIPE_PUBLISHABLE_KEY: string;
     API_BASE_URL: string;
+    GOOGLE_MAPS_API_KEY: string;
   }
 
   export const Config: NativeConfig;
