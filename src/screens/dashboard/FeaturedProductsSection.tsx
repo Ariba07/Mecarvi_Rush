@@ -2,9 +2,9 @@
 import React from 'react';
 import {View, Text} from 'react-native';
 import * as Animatable from 'react-native-animatable';
-import {Productss} from '../../components/types/screenTypes/ScreenTypes';
+import {Productss} from '../../types/navigation';
 import ProductCard from '../../components/common/productCard/ProductCard';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {ThemeContext} from '../../context/ThemeContext';
 import {styles} from '../../assets/styles/dashboard/DashboardStyles';
 
 interface FeaturedProductsSectionProps {

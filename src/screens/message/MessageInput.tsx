@@ -1,7 +1,7 @@
 import React from 'react';
 import {View, TextInput, TouchableOpacity} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {ThemeContext} from '../../context/ThemeContext';
 import {widthPercentageToDP as wp} from 'react-native-responsive-screen';
 import {styles} from '../../assets/styles/messageScreen/MessageScreenStyles';
 

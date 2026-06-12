@@ -1,8 +1,8 @@
 import React from 'react';
 import {FlatList, TouchableOpacity, Text, View} from 'react-native';
 import BookingStyles from '../../assets/styles/booking/BookingStyles';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
-import {TimeSlot} from '../../components/types/screenTypes/ScreenTypes';
+import {ThemeContext} from '../../context/ThemeContext';
+import {TimeSlot} from '../../types/navigation';
 
 interface TimePickerProps {
   timeSlots: TimeSlot[];

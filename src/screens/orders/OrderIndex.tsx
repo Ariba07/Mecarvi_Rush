@@ -2,12 +2,12 @@ import React, {useCallback, useContext, useEffect, useState} from 'react';
 import {SafeAreaView, View} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
+import {RootStackParamList} from '../../types/navigation';
 import {useSelector} from 'react-redux';
-import {selectId, selectUserId, selectRole} from '../../slice/Slice';
+import {selectUserId} from '../../store/authSlice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
-import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
+import {ThemeContext} from '../../context/ThemeContext';
+import {apiHelper} from '../../services/api';
 import Header from '../../components/common/header/Header';
 import OrderList from './OrderList';
 import OrderModals from './OrderModals';
@@ -28,10 +28,7 @@ const Orders: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const {theme} = useContext(ThemeContext);
-  const reduxUserId = useSelector(selectId);
   const reduxCustomerId = useSelector(selectUserId);
-  const reduxRole = useSelector(selectRole);
-  const [role, setRole] = useState<string | null>(null);
   const [userId, setUserId] = useState<number | null>(null);
   const [selectedTab, setSelectedTab] = useState('All');
   const [orders, setOrders] = useState<Order[]>([]);
@@ -65,64 +62,30 @@ const Orders: React.FC = () => {
   const [modalTitle, setModalTitle] = useState<string>('Error');
 
   useEffect(() => {
-    const fetchRoleFromStorage = async () => {
-      try {
-        const savedCredentials = await AsyncStorage.getItem(STORAGE_KEY);
-        if (savedCredentials) {
-          const {role: storedRole} = JSON.parse(savedCredentials);
-          setRole(storedRole || reduxRole);
-        } else {
-          setRole(reduxRole);
-        }
-      } catch (error) {
-        setRole(reduxRole);
-      }
-    };
-    fetchRoleFromStorage();
-  }, [reduxRole]);
-
-  useEffect(() => {
     const getUserId = async () => {
       try {
         const credentials = await AsyncStorage.getItem(STORAGE_KEY);
         if (credentials) {
           const parsedCredentials = JSON.parse(credentials);
-          setUserId(
-            role === 'service_provider'
-              ? parsedCredentials.id
-              : parsedCredentials.userId,
-          );
+          setUserId(parsedCredentials.userId ?? reduxCustomerId ?? null);
         } else {
-          setUserId(
-            role === 'service_provider'
-              ? reduxUserId ?? null
-              : reduxCustomerId ?? null,
-          );
+          setUserId(reduxCustomerId ?? null);
         }
       } catch (error) {
-        setUserId(
-          role === 'service_provider'
-            ? reduxUserId ?? null
-            : reduxCustomerId ?? null,
-        );
+        setUserId(reduxCustomerId ?? null);
       }
     };
-    if (role) {
-      getUserId();
-    }
-  }, [role, reduxUserId, reduxCustomerId]);
+    getUserId();
+  }, [reduxCustomerId]);
 
   const fetchOrders = useCallback(async () => {
-    if (userId === null || !role) {
+    if (userId === null) {
       return;
     }
     setIsFirstLoad(true);
     setFetchOrdersError(null);
     try {
-      const endpoint =
-        role === 'service_provider'
-          ? 'service-provider/orders/getAll/?per_page=6&page=1'
-          : 'orders?per_page=6&page=1';
+      const endpoint = 'orders?per_page=6&page=1';
       const response = (await apiHelper({
         method: 'GET',
         endpoint,
@@ -138,7 +101,7 @@ const Orders: React.FC = () => {
       setFetchOrdersError(error.message || 'Failed to fetch orders');
       setIsFirstLoad(false);
     }
-  }, [userId, role]);
+  }, [userId]);
 
   const loadMore = useCallback(async () => {
     if (currentPage >= totalPages || isLoadingMore || loadMoreError) {
@@ -354,14 +317,13 @@ const Orders: React.FC = () => {
     <SafeAreaView style={[styles.safeArea, {backgroundColor: theme.whole}]}>
       <View style={styles.container}>
         <Header
-          title={role === 'service_provider' ? 'Orders Management' : 'Orders'}
+          title="Orders"
           onBackPress={() => navigation.goBack()}
         />
         <OrderList
           orders={orders}
           selectedTab={selectedTab}
           setSelectedTab={setSelectedTab}
-          role={role}
           isFirstLoad={isFirstLoad}
           fetchOrdersError={fetchOrdersError}
           refreshing={refreshing}
@@ -393,7 +355,6 @@ const Orders: React.FC = () => {
           orderForTracking={orderForTracking}
           orderForCancel={orderForCancel}
           orderForDispute={orderForDispute}
-          role={role}
           trackingStatuses={trackingStatuses}
           onCloseOrderModal={() => setSelectedOrder(null)}
           onCloseStatusModal={() => {

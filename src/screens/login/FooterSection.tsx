@@ -2,8 +2,8 @@ import React from 'react';
 import {View, Text, TouchableOpacity} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {RootStackParamList} from '../../types/navigation';
+import {ThemeContext} from '../../context/ThemeContext';
 import {styles} from '../../assets/styles/login/LoginStyles';
 
 const FooterSection: React.FC = () => {

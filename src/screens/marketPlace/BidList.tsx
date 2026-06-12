@@ -13,16 +13,16 @@ import {
   ApiResponse,
   BusinessProvider,
   Bid,
-} from '../../components/types/screenTypes/ScreenTypes';
+} from '../../types/navigation';
 import {useDispatch, useSelector} from 'react-redux';
 import {
   selectNotifyUuid,
   setQuoteUuid,
   setAcceptedBidDetails,
   setSourceType,
-} from '../../slice/Slice';
-import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+} from '../../store/authSlice';
+import {apiHelper} from '../../services/api';
+import {ThemeContext} from '../../context/ThemeContext';
 import Header from '../../components/common/header/Header';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import ProviderCard from './ProviderCard';

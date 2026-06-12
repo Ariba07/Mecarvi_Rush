@@ -6,9 +6,9 @@ import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {
   Message,
   RootStackParamList,
-} from '../../components/types/screenTypes/ScreenTypes';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
-import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
+} from '../../types/navigation';
+import {ThemeContext} from '../../context/ThemeContext';
+import {apiHelper} from '../../services/api';
 import {launchImageLibrary} from 'react-native-image-picker';
 import ImageResizer from 'react-native-image-resizer';
 import Header from '../../components/common/header/Header';
@@ -17,7 +17,7 @@ import MessageInput from './MessageInput';
 import {styles} from '../../assets/styles/disputes/DisputeChatStyles';
 import * as Animatable from 'react-native-animatable';
 import {useSelector} from 'react-redux';
-import {selectUserId} from '../../slice/Slice';
+import {selectUserId} from '../../store/authSlice';
 import {heightPercentageToDP as hp} from 'react-native-responsive-screen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {STORAGE_KEY} from '../login/types';

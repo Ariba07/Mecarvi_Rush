@@ -7,10 +7,10 @@ import {
   DateSlot,
   RootStackParamList,
   TimeSlot,
-} from '../../components/types/screenTypes/ScreenTypes';
+} from '../../types/navigation';
 import Header from '../../components/common/header/Header';
 import CustomButton from '../../components/common/buttons/CustomButton';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {ThemeContext} from '../../context/ThemeContext';
 import {useDispatch, useSelector} from 'react-redux';
 import {
   selectDeliveryCity,
@@ -19,7 +19,7 @@ import {
   setDeliveryTime,
   selectDeliveryDate,
   selectDeliveryTime,
-} from '../../slice/Slice';
+} from '../../store/authSlice';
 import BookingStyles from '../../assets/styles/booking/BookingStyles';
 import Tabs from './Tabs';
 import {DatePickerSection} from './DatePicker';

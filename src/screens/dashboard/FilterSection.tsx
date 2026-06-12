@@ -3,9 +3,9 @@ import {View, TouchableOpacity, Text} from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
+import {RootStackParamList} from '../../types/navigation';
 import Icon from 'react-native-vector-icons/Ionicons';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {ThemeContext} from '../../context/ThemeContext';
 import {styles} from '../../assets/styles/dashboard/DashboardStyles';
 
 interface FilterSectionProps {

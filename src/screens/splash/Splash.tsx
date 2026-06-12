@@ -2,7 +2,7 @@ import React, {useEffect} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
+import {RootStackParamList} from '../../types/navigation';
 import * as Animatable from 'react-native-animatable';
 
 const Splash = () => {

@@ -1,97 +1,226 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# Mecarvi Rush — Customer Mobile App
 
-# Getting Started
+A full-featured **React Native** marketplace application for print, embroidery, signage, and courier services. Customers can browse services, book orders, bid in a marketplace, chat in real time, track deliveries, and pay securely — all from one app.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+---
 
-## Step 1: Start Metro
+## Features
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+### Core
+- **Multi-role auth** — Customer and Service Provider flows with Firebase Authentication
+- **Onboarding & KYC** — ID card, photo, and business card upload for service providers
+- **Deep linking** — Password reset and payment callbacks via `mecarvirush://` scheme
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+### Marketplace & Shopping
+- **Product catalog** — Image sliders, attribute/size/color selectors, quantity picker, custom order notes
+- **Marketplace bidding** — Customers post requirements; providers submit bids; customer accepts
+- **Cart & Checkout** — Line items, delivery scheduling, address management, coupon/points redemption
+- **Multiple payment methods** — Stripe card payments, wallet balance, loyalty points
 
-```sh
-# Using npm
-npm start
+### Orders & Logistics
+- **Order lifecycle management** — Pending → Processing → Dispatched → Delivered states
+- **Delivery scheduling** — Date/time picker for service bookings
+- **Refund & dispute flow** — In-app dispute creation with dedicated chat thread
 
-# OR using Yarn
-yarn start
+### Communication
+- **Real-time chat** — Firebase Firestore-backed customer ↔ provider messaging
+- **Support tickets** — Create, track, and respond to support tickets in-app
+- **Push notifications** — FCM via `@notifee/react-native` with token management
+
+### User Experience
+- **Dark / Light theme** — Follows system preference, manual toggle available
+- **Loyalty points** — Earn on purchases, redeem at checkout
+- **Subscription plans** — Tiered provider subscriptions with Stripe billing
+- **Reviews & ratings** — Post-order feedback with star ratings
+- **Geolocation** — Location-aware delivery address creation
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Framework | React Native 0.77 (New Architecture) |
+| Language | TypeScript 5 |
+| Navigation | React Navigation 7 — Native Stack, Bottom Tabs, Drawer |
+| State | Redux Toolkit + Redux Persist (AsyncStorage) |
+| Backend / DB | Firebase Firestore |
+| Auth | Firebase Authentication |
+| Push Notifications | Firebase Cloud Messaging + Notifee |
+| Payments | Stripe React Native SDK |
+| Forms | Formik + Yup |
+| HTTP | Axios |
+| UI Primitives | React Native Elements, React Native Vector Icons |
+| Media | React Native Fast Image, Image Picker, Document Picker, Video |
+| Charts | React Native Pie Chart, Progress |
+| Animations | React Native Reanimated, Animatable |
+| Geolocation | React Native Geolocation Service |
+
+---
+
+## Project Structure
+
+```
+src/
+├── assets/
+│   ├── images/              # SVG & PNG assets
+│   └── styles/              # Per-screen StyleSheet modules (.ts, no JSX)
+├── components/
+│   ├── common/              # Reusable UI — Button, TextInput, Header, Modal, OrderCard…
+│   │   ├── address/         # Address creation component
+│   │   └── shopProfile/     # Provider profile sub-components (About, Reviews, Work…)
+│   ├── cardPayment/         # Stripe card payment modal
+│   ├── navigators/          # Bottom tabs & Drawer navigator setup
+│   └── tabIcons/            # Custom tab bar icon components
+├── context/
+│   └── ThemeContext.tsx     # Dark/Light theme context + system-preference listener
+├── hooks/                   # Custom React hooks
+├── screens/
+│   ├── login/ register/ forget/ verify/ upload/  # Auth & onboarding flow
+│   ├── dashboard/           # Home — banners, featured products, services, filters
+│   ├── product/ products/   # Product detail & catalog
+│   ├── cart/ checkout/      # Cart management, payment, address, scheduling
+│   ├── orders/              # Order list, detail, modals (cancel, refund, review)
+│   ├── marketPlace/         # Bid listing & provider cards
+│   ├── chat/ message/       # Chat list & real-time message threads (Firestore)
+│   ├── disputes/            # Dispute creation & chat
+│   ├── ticketSupport/       # Support ticket creation, list, chat
+│   ├── subscription/        # Plan cards & Stripe subscription logic
+│   ├── points/              # Rewards summary & redemption
+│   └── shop/                # Service provider shop profile
+├── services/
+│   ├── api.ts               # Axios wrapper with auth header injection
+│   ├── firebase.ts          # Firebase app, Firestore, Auth, Messaging init
+│   └── notifications.ts     # FCM token management & notification routing
+├── store/
+│   ├── authSlice.ts         # Redux slice — auth, cart, delivery, bidding, wallet state
+│   └── index.ts             # Configured Redux store + redux-persist setup
+├── types/
+│   ├── navigation.ts        # RootStackParamList + shared domain interfaces
+│   └── mockData.ts          # Static sample data (dev/demo use)
+└── utils/
+    ├── dateTime.ts          # Formatted date/time helpers
+    ├── location.ts          # US city/country lookup utility
+    ├── timeUtils.ts         # 12h ↔ 24h time format converter
+    └── validation.ts        # Yup validation schemas (register, customer)
 ```
 
-## Step 2: Build and run your app
-
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
-
-```sh
-# Using npm
-npm run android
-
-# OR using Yarn
-yarn android
+```
+App.tsx       # Root navigator, Stripe provider, deep link handler
+index.js      # React Native entry point
+.env          # Local secrets — never committed (see .env.example)
+.env.example  # Template for required environment variables
+env.d.ts      # TypeScript declarations for react-native-config
 ```
 
-### iOS
+---
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+## Getting Started
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+### Prerequisites
 
-```sh
-bundle install
+- Node >= 18
+- Ruby (for CocoaPods on iOS)
+- Xcode 15+ (iOS) / Android Studio (Android)
+- A Firebase project with **Authentication**, **Firestore**, and **Cloud Messaging** enabled
+- A Stripe account (test or live)
+
+### 1. Clone & install
+
+```bash
+git clone https://github.com/<your-username>/Mecarvi_Rush.git
+cd Mecarvi_Rush
+npm install
 ```
 
-Then, and every time you update your native dependencies, run:
+### 2. Configure environment variables
 
-```sh
-bundle exec pod install
+Copy the example file and fill in your own keys:
+
+```bash
+cp .env.example .env
 ```
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+See [Environment Variables](#environment-variables) below for details.
 
-```sh
-# Using npm
+### 3. iOS setup
+
+```bash
+bundle install          # install CocoaPods gem (first time only)
+bundle exec pod install # install native iOS dependencies
 npm run ios
-
-# OR using Yarn
-yarn ios
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+### 4. Android setup
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+```bash
+npm run android
+```
 
-## Step 3: Modify your app
+---
 
-Now that you have successfully run the app, let's make changes!
+## Environment Variables
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+Create a `.env` file at the project root (never commit it — it is in `.gitignore`):
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+```env
+# Firebase
+FIREBASE_API_KEY_IOS=your_ios_api_key
+FIREBASE_API_KEY_ANDROID=your_android_api_key
+FIREBASE_PROJECT_ID=your_project_id
+FIREBASE_STORAGE_BUCKET=your_project.firebasestorage.app
+FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+FIREBASE_APP_ID_IOS=your_ios_app_id
+FIREBASE_APP_ID_ANDROID=your_android_app_id
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+# Stripe
+STRIPE_PUBLISHABLE_KEY=pk_test_...
+```
 
-## Congratulations! :tada:
+> **Firebase:** Download the native config files from the Firebase console and place them at:
+> - `android/app/google-services.json`
+> - `ios/Mecarvi/GoogleService-Info.plist`
+>
+> The native SDKs read directly from these files; the JS-side `firebaseConfig` object is used only for web/Firestore initialisation.
 
-You've successfully run and modified your React Native App. :partying_face:
+---
 
-### Now what?
+## Architecture Notes
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
+### State Management
+A single Redux slice (`src/store/authSlice.ts`) manages all global state — user session, cart, delivery scheduling, bid details, and wallet/points. The store is configured in `src/store/index.ts`. Redux Persist hydrates the `cart` and `sourceType` fields from AsyncStorage on launch so cart contents survive restarts.
 
-# Troubleshooting
+### Navigation
+Three nested navigators mirror the app's UX hierarchy:
+1. **Root Native Stack** (`App.tsx`) — auth screens + all modal-style screens
+2. **Drawer** — wraps the main authenticated section
+3. **Bottom Tabs** — Dashboard, Orders, Chats, Cart (Cart hidden for Service Provider role)
 
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+### Real-time Chat
+All chat (customer ↔ provider, dispute threads, support tickets) is backed by **Firebase Firestore** with `onSnapshot` listeners for live updates. FCM tokens are managed centrally in `src/services/notifications.ts` and stored per-user in Firestore.
 
-# Learn More
+### Theme System
+A `ThemeContext` wraps the entire app. It reads `Appearance.getColorScheme()` on mount, listens for system changes, and exposes a `toggleTheme()` function for the in-app toggle. Screen-level styles consume the context rather than hard-coding colours.
 
-To learn more about React Native, take a look at the following resources:
+### Payments
+Stripe is initialised at the app root via `<StripeProvider>`. The checkout screen supports card payments (via `CardPaymentModal`), wallet balance, and loyalty points — each as a discrete selectable option.
 
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+---
+
+## Scripts
+
+```bash
+npm start         # Start Metro bundler
+npm run android   # Build and run on Android
+npm run ios       # Build and run on iOS
+npm run lint      # ESLint
+npm test          # Jest
+```
+
+---
+
+## Contributing
+
+1. Fork the repo and create a feature branch: `git checkout -b feature/my-feature`
+2. Commit with a descriptive message
+3. Open a pull request — describe what changed and why

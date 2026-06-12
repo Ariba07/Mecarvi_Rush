@@ -2,7 +2,7 @@
 import React from 'react';
 import {Text, TextInput} from 'react-native';
 import CustomButton from '../../components/common/buttons/CustomButton';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {ThemeContext} from '../../context/ThemeContext';
 import {styles} from '../../assets/styles/profile/ProfileStyles';
 import * as Animatable from 'react-native-animatable'; // Import animatable
 

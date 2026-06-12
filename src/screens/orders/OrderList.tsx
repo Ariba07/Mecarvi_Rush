@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   RefreshControl,
 } from 'react-native';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {ThemeContext} from '../../context/ThemeContext';
 import OrderCard from './OrderCard';
 import {Order, tabs} from './types';
 import {styles} from '../../assets/styles/orders/OrderStyles';
@@ -16,7 +16,6 @@ interface OrderListProps {
   orders: Order[];
   selectedTab: string;
   setSelectedTab: (tab: string) => void;
-  role: string | null;
   isFirstLoad: boolean;
   fetchOrdersError: string | null;
   refreshing: boolean;
@@ -34,7 +33,6 @@ const OrderList: React.FC<OrderListProps> = ({
   orders,
   selectedTab,
   setSelectedTab,
-  role,
   isFirstLoad,
   fetchOrdersError,
   refreshing,
@@ -122,7 +120,6 @@ const OrderList: React.FC<OrderListProps> = ({
           renderItem={({item}) => (
             <OrderCard
               order={item}
-              role={role}
               onOpenOrderModal={onOpenOrderModal}
               onOpenTrackingModal={onOpenTrackingModal}
               onOpenCancelModal={onOpenCancelModal}

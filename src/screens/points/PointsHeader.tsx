@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import * as Progress from 'react-native-progress';
 import Container from '../../assets/images/container.svg';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {ThemeContext} from '../../context/ThemeContext';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,

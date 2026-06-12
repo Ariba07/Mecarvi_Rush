@@ -15,7 +15,7 @@ import {
   ApiResponse,
   Productss,
   RootStackParamList,
-} from '../../components/types/screenTypes/ScreenTypes';
+} from '../../types/navigation';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -23,8 +23,8 @@ import {
 import Header from '../../components/common/header/Header';
 import ProductCard from '../../components/common/productCard/ProductCard';
 import {Icon} from 'react-native-elements';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
-import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
+import {ThemeContext} from '../../context/ThemeContext';
+import {apiHelper} from '../../services/api';
 
 const Search: React.FC = () => {
   const navigation =

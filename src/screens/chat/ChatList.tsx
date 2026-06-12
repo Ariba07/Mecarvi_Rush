@@ -2,11 +2,11 @@ import React from 'react';
 import {FlatList, TouchableOpacity, Text} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {ThemeContext} from '../../context/ThemeContext';
 import {
   Chat,
   RootStackParamList,
-} from '../../components/types/screenTypes/ScreenTypes';
+} from '../../types/navigation';
 import {styles} from '../../assets/styles/chats/ChatsStyles';
 
 interface ChatListProps {

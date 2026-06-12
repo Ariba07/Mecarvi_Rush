@@ -1,10 +1,10 @@
 import React from 'react';
 import {View, Text, TouchableOpacity} from 'react-native';
 import {useDispatch} from 'react-redux';
-import {setSourceType} from '../../slice/Slice';
+import {setSourceType} from '../../store/authSlice';
 import {styles} from '../../assets/styles/product/Product';
-import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
-import {CartItem} from '../../components/types/screenTypes/ScreenTypes';
+import {apiHelper} from '../../services/api';
+import {CartItem} from '../../types/navigation';
 
 interface ActionButtonsProps {
   handleChooseForMe: () => void;

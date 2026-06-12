@@ -2,7 +2,7 @@
 import React from 'react';
 import {View, FlatList, Text, TouchableOpacity} from 'react-native';
 import GiftBox from '../../assets/images/GiftBox.svg';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {ThemeContext} from '../../context/ThemeContext';
 import {Order} from './types';
 import {widthPercentageToDP as wp} from 'react-native-responsive-screen';
 import {styles} from '../../assets/styles/points/PointsStyles';

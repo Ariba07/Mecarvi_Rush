@@ -1,5 +1,5 @@
-import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
-import {convertTo24HourFormat} from '../../components/helperUtils/timeFormat/TimeUtils';
+import {apiHelper} from '../../services/api';
+import {convertTo24HourFormat} from '@/utils/timeUtils';
 import {UserCard} from './types';
 
 interface CreateOrderParams {

@@ -22,12 +22,12 @@ import CustomButton from '../../components/common/buttons/CustomButton';
 import CustomTextInput from '../../components/common/textInput/CustomTextInput';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
+import {RootStackParamList} from '../../types/navigation';
 import {useDispatch} from 'react-redux';
 import {Formik} from 'formik';
-import {registerCustomerValidationSchema} from '../../components/helperUtils/validations/validationSchema';
-import {updateCustomerField} from '../../slice/Slice';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {registerCustomerValidationSchema} from '@/utils/validation';
+import {updateCustomerField} from '../../store/authSlice';
+import {ThemeContext} from '../../context/ThemeContext';
 
 const {width, height} = Dimensions.get('window');
 

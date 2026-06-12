@@ -8,17 +8,17 @@ import {
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
+import {RootStackParamList} from '../../types/navigation';
 import {useDispatch, useSelector} from 'react-redux';
 import {
   selectUserName,
   selectUserUuidId,
   setProfileImage,
-} from '../../slice/Slice';
+} from '../../store/authSlice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {launchImageLibrary} from 'react-native-image-picker';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
-import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
+import {ThemeContext} from '../../context/ThemeContext';
+import {apiHelper} from '../../services/api';
 import Header from '../../components/common/header/Header';
 import ProfileHeader from './ProfileHeader';
 import ProfileForm from './ProfileForm';

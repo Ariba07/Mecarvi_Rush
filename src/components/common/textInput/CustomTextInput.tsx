@@ -14,7 +14,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
-import {ThemeContext} from '../../helperUtils/theme/ThemeContext';
+import {ThemeContext} from '../../../context/ThemeContext';
 import * as Animatable from 'react-native-animatable';
 import PhoneInput from 'react-native-phone-number-input';
 

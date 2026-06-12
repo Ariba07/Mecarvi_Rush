@@ -6,12 +6,12 @@ import {
 } from 'react-native-responsive-screen';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
+import {RootStackParamList} from '../../types/navigation';
 import CustomButton from '../../components/common/buttons/CustomButton';
 import Success from '../../assets/images/Success.svg';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {ThemeContext} from '../../context/ThemeContext';
 import {useSelector} from 'react-redux';
-import {selectTotalPrice} from '../../slice/Slice';
+import {selectTotalPrice} from '../../store/authSlice';
 
 const Receipt: React.FC = () => {
   const navigation =

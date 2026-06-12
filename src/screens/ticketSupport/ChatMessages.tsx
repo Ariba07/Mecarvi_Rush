@@ -1,10 +1,10 @@
 /* eslint-disable react-native/no-inline-styles */
 import React from 'react';
 import {View, Text, FlatList, Image, RefreshControl} from 'react-native';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {ThemeContext} from '../../context/ThemeContext';
 import {heightPercentageToDP as hp} from 'react-native-responsive-screen';
-import {Message} from '../../components/types/screenTypes/ScreenTypes';
-import {styles} from '../../assets/styles/ticket/TicketSTyles';
+import {Message} from '../../types/navigation';
+import {styles} from '../../assets/styles/ticket/TicketStyles';
 
 interface ChatMessagesProps {
   messages: Message[];

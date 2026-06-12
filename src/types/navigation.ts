@@ -1,6 +1,5 @@
-import {ImageData} from '../../../slice/Slice';
+import {ImageData} from '@/store/authSlice';
 
-// Define types for navigation params
 export type RootStackParamList = {
   Splash: undefined;
   OnBoard: undefined;
@@ -46,7 +45,7 @@ export type RootStackParamList = {
   Checkout: undefined;
   Receipt: undefined;
   MarketPlace: {productId: number};
-  ShopProfile: {fromBid: boolean; providerId: string};
+  ShopProfile: {fromBid: boolean; providerId: string; shopUuid?: string};
   AcceptBid: undefined;
   Ticket: {ticketId: number; ticketUuid: string};
   Feedback: {order_id: number};
@@ -63,6 +62,7 @@ export type RootStackParamList = {
   Disputes: undefined;
   DisputeChat: {disputeId: number; disputeUuid: string};
 };
+
 export interface Productss {
   id: number;
   product_uuid: string;
@@ -88,6 +88,7 @@ export interface Productss {
   updated_at: string;
   featured_image?: string | null;
 }
+
 export interface Products {
   id: number;
   product_uuid: string;
@@ -206,10 +207,11 @@ export interface CartItem {
   attributes: {[key: string]: string | undefined};
   deliveryPrice?: number;
 }
+
 export interface DateSlot {
   day: string;
   date: number;
-  fullDate: string; // YYYY-MM-DD
+  fullDate: string;
 }
 
 export interface TimeSlot {

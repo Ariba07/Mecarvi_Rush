@@ -7,7 +7,7 @@ import {
 } from 'react-native-responsive-screen';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Watch from '../../../assets/images/Watch.svg';
-import {ThemeContext} from '../theme/ThemeContext';
+import {ThemeContext} from '@/context/ThemeContext';
 import CustomButton from '../../common/buttons/CustomButton';
 
 const AboutUs = () => {

@@ -4,12 +4,12 @@ import {
   selectToken,
   selectSubscriptionStatus,
   setSubscriptionStatus,
-} from '../../slice/Slice';
+} from '../../store/authSlice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
+import {apiHelper} from '../../services/api';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
+import {RootStackParamList} from '../../types/navigation';
 import {STORAGE_KEY} from '../login/types';
 
 type Plan = {

@@ -16,17 +16,17 @@ import {
 } from 'react-native-responsive-screen';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
+import {RootStackParamList} from '../../types/navigation';
 import Header from '../../components/common/header/Header';
 import CustomButton from '../../components/common/buttons/CustomButton';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {ThemeContext} from '../../context/ThemeContext';
 import {useSelector, useDispatch} from 'react-redux';
 import {
   selectCart,
   incrementQuantity,
   decrementQuantity,
   setTotalPrice,
-} from '../../slice/Slice';
+} from '../../store/authSlice';
 import * as Animatable from 'react-native-animatable'; // Import react-native-animatable
 
 const Cart = () => {

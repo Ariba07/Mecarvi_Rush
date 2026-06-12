@@ -20,9 +20,9 @@ import CustomButton from '../../components/common/buttons/CustomButton';
 import CustomTextInput from '../../components/common/textInput/CustomTextInput';
 import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
-import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {RootStackParamList} from '../../types/navigation';
+import {apiHelper} from '../../services/api';
+import {ThemeContext} from '../../context/ThemeContext';
 
 const {width, height} = Dimensions.get('window'); // Get screen dimensions
 type PasswordResetRouteParams = {

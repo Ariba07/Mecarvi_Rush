@@ -2,8 +2,8 @@ import React from 'react';
 import {FlatList, TouchableOpacity, Text, View} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import BookingStyles from '../../assets/styles/booking/BookingStyles';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
-import {DateSlot} from '../../components/types/screenTypes/ScreenTypes';
+import {ThemeContext} from '../../context/ThemeContext';
+import {DateSlot} from '../../types/navigation';
 
 interface DatePickerProps {
   dateSlots: DateSlot[];

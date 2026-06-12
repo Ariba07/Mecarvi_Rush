@@ -16,15 +16,15 @@ import {
 } from 'react-native-responsive-screen';
 import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
+import {RootStackParamList} from '../../types/navigation';
 import Header from '../../components/common/header/Header';
 import {Svg, Path} from 'react-native-svg';
 import CustomButton from '../../components/common/buttons/CustomButton';
 import {TouchableWithoutFeedback} from 'react-native';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
-import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
+import {ThemeContext} from '../../context/ThemeContext';
+import {apiHelper} from '../../services/api';
 import {useSelector} from 'react-redux';
-import {selectUserId} from '../../slice/Slice';
+import {selectUserId} from '../../store/authSlice';
 type ReviewRouteProp = RouteProp<RootStackParamList, 'Review'>;
 
 const Review = () => {

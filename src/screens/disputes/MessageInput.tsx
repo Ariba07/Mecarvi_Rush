@@ -2,7 +2,7 @@ import React from 'react';
 import {View, TextInput, TouchableOpacity, Text} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {widthPercentageToDP as wp} from 'react-native-responsive-screen';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {ThemeContext} from '../../context/ThemeContext';
 import {styles} from '../../assets/styles/disputes/DisputeChatStyles';
 import * as Animatable from 'react-native-animatable';
 

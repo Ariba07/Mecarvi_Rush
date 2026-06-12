@@ -19,9 +19,9 @@ import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {
   ApiResponse,
   RootStackParamList,
-} from '../../components/types/screenTypes/ScreenTypes';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
-import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
+} from '../../types/navigation';
+import {ThemeContext} from '../../context/ThemeContext';
+import {apiHelper} from '../../services/api';
 import Header from '../../components/common/header/Header';
 import * as Animatable from 'react-native-animatable';
 import CustomModal from '../../components/common/errorModal/CustomModal';

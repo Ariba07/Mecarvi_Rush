@@ -1,11 +1,11 @@
 /* eslint-disable react-native/no-inline-styles */
 import React from 'react';
 import {Modal, View, Text, TouchableOpacity, ScrollView} from 'react-native';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {ThemeContext} from '../../context/ThemeContext';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
-import {Order, OrderDetail, statusOptions} from './types';
+import {RootStackParamList} from '../../types/navigation';
+import {Order, OrderDetail} from './types';
 
 import {styles} from '../../assets/styles/orders/OrderStyles';
 import * as Animatable from 'react-native-animatable';
@@ -20,7 +20,6 @@ interface OrderModalsProps {
   orderForTracking: string | null;
   orderForCancel: string | null;
   orderForDispute: number | null;
-  role: string | null;
   trackingStatuses: {
     [key: string]: {
       status: string;
@@ -47,7 +46,6 @@ const OrderModals: React.FC<OrderModalsProps> = ({
   orderForTracking,
   orderForCancel,
   orderForDispute,
-  role,
   trackingStatuses,
   onCloseOrderModal,
   onCloseStatusModal,
@@ -134,63 +132,6 @@ const OrderModals: React.FC<OrderModalsProps> = ({
           </Animatable.View>
         </View>
       </Modal>
-      {/* Status Update Modal (Service Provider Only) */}
-      {role === 'service_provider' && (
-        <Modal
-          animationType="fade"
-          transparent={true}
-          visible={statusModalVisible}
-          onRequestClose={onCloseStatusModal}>
-          <View style={styles.modalOverlay}>
-            <Animatable.View
-              animation="zoomIn"
-              duration={400}
-              style={[
-                styles.modalContent,
-                {backgroundColor: theme.backgroundColor},
-              ]}>
-              <Text style={[styles.modalTitle, {color: theme.text}]}>
-                Update Status
-              </Text>
-              <View style={styles.statusCirclesContainer}>
-                {statusOptions.map(status => (
-                  <TouchableOpacity
-                    key={status}
-                    style={styles.statusCircleWrapper}
-                    onPress={() =>
-                      onUpdateOrderStatus(orderForStatusUpdate!, status)
-                    }>
-                    <View
-                      style={[
-                        styles.statusCircle,
-                        {
-                          backgroundColor:
-                            trackingStatuses[orderForStatusUpdate!]?.status ===
-                            status
-                              ? theme.status
-                              : 'transparent',
-                          borderColor: theme.text,
-                        },
-                      ]}
-                    />
-                    <Text
-                      style={[styles.statusCircleText, {color: theme.text}]}>
-                      {status.charAt(0).toUpperCase() + status.slice(1)}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-              <Animatable.View animation="bounceIn" duration={600}>
-                <TouchableOpacity
-                  style={[styles.closeButton, {backgroundColor: theme.status}]}
-                  onPress={onCloseStatusModal}>
-                  <Text style={styles.closeButtonText}>Cancel</Text>
-                </TouchableOpacity>
-              </Animatable.View>
-            </Animatable.View>
-          </View>
-        </Modal>
-      )}
       {/* Tracking Status Modal */}
       <Modal
         animationType="fade"
@@ -221,9 +162,8 @@ const OrderModals: React.FC<OrderModalsProps> = ({
           </Animatable.View>
         </View>
       </Modal>
-      {/* Cancel Order Modal (Customer Only) */}
-      {role === 'customer' && (
-        <Modal
+      {/* Cancel Order Modal */}
+      <Modal
           animationType="fade"
           transparent={true}
           visible={cancelModalVisible}
@@ -267,10 +207,8 @@ const OrderModals: React.FC<OrderModalsProps> = ({
             </Animatable.View>
           </View>
         </Modal>
-      )}
-      {/* Dispute Modal (Customer Only, Completed Orders) */}
-      {role === 'customer' && (
-        <Modal
+      {/* Dispute Modal */}
+      <Modal
           animationType="fade"
           transparent={true}
           visible={disputeModalVisible}
@@ -320,7 +258,6 @@ const OrderModals: React.FC<OrderModalsProps> = ({
             </Animatable.View>
           </View>
         </Modal>
-      )}
     </>
   );
 };

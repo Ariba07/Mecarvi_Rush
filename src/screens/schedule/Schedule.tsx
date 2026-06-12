@@ -14,12 +14,12 @@ import {
 } from 'react-native-responsive-screen';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
+import {RootStackParamList} from '../../types/navigation';
 import Header from '../../components/common/header/Header';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import CustomButton from '../../components/common/buttons/CustomButton';
-import getFormattedDateTime from '../../components/helperUtils/dateTimeUtils/DateTime';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import getFormattedDateTime from '@/utils/dateTime';
+import {ThemeContext} from '../../context/ThemeContext';
 import {useSelector, useDispatch} from 'react-redux';
 import {
   selectDefaultCity,
@@ -27,7 +27,7 @@ import {
   setAddressType,
   setDeliveryDate,
   setDeliveryTime,
-} from '../../slice/Slice';
+} from '../../store/authSlice';
 
 // Define interface for the formatted date and time
 interface FormattedDateTime {

@@ -1,7 +1,7 @@
 import React from 'react';
 import {View, Text, TouchableOpacity} from 'react-native';
 import * as Animatable from 'react-native-animatable';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {ThemeContext} from '../../context/ThemeContext';
 import {ImageData} from './types';
 import {styles} from '../../assets/styles/verifyScreen/VerifyScreenStyles';
 

@@ -10,15 +10,15 @@ import {
 import * as Animatable from 'react-native-animatable';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
+import {RootStackParamList} from '../../types/navigation';
 import {useDispatch} from 'react-redux';
-import {setUser, setProfileImage} from '../../slice/Slice';
+import {setUser, setProfileImage} from '../../store/authSlice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
-import {auth} from '../../../FirebaseConfig';
+import {ThemeContext} from '../../context/ThemeContext';
+import {auth} from '../../services/firebase';
 import {signInWithCustomToken} from '@react-native-firebase/auth';
-import {initializeFCM} from '../../components/helperUtils/notifications/FCMTokenManager';
-import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
+import {initializeFCM} from '@/services/notifications';
+import {apiHelper} from '../../services/api';
 import LoginForm from './LoginForm';
 import FooterSection from './FooterSection';
 import {STORAGE_KEY, TOKEN_KEY, UserData, ApiResponse} from './types';
@@ -89,17 +89,7 @@ const Login: React.FC = () => {
         data: values,
       });
       const {data, meta} = response;
-      const isCustomer = data.roles?.includes('customer');
-      const roles = isCustomer ? data.roles : data.user?.roles;
-      if (roles?.includes('service_provider')) {
-        return {
-          success: false,
-          error: {
-            title: 'Login Error',
-            message: 'Service providers cannot log in here.',
-          },
-        };
-      }
+      const roles = data.roles;
       if (!meta.firebase_token) {
         throw new Error('No Firebase token received from backend');
       }
@@ -109,14 +99,12 @@ const Login: React.FC = () => {
         meta.firebase_token,
       );
       const firebaseUid = userCredential.user.uid;
-      const userId = isCustomer ? data.id : data.user?.id;
-      const name = isCustomer ? data.full_name : data.service_provider_name;
-      const userUuid = isCustomer ? data.user_uuid : data.user?.user_uuid;
-      const subscriptionStatus = isCustomer
-        ? data.subscription_status
-        : data.user?.subscription_status;
+      const userId = data.id;
+      const name = data.full_name;
+      const userUuid = data.user_uuid;
+      const subscriptionStatus = data.subscription_status;
       const userData: UserData = {
-        role: roles?.[0] || 'unknown',
+        role: roles?.[0] || 'customer',
         userId: userId || 0,
         token: meta.token,
         firebaseUid,
@@ -126,11 +114,6 @@ const Login: React.FC = () => {
         pointsUsed: data.wallet?.points_used || 0,
         subscriptionStatus: subscriptionStatus || '',
         user_uuid: userUuid || '',
-        ...(roles?.includes('service_provider') && {
-          serviceProviderUuid: data.service_provider_uuid,
-          servicesOffered: data.services_offered,
-          id: data.id,
-        }),
       };
       dispatch(setUser(userData));
       const profileImage = data.image || null;
@@ -150,11 +133,6 @@ const Login: React.FC = () => {
             pointsUsed: data.wallet?.points_used,
             subscriptionStatus,
             name,
-            ...(roles?.includes('service_provider') && {
-              serviceProviderUuid: data.service_provider_uuid,
-              servicesOffered: data.services_offered,
-              id: data.id,
-            }),
           }),
         );
       } else {

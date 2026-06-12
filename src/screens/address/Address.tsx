@@ -14,21 +14,21 @@ import * as Animatable from 'react-native-animatable';
 import Header from '../../components/common/header/Header';
 import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
+import {RootStackParamList} from '../../types/navigation';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import {Svg, Circle} from 'react-native-svg';
-import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
-import AddressCreate from '../../components/helperUtils/address/AddressCreate';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {apiHelper} from '../../services/api';
+import AddressCreate from '../../components/common/address/AddressCreate';
+import {ThemeContext} from '../../context/ThemeContext';
 import {useDispatch} from 'react-redux';
 import {
   setAddressId,
   setDefaultAddressDetails,
   setDeliveryAddressDetails,
-} from '../../slice/Slice';
+} from '../../store/authSlice';
 
 type AddressRouteProp = RouteProp<RootStackParamList, 'Address'>;
 

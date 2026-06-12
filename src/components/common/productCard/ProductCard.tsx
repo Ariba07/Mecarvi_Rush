@@ -7,10 +7,10 @@ import {
 } from 'react-native-responsive-screen';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../types/screenTypes/ScreenTypes';
-import {ThemeContext} from '../../helperUtils/theme/ThemeContext';
+import {RootStackParamList} from '@/types/navigation';
+import {ThemeContext} from '../../../context/ThemeContext';
 import {useDispatch} from 'react-redux';
-import {setProductUuid} from '../../../slice/Slice';
+import {setProductUuid} from '../../../store/authSlice';
 
 interface ProductCardProps {
   productUuid: string; // Explicitly pass product_uuid as a prop

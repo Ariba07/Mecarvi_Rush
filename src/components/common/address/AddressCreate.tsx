@@ -13,10 +13,10 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import CustomTextInput from '../../common/textInput/CustomTextInput';
-import {apiHelper} from '../apiHelper/ApiHelper';
+import {apiHelper} from '@/services/api';
 import {useSelector} from 'react-redux';
-import {selectUserId} from '../../../slice/Slice';
-import {ThemeContext} from '../theme/ThemeContext';
+import {selectUserId} from '../../../store/authSlice';
+import {ThemeContext} from '@/context/ThemeContext';
 import CustomModal from '../../common/errorModal/CustomModal';
 
 interface AddressCreateProps {

@@ -13,12 +13,12 @@ import {
 } from 'react-native-responsive-screen';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
+import {RootStackParamList} from '../../types/navigation';
 import Header from '../../components/common/header/Header';
 import SupportIcon from '../../assets/images/Support.svg';
 import MailIcon from '../../assets/images/Mail.svg';
 import {Icon} from 'react-native-elements';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {ThemeContext} from '../../context/ThemeContext';
 import * as Animatable from 'react-native-animatable'; // Import animatable
 
 const Support = () => {

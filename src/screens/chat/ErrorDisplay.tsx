@@ -1,6 +1,6 @@
 import React from 'react';
 import {Text} from 'react-native';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {ThemeContext} from '../../context/ThemeContext';
 import {styles} from '../../assets/styles/chats/ChatsStyles';
 
 interface ErrorDisplayProps {

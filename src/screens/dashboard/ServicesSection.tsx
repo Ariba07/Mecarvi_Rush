@@ -4,10 +4,10 @@ import {View, FlatList, TouchableOpacity, Image, Text} from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
+import {RootStackParamList} from '../../types/navigation';
 import {useDispatch} from 'react-redux';
-import {setServiceUuid} from '../../slice/Slice';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {setServiceUuid} from '../../store/authSlice';
+import {ThemeContext} from '../../context/ThemeContext';
 import {styles} from '../../assets/styles/dashboard/DashboardStyles';
 
 interface Category {

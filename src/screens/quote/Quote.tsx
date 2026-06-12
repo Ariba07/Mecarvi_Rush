@@ -7,8 +7,8 @@ import {
 import Success from '../../assets/images/Success.svg';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {RootStackParamList} from '../../types/navigation';
+import {ThemeContext} from '../../context/ThemeContext';
 
 const Quote = () => {
   const navigation =

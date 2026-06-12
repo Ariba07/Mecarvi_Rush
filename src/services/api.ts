@@ -1,7 +1,8 @@
 import axios, {AxiosRequestConfig, AxiosResponse} from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Config from 'react-native-config';
 
-export const API_BASE_URL = 'https://rush-backend.codelab.pk/public/';
+export const API_BASE_URL = Config.API_BASE_URL;
 
 if (!API_BASE_URL) {
   throw new Error('API_BASE_URL is not defined in the environment variables.');
@@ -10,8 +11,8 @@ if (!API_BASE_URL) {
 interface RequestOptions {
   method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   endpoint: string;
-  data?: Record<string, unknown> | FormData; // Allow FormData for file uploads
-  token?: string; // Optional token (can be from Redux or elsewhere)
+  data?: Record<string, unknown> | FormData;
+  token?: string;
 }
 
 export const apiHelper = async <T,>({
@@ -22,7 +23,6 @@ export const apiHelper = async <T,>({
 }: RequestOptions): Promise<T> => {
   const url = `${API_BASE_URL}${endpoint}`;
 
-  // Use provided token, or fall back to AsyncStorage if no token is passed
   const authToken = token || (await AsyncStorage.getItem('userToken'));
 
   const config: AxiosRequestConfig = {
@@ -36,7 +36,6 @@ export const apiHelper = async <T,>({
     data: method !== 'GET' ? data : undefined,
   };
 
-  // Add Authorization header if token exists
   if (authToken) {
     config.headers = {...config.headers, Authorization: `Bearer ${authToken}`};
   }
@@ -61,6 +60,6 @@ export const apiHelper = async <T,>({
     } else {
       console.warn(`Request Error [${method} ${endpoint}]:`, error.message);
     }
-    throw error; // Re-throw for caller to handle
+    throw error;
   }
 };

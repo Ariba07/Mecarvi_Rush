@@ -2,14 +2,13 @@ import React, {useContext, useEffect, useState} from 'react';
 import {SafeAreaView, View, Text, ScrollView} from 'react-native';
 import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
+import {RootStackParamList} from '../../types/navigation';
 import {useDispatch, useSelector} from 'react-redux';
 import {
-  selectServiceProviderUuid,
   selectUserUuidId,
   selectUserName,
   setDispatchId,
-} from '../../slice/Slice';
+} from '../../store/authSlice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   collection,
@@ -18,8 +17,8 @@ import {
   getDocs,
   addDoc,
 } from '@react-native-firebase/firestore';
-import {db} from '../../../FirebaseConfig';
-import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
+import {db} from '../../services/firebase';
+import {apiHelper} from '../../services/api';
 import Header from '../../components/common/header/Header';
 import CustomButton from '../../components/common/buttons/CustomButton';
 import ProfileSection from './ProfileSection';
@@ -30,7 +29,7 @@ import {
   ReviewItem,
   getUserFriendlyMessage,
 } from './types';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {ThemeContext} from '../../context/ThemeContext';
 import {widthPercentageToDP as wp} from 'react-native-responsive-screen';
 import {styles} from '../../assets/styles/shopProfile/ShopProfileStyles';
 
@@ -40,9 +39,9 @@ const ShopProfile: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute<Prop>();
-  const {fromBid, providerId} = route.params;
+  const {fromBid, providerId, shopUuid} = route.params;
   const {theme} = useContext(ThemeContext);
-  const serviceProviderUuid = useSelector(selectServiceProviderUuid);
+  const serviceProviderUuid = shopUuid;
   const reduxUserUuid = useSelector(selectUserUuidId);
   const username = useSelector(selectUserName);
   const dispatch = useDispatch();

@@ -3,7 +3,7 @@ import {View, Text, TouchableOpacity} from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import {Icon} from 'react-native-elements';
 import {widthPercentageToDP as wp} from 'react-native-responsive-screen';
-import { styles } from './Styles';
+import { styles } from './styles';
 
 type Plan = {
   id: string;

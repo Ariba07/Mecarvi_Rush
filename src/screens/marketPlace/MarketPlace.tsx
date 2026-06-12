@@ -14,13 +14,13 @@ import {
 } from 'react-native-responsive-screen';
 import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
+import {RootStackParamList} from '../../types/navigation';
 import Header from '../../components/common/header/Header';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
-import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
+import {ThemeContext} from '../../context/ThemeContext';
+import {apiHelper} from '../../services/api';
 import {useDispatch} from 'react-redux';
-import {setMarketPlaceUuid, setServiceProviderUuid} from '../../slice/Slice';
+import {setMarketPlaceUuid} from '../../store/authSlice';
 
 type Prop = RouteProp<RootStackParamList, 'MarketPlace'>;
 
@@ -84,13 +84,12 @@ const MarketPlace: React.FC = () => {
           navigation.navigate('ShopProfile', {
             fromBid: false,
             providerId: item.service_provider_user_uuid,
+            shopUuid: item.service_provider_uuid,
           });
           dispatch(setMarketPlaceUuid(item.marketplace_uuid));
         } else {
           console.warn('Provider ID is undefined');
         }
-        dispatch(setServiceProviderUuid(item.service_provider_uuid));
-        console.log(item.service_provider_user_uuid);
       }}>
       <Image
         source={{uri: item.logo}}

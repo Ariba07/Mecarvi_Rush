@@ -13,7 +13,7 @@ import {
 } from 'react-native-responsive-screen';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
+import {RootStackParamList} from '../../types/navigation';
 import Profile from '../../assets/images/Profile.svg';
 import Stars from '../../assets/images/Stars.svg';
 import List from '../../assets/images/List.svg';
@@ -23,12 +23,12 @@ import Log from '../../assets/images/Log.svg';
 import Service from '../../assets/images/Service.svg';
 import Dispute from '../../assets/images/Dispute.svg';
 import {Icon} from 'react-native-elements';
-import {clearUser} from '../../slice/Slice';
+import {clearUser} from '../../store/authSlice';
 import {useDispatch} from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {ThemeContext} from '../../context/ThemeContext';
 import Theme from '../../assets/images/Theme.svg';
-import {clearFCMToken} from '../../components/helperUtils/notifications/FCMTokenManager';
+import {clearFCMToken} from '@/services/notifications';
 
 const Settings = () => {
   const navigation =

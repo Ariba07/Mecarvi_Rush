@@ -1,8 +1,8 @@
 /* eslint-disable react-native/no-inline-styles */
 import React from 'react';
 import {View, FlatList, Text, RefreshControl} from 'react-native';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
-import {Message} from '../../components/types/screenTypes/ScreenTypes';
+import {ThemeContext} from '../../context/ThemeContext';
+import {Message} from '../../types/navigation';
 import {styles} from '../../assets/styles/disputes/DisputeChatStyles';
 import {heightPercentageToDP as hp} from 'react-native-responsive-screen';
 import * as Animatable from 'react-native-animatable';

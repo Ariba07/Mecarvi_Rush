@@ -14,7 +14,7 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import CustomButton from '../../common/buttons/CustomButton';
-import {ThemeContext} from '../theme/ThemeContext';
+import {ThemeContext} from '@/context/ThemeContext';
 
 const services = [
   {id: '1', title: 'Business Cards', price: 220},

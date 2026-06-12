@@ -2,11 +2,9 @@
 import React from 'react';
 import {View, TouchableOpacity, Image, Text} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import {useDispatch} from 'react-redux';
-import {setServiceProviderUuid} from '../../slice/Slice';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {ThemeContext} from '../../context/ThemeContext';
 import {widthPercentageToDP as wp} from 'react-native-responsive-screen';
-import {BusinessProvider} from '../../components/types/screenTypes/ScreenTypes';
+import {BusinessProvider} from '../../types/navigation';
 import {styles} from '../../assets/styles/bidList/BidListStyles';
 
 interface ProviderCardProps {
@@ -25,7 +23,6 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
   isAnyBidAccepted,
 }) => {
   const {theme} = React.useContext(ThemeContext);
-  const dispatch = useDispatch();
   const isAccepted = item.quote_bid_uuid === acceptedBidUuid;
   const isDisabled = isAnyBidAccepted && !isAccepted;
 
@@ -53,11 +50,6 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
         onPress={() => {
           console.warn(
             'Cannot navigate to ShopProfile: service_provider_user_uuid is undefined',
-          );
-          dispatch(
-            setServiceProviderUuid(
-              item.service_provider_uuid || item.quote_bid_uuid,
-            ),
           );
         }}
         disabled={isDisabled}>

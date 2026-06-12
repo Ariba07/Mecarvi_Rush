@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import {useDispatch} from 'react-redux';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {styles} from '../../assets/styles/product/Product';
-import {addToCart, setSourceType} from '../../slice/Slice';
+import {addToCart, setSourceType} from '../../store/authSlice';
 import ActionButtons from './ActionButtons';
 import AttributeSelector from './AttributeSelector';
 import ColorSelector from './ColorSelector';

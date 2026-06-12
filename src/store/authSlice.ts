@@ -1,5 +1,5 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
-import {CartItem} from '../components/types/screenTypes/ScreenTypes';
+import {CartItem} from '@/types/navigation';
 
 export interface ImageData {
   uri: string;
@@ -10,7 +10,6 @@ export interface ImageData {
   height?: number;
 }
 
-// Define the type for accepted bid details
 export interface AcceptedBid {
   product_id: number;
   quantity: number;
@@ -36,8 +35,6 @@ export interface AuthState {
   service_uuid: string;
   product_uuid: string;
   cart: CartItem[];
-  service_provider_uuid: string;
-  servicesOffered?: string[];
   latitude?: number;
   longitude?: number;
   defaultCity: string | null;
@@ -60,9 +57,9 @@ export interface AuthState {
   pointsEarned?: number;
   pointsUsed?: number;
   subscriptionStatus?: string;
-  acceptedBids: AcceptedBid[]; // Updated to store an array of accepted bids
+  acceptedBids: AcceptedBid[];
   quote_uuid?: string;
-  profileImage: string | null; // Add this field
+  profileImage: string | null;
 }
 
 export const initialState: AuthState = {
@@ -80,8 +77,6 @@ export const initialState: AuthState = {
   product_uuid: '',
   cart: [],
   user_uuid: '',
-  service_provider_uuid: '',
-  servicesOffered: [],
   latitude: 0,
   longitude: 0,
   defaultCity: null,
@@ -102,9 +97,9 @@ export const initialState: AuthState = {
   walletBalance: 0,
   pointsEarned: 0,
   pointsUsed: 0,
-  acceptedBids: [], // Initialize as an empty array
+  acceptedBids: [],
   quote_uuid: '',
-  profileImage: null, // Initialize as null
+  profileImage: null,
 };
 
 const authSlice = createSlice({
@@ -175,9 +170,6 @@ const authSlice = createSlice({
     setQuoteUuid: (state, action: PayloadAction<string>) => {
       state.quote_uuid = action.payload;
     },
-    setServiceProviderUuid: (state, action: PayloadAction<string>) => {
-      state.service_provider_uuid = action.payload;
-    },
     setDeliveryDate(state, action: PayloadAction<string | null>) {
       state.deliveryDate = action.payload;
     },
@@ -185,7 +177,6 @@ const authSlice = createSlice({
       state.deliveryTime = action.payload;
     },
     setProfileImage: (state, action: PayloadAction<string | null>) => {
-      // New reducer
       state.profileImage = action.payload;
     },
     setAcceptedBidDetails: (state, action: PayloadAction<AcceptedBid>) => {
@@ -195,11 +186,9 @@ const authSlice = createSlice({
           bid.servicer_id === action.payload.servicer_id,
       );
       if (existingBidIndex !== -1) {
-        // If the bid for this product_id and servicer_id exists, increment the quantity
         state.acceptedBids[existingBidIndex].quantity +=
           action.payload.quantity;
       } else {
-        // Otherwise, add the new bid details to the array
         state.acceptedBids.push({
           ...action.payload,
           quantity: action.payload.quantity || 1,
@@ -213,8 +202,6 @@ const authSlice = createSlice({
         userId: number;
         token: string;
         firebaseUid: string;
-        serviceProviderUuid?: string;
-        servicesOffered?: string[];
         username?: string;
         userUuid?: string;
         id?: number;
@@ -228,8 +215,6 @@ const authSlice = createSlice({
       state.user_id = action.payload.userId;
       state.token = action.payload.token;
       state.user_uuid = action.payload.firebaseUid;
-      state.service_provider_uuid = action.payload.serviceProviderUuid || '';
-      state.servicesOffered = action.payload.servicesOffered || [];
       state.username = action.payload.username || '';
       state.userUuid = action.payload.userUuid || '';
       state.id = action.payload.id || 0;
@@ -247,8 +232,6 @@ const authSlice = createSlice({
       state.token = '';
       state.cart = [];
       state.user_uuid = '';
-      state.service_provider_uuid = '';
-      state.servicesOffered = [];
       state.notifyUuid = '';
       state.sourceType = '';
       state.addressType = '';
@@ -258,7 +241,7 @@ const authSlice = createSlice({
       state.walletBalance = 0;
       state.pointsEarned = 0;
       state.pointsUsed = 0;
-      state.acceptedBids = []; // Reset the accepted bids array
+      state.acceptedBids = [];
       state.quote_uuid = '';
     },
     addToCart: (state, action: PayloadAction<CartItem>) => {
@@ -347,11 +330,7 @@ export const selectNotifyUuid = (state: {auth: AuthState}) =>
   state.auth.notifyUuid;
 export const selectQuoteUuid = (state: {auth: AuthState}) =>
   state.auth.quote_uuid;
-export const selectServiceProviderUuid = (state: {auth: AuthState}) =>
-  state.auth.service_provider_uuid;
 export const selectCart = (state: {auth: AuthState}) => state.auth.cart;
-export const selectServicesOffered = (state: {auth: AuthState}) =>
-  state.auth.servicesOffered;
 export const selectDefaultCity = (state: {auth: AuthState}) =>
   state.auth.defaultCity;
 export const selectDefaultCountry = (state: {auth: AuthState}) =>
@@ -377,9 +356,10 @@ export const selectDeliveryDate = (state: {auth: AuthState}) =>
 export const selectDeliveryTime = (state: {auth: AuthState}) =>
   state.auth.deliveryTime;
 export const selectAcceptedBidDetails = (state: {auth: AuthState}) =>
-  state.auth.acceptedBids; // Updated to return the array
+  state.auth.acceptedBids;
 export const selectProfileImage = (state: {auth: AuthState}) =>
-  state.auth.profileImage; // New selector
+  state.auth.profileImage;
+
 export const {
   setDeliveryDate,
   setDeliveryTime,
@@ -397,7 +377,6 @@ export const {
   decrementQuantity,
   removeFromCart,
   clearCart,
-  setServiceProviderUuid,
   setDefaultAddressDetails,
   setDeliveryAddressDetails,
   setNotifyUuid,

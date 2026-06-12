@@ -3,8 +3,8 @@ import React from 'react';
 import {View, TouchableOpacity, Text, Image} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {widthPercentageToDP as wp} from 'react-native-responsive-screen';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
-import {PaymentOption} from '../../components/types/screenTypes/ScreenTypes';
+import {ThemeContext} from '../../context/ThemeContext';
+import {PaymentOption} from '../../types/navigation';
 import {styles} from '../../assets/styles/checkout/CheckoutStyles';
 
 interface PaymentOptionsProps {

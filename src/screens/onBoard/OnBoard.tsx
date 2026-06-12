@@ -12,12 +12,12 @@ import {
 import {useNavigation} from '@react-navigation/native';
 import {Icon} from 'react-native-elements';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
+import {RootStackParamList} from '../../types/navigation';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {ThemeContext} from '../../context/ThemeContext';
 
 const OnboardingScreen: React.FC = () => {
   const navigation =

@@ -15,10 +15,10 @@ import {
 } from 'react-native-responsive-screen';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
-import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
+import {RootStackParamList} from '../../types/navigation';
+import {apiHelper} from '../../services/api';
 import Header from '../../components/common/header/Header';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {ThemeContext} from '../../context/ThemeContext';
 import CustomModal from '../../components/common/errorModal/CustomModal';
 
 type NavigationProp = NativeStackNavigationProp<

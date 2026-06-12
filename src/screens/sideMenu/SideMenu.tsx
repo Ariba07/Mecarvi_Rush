@@ -15,7 +15,7 @@ import {
 } from 'react-native-responsive-screen';
 import Edit from '../../assets/images/Edit.svg';
 import Points from '../../assets/images/Points.svg';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {ThemeContext} from '../../context/ThemeContext';
 import Settings from '../settings/Settings';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useSelector} from 'react-redux';
@@ -23,10 +23,10 @@ import {
   selectPointsEarned,
   selectProfileImage,
   selectUserName,
-} from '../../slice/Slice';
+} from '../../store/authSlice';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
+import {RootStackParamList} from '../../types/navigation';
 
 const STORAGE_KEY = '@login_credentials';
 

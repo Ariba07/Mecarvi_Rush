@@ -6,8 +6,6 @@ export interface UserData {
   token: string;
   firebaseUid: string;
   username: string;
-  serviceProviderUuid?: string;
-  servicesOffered?: string[];
   user_uuid?: string;
   id?: number;
   walletBalance?: number;
@@ -18,24 +16,9 @@ export interface UserData {
 
 export interface ApiResponse {
   data: {
-    user?: {
-      id: number;
-      roles: string[];
-      user_uuid: string;
-      subscription_status: string;
-      wallet: {
-        id: number;
-        balance: number;
-        points_earned: number;
-        points_used: number;
-      };
-    };
     id?: number;
     roles?: string[];
     full_name?: string;
-    service_provider_name?: string;
-    service_provider_uuid?: string;
-    services_offered?: string[];
     user_uuid?: string;
     subscription_status?: string;
     wallet?: {

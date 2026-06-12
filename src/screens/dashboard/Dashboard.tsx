@@ -10,12 +10,12 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import * as Animatable from 'react-native-animatable';
-import {Productss} from '../../components/types/screenTypes/ScreenTypes';
+import {Productss} from '../../types/navigation';
 import {widthPercentageToDP as wp} from 'react-native-responsive-screen';
-import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {apiHelper} from '../../services/api';
+import {ThemeContext} from '../../context/ThemeContext';
 import {useSelector} from 'react-redux';
-import {selectDefaultCity, selectDefaultCountry} from '../../slice/Slice';
+import {selectDefaultCity, selectDefaultCountry} from '../../store/authSlice';
 import HeaderTabs from './HeaderTabs';
 import FilterSection from './FilterSection';
 import BannerSection from './BannerSection';

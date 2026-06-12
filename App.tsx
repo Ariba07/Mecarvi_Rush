@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {RootStackParamList} from './src/components/types/screenTypes/ScreenTypes';
+import {RootStackParamList} from './src/types/navigation';
 import {
   createNativeStackNavigator,
   NativeStackNavigationProp,
@@ -52,16 +52,14 @@ import CreateTicket from './src/screens/ticketSupport/CreateTicket';
 import Ticket from './src/screens/ticketSupport/Ticket';
 
 import Verify from './src/screens/verification/Verify';
-import {store, persistor} from './Store';
-import {ThemeProvider} from './src/components/helperUtils/theme/ThemeContext';
+import {store, persistor} from './src/store';
+import {ThemeProvider} from './src/context/ThemeContext';
 import {Card} from './src/screens/upload/Card';
 import {Photo} from './src/screens/upload/Photo';
 import Upload from './src/screens/upload/Upload';
+import Config from 'react-native-config';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
-
-const STRIPE_KEY =
-  'pk_test_51R2R3sQGkbRqDEDibvMt3ZizRgvwrFvgYMYsxSUEM6PEBv0adSrxBLdvJWgG5bvOHUwhZcAX3QeKTXxO06dvfTSH00KrElXiGO';
 
 const linking: LinkingOptions<RootStackParamList> = {
   prefixes: [
@@ -218,7 +216,7 @@ const App: React.FC = () => {
   return (
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
-        <StripeProvider publishableKey={STRIPE_KEY}>
+        <StripeProvider publishableKey={Config.STRIPE_PUBLISHABLE_KEY}>
           <ThemeProvider>
             <NavigationContainer linking={linking}>
               <StatusBar

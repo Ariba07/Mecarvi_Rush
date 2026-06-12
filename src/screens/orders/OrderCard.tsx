@@ -1,10 +1,10 @@
 import React from 'react';
 import {View, Text, TouchableOpacity} from 'react-native';
 import {Icon} from 'react-native-elements';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {ThemeContext} from '../../context/ThemeContext';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
+import {RootStackParamList} from '../../types/navigation';
 import {Order, formatDate} from './types';
 import {widthPercentageToDP as wp} from 'react-native-responsive-screen';
 import {styles} from '../../assets/styles/orders/OrderStyles';
@@ -12,7 +12,6 @@ import * as Animatable from 'react-native-animatable';
 
 interface OrderCardProps {
   order: Order;
-  role: string | null;
   onOpenOrderModal: (order: Order) => void;
   onOpenTrackingModal: (orderUuid: string) => void;
   onOpenCancelModal: (orderUuid: string) => void;
@@ -21,7 +20,6 @@ interface OrderCardProps {
 
 const OrderCard: React.FC<OrderCardProps> = ({
   order,
-  role,
   onOpenOrderModal,
   onOpenTrackingModal,
   onOpenCancelModal,
@@ -46,38 +44,34 @@ const OrderCard: React.FC<OrderCardProps> = ({
               <Text style={[styles.orderNumber, {color: theme.text}]}>
                 {order.order_number}
               </Text>
-              {role === 'customer' && (
-                <>
-                  {(order.status === 'Pending' ||
-                    order.status === 'Processing') && (
-                    <TouchableOpacity
-                      style={styles.menuButton}
-                      onPress={() => onOpenCancelModal(order.order_uuid)}>
-                      <Animatable.View animation="bounceIn" duration={500}>
-                        <Icon
-                          name="ellipsis-vertical-outline"
-                          size={wp(5)}
-                          color={theme.text}
-                          type="ionicon"
-                        />
-                      </Animatable.View>
-                    </TouchableOpacity>
-                  )}
-                  {order.status === 'Completed' && (
-                    <TouchableOpacity
-                      style={styles.menuButton}
-                      onPress={() => onOpenDisputeModal(order.id)}>
-                      <Animatable.View animation="bounceIn" duration={500}>
-                        <Icon
-                          name="ellipsis-vertical-outline"
-                          size={wp(5)}
-                          color={theme.text}
-                          type="ionicon"
-                        />
-                      </Animatable.View>
-                    </TouchableOpacity>
-                  )}
-                </>
+              {(order.status === 'Pending' ||
+                order.status === 'Processing') && (
+                <TouchableOpacity
+                  style={styles.menuButton}
+                  onPress={() => onOpenCancelModal(order.order_uuid)}>
+                  <Animatable.View animation="bounceIn" duration={500}>
+                    <Icon
+                      name="ellipsis-vertical-outline"
+                      size={wp(5)}
+                      color={theme.text}
+                      type="ionicon"
+                    />
+                  </Animatable.View>
+                </TouchableOpacity>
+              )}
+              {order.status === 'Completed' && (
+                <TouchableOpacity
+                  style={styles.menuButton}
+                  onPress={() => onOpenDisputeModal(order.id)}>
+                  <Animatable.View animation="bounceIn" duration={500}>
+                    <Icon
+                      name="ellipsis-vertical-outline"
+                      size={wp(5)}
+                      color={theme.text}
+                      type="ionicon"
+                    />
+                  </Animatable.View>
+                </TouchableOpacity>
               )}
             </View>
             <View style={styles.statusPriceRow}>
@@ -105,7 +99,7 @@ const OrderCard: React.FC<OrderCardProps> = ({
                   </Text>
                 </TouchableOpacity>
               </Animatable.View>
-              {order.status === 'Completed' && role === 'customer' && (
+              {order.status === 'Completed' && (
                 <Animatable.View
                   animation="bounceIn"
                   duration={600}
@@ -129,7 +123,7 @@ const OrderCard: React.FC<OrderCardProps> = ({
                   </TouchableOpacity>
                 </Animatable.View>
               )}
-              {order.order_proofs !== 0 && role === 'customer' && (
+              {order.order_proofs !== 0 && (
                 <Animatable.View
                   animation="bounceIn"
                   duration={600}

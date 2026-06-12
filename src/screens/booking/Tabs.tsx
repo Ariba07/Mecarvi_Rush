@@ -1,9 +1,9 @@
 import React from 'react';
 import {View, TouchableOpacity, Text} from 'react-native';
 import {useDispatch} from 'react-redux';
-import {setAddressType} from '../../slice/Slice';
+import {setAddressType} from '../../store/authSlice';
 import BookingStyles from '../../assets/styles/booking/BookingStyles';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {ThemeContext} from '../../context/ThemeContext';
 
 interface TabsProps {
   selectedTab: 'pickup' | 'delivery';

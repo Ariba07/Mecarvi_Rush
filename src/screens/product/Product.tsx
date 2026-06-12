@@ -9,11 +9,11 @@ import {
   ApiResponse,
   Attribute,
   Products,
-} from '../../components/types/screenTypes/ScreenTypes';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+} from '../../types/navigation';
+import {ThemeContext} from '../../context/ThemeContext';
 import {useSelector} from 'react-redux';
-import {selectProductUuid} from '../../slice/Slice';
-import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
+import {selectProductUuid} from '../../store/authSlice';
+import {apiHelper} from '../../services/api';
 import Header from '../../components/common/header/Header';
 import {styles} from '../../assets/styles/product/Product';
 import {Animated} from 'react-native';

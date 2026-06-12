@@ -6,7 +6,7 @@ import {
   Chat,
   Message,
   RootStackParamList,
-} from '../../components/types/screenTypes/ScreenTypes';
+} from '../../types/navigation';
 import {
   collection,
   query,
@@ -15,11 +15,11 @@ import {
   orderBy,
   limit,
 } from '@react-native-firebase/firestore';
-import {db, auth} from '../../../FirebaseConfig';
+import {db, auth} from '../../services/firebase';
 import Header from '../../components/common/header/Header';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {ThemeContext} from '../../context/ThemeContext';
 import {useSelector, useDispatch} from 'react-redux';
-import {selectUserUuidId} from '../../slice/Slice';
+import {selectUserUuidId} from '../../store/authSlice';
 import ChatList from './ChatList';
 import ErrorDisplay from './ErrorDisplay';
 import {styles} from '../../assets/styles/chats/ChatsStyles';

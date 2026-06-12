@@ -14,7 +14,7 @@ import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {
   PaymentOption,
   RootStackParamList,
-} from '../../components/types/screenTypes/ScreenTypes';
+} from '../../types/navigation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useDispatch, useSelector} from 'react-redux';
 import {
@@ -32,8 +32,8 @@ import {
   selectSubscriptionStatus,
   selectTotalPrice,
   selectWalletBalance,
-} from '../../slice/Slice';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+} from '../../store/authSlice';
+import {ThemeContext} from '../../context/ThemeContext';
 import Header from '../../components/common/header/Header';
 import CustomButton from '../../components/common/buttons/CustomButton';
 import PaymentOptions from './PaymentOptions';
@@ -252,7 +252,7 @@ const Checkout: React.FC = () => {
           delivery,
         );
         if (paymentResult.success) {
-          await new Promise(resolve => setTimeout(resolve, 3000));
+          await new Promise<void>(resolve => setTimeout(() => resolve(), 3000));
           navigation.navigate('Receipt');
           dispatch(clearCart());
         } else {
@@ -317,7 +317,7 @@ const Checkout: React.FC = () => {
         delivery,
       );
       if (paymentResult.success) {
-        await new Promise(resolve => setTimeout(resolve, 3000));
+        await new Promise<void>(resolve => setTimeout(() => resolve(), 3000));
         navigation.navigate('Receipt');
         dispatch(clearCart());
       } else {

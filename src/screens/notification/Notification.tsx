@@ -10,17 +10,17 @@ import React, {useContext, useEffect, useState} from 'react';
 import Header from '../../components/common/header/Header';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
+import {RootStackParamList} from '../../types/navigation';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import {TouchableOpacity} from 'react-native';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {ThemeContext} from '../../context/ThemeContext';
 import {Icon} from 'react-native-elements';
-import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
+import {apiHelper} from '../../services/api';
 import {useDispatch, useSelector} from 'react-redux';
-import {selectToken, setNotifyUuid} from '../../slice/Slice';
+import {selectToken, setNotifyUuid} from '../../store/authSlice';
 
 type NotificationItem = {
   id: string;

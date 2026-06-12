@@ -6,7 +6,7 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import {ThemeContext} from '../theme/ThemeContext';
+import {ThemeContext} from '@/context/ThemeContext';
 
 type Review = {
   id: string;

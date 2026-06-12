@@ -17,12 +17,12 @@ import {
   updateCard,
   updateCnic,
   updatePhoto,
-} from '../../slice/Slice';
+} from '../../store/authSlice';
 import CustomButton from '../../components/common/buttons/CustomButton';
-import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
+import {RootStackParamList} from '../../types/navigation';
 import axios from 'axios';
-import {API_BASE_URL} from '../../components/helperUtils/apiHelper/ApiHelper';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {API_BASE_URL} from '../../services/api';
+import {ThemeContext} from '../../context/ThemeContext';
 import ImageCapture from './ImageCapture';
 import {styles} from '../../assets/styles/verifyScreen/VerifyScreenStyles';
 import {VerifyScreenProps} from './types';

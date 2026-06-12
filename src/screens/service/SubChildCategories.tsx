@@ -12,16 +12,16 @@ import {
 import React, {useCallback, useContext, useEffect, useState} from 'react';
 import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
+import {RootStackParamList} from '../../types/navigation';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import Header from '../../components/common/header/Header';
-import {apiHelper} from '../../components/helperUtils/apiHelper/ApiHelper';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {apiHelper} from '../../services/api';
+import {ThemeContext} from '../../context/ThemeContext';
 import {useDispatch} from 'react-redux';
-import {setServiceUuid} from '../../slice/Slice';
+import {setServiceUuid} from '../../store/authSlice';
 import * as Animatable from 'react-native-animatable';
 
 type CategoryRouteProp = RouteProp<RootStackParamList, 'SubChildCategories'>;

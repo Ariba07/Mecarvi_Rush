@@ -1,4 +1,4 @@
-import {CartItem} from '../../components/types/screenTypes/ScreenTypes';
+import {CartItem} from '../../types/navigation';
 
 interface ActionResult {
   success: boolean;

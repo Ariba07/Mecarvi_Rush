@@ -17,7 +17,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
-import {ThemeContext} from '../helperUtils/theme/ThemeContext';
+import {ThemeContext} from '../../context/ThemeContext';
 import CustomModal from '../common/errorModal/CustomModal';
 
 interface CardPaymentBottomSheetProps {

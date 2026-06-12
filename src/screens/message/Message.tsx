@@ -9,10 +9,10 @@ import {
 } from 'react-native';
 import {RouteProp, useRoute, useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../components/types/screenTypes/ScreenTypes';
+import {RootStackParamList} from '../../types/navigation';
 import {useSelector} from 'react-redux';
-import {selectUserUuidId} from '../../slice/Slice';
-import {db, auth} from '../../../FirebaseConfig';
+import {selectUserUuidId} from '../../store/authSlice';
+import {db, auth} from '../../services/firebase';
 import {
   collection,
   orderBy,
@@ -22,7 +22,7 @@ import {
   serverTimestamp,
 } from '@react-native-firebase/firestore';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import {ThemeContext} from '../../components/helperUtils/theme/ThemeContext';
+import {ThemeContext} from '../../context/ThemeContext';
 import {widthPercentageToDP as wp} from 'react-native-responsive-screen';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
